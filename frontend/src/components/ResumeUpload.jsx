@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Upload, FileText, CheckCircle2, AlertCircle, X, Loader2, Sparkles } from 'lucide-react';
 import Card from './ui/Card';
 import Button from './ui/Button';
@@ -11,6 +11,7 @@ const ResumeUpload = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -68,9 +69,10 @@ const ResumeUpload = () => {
 
       <Card className="p-10 border-2 border-dashed border-gray-200 bg-gray-50/30 hover:border-primary/30 transition-smooth">
         <div 
+          onClick={!file && !success ? () => fileInputRef.current?.click() : undefined}
           onDragOver={(e) => e.preventDefault()}
           onDrop={onDrop}
-          className="flex flex-col items-center justify-center py-12"
+          className={`flex flex-col items-center justify-center py-12 ${!file && !success ? 'cursor-pointer' : ''}`}
         >
           {!file && !success && (
             <>
@@ -80,17 +82,18 @@ const ResumeUpload = () => {
               <p className="text-lg font-semibold text-gray-900 mb-1">Drag and drop your resume here</p>
               <p className="text-gray-500 text-sm mb-8">Support PDF files up to 10MB</p>
               
-              <label className="cursor-pointer">
+              <div>
                 <input 
                   type="file" 
+                  ref={fileInputRef}
                   className="hidden" 
                   accept=".pdf" 
                   onChange={handleFileChange}
                 />
-                <Button variant="secondary" className="px-8 shadow-sm">
+                <Button variant="secondary" className="px-8 shadow-sm pointer-events-none">
                   Browse Files
                 </Button>
-              </label>
+              </div>
             </>
           )}
 

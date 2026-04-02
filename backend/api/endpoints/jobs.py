@@ -18,7 +18,8 @@ async def sync_jobs(background_tasks: BackgroundTasks, db: Session = Depends(get
     background_tasks.add_task(job_fetcher.sync_jobs, db)
     return {"message": "Job synchronization started in the background."}
 
-@router.get("/", response_model=List[JobResponse])
+@router.get("", response_model=List[JobResponse])
+@router.get("/", response_model=List[JobResponse], include_in_schema=False)
 async def get_jobs(db: Session = Depends(get_db)):
     jobs = db.query(Job).all()
     

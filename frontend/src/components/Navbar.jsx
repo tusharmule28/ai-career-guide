@@ -19,7 +19,7 @@ const Navbar = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Job Matches', href: '/jobs', icon: Briefcase },
     { name: 'Resume Analysis', href: '/resume-upload', icon: FileText },
   ];

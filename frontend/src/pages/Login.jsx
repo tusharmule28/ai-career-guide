@@ -23,7 +23,7 @@ const Login = () => {
     try {
       const data = await api.login(email, password);
       login({ email }, data.access_token);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -43,6 +43,12 @@ const Login = () => {
         </div>
 
         <Card className="p-8">
+          <div className="mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-800">
+            <p className="font-semibold mb-1 flex items-center gap-2"><Sparkles size={16}/> Demo Credentials</p>
+            <p>Email: <strong>admin@example.com</strong></p>
+            <p>Password: <strong>admin123</strong></p>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <Input
               label="Email Address"

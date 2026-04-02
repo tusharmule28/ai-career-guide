@@ -6,7 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Jobs from './pages/Jobs';
-import ResumeUploadPage from './components/ResumeUpload'; // Assuming it's a page component now
+import ResumeUploadPage from './components/ResumeUpload';
+import Home from './pages/Home';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -30,10 +31,12 @@ const AppContent = () => {
       <Navbar />
       <main>
         <Routes>
-          <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
-          <Route path="/signup" element={user ? <Navigate to="/" /> : <Signup />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+          <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup />} />
           
-          <Route path="/" element={
+          <Route path="/" element={<Home />} />
+
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
