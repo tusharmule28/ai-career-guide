@@ -48,6 +48,14 @@ def create_application() -> FastAPI:
         expose_headers=["*"],
     )
 
+    @app.get("/api/v1/debug-cors")
+    def get_cors_debug():
+        return {
+            "environment": settings.ENVIRONMENT,
+            "raw_origins": _raw_origins,
+            "allowed_origins": allowed_origins,
+        }
+
     # Include API router
     app.include_router(api_router, prefix="/api/v1")
 
