@@ -12,7 +12,7 @@ class EmbeddingService:
         Initialize the embedding service using Hugging Face Inference API.
         """
         self.model_id = model_id
-        self.api_url = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{model_id}"
+        self.api_url = f"https://api-inference.huggingface.co/models/{model_id}"
         self.headers = {"Authorization": f"Bearer {settings.HUGGING_FACE_API_TOKEN}"}
 
     async def generate_embedding(self, text: Union[str, List[str]]) -> np.ndarray:
