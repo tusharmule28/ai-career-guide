@@ -1,6 +1,17 @@
 import { getToken, logout } from './auth';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// Smart BASE_URL detection: use env var if present, otherwise default based on current hostname
+const getBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  
+  // Self-healing fallback: if not on localhost, use the production Render URL
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  return isLocal 
+    ? 'http://localhost:8000/api/v1' 
+    : 'https://ai-career-guide-odjt.onrender.com/api/v1';
+};
+
+const BASE_URL = getBaseUrl();
 
 async function request(endpoint, options = {}) {
   const token = getToken();
