@@ -54,14 +54,16 @@ def create_application() -> FastAPI:
             # Check if any user exists
             users = user_service.get_users(limit=1)
             if not users:
-                print("No users found. Seeding default admin...")
+                admin_email = "admin@example.com"
+                admin_password = "admin123"
+                print(f"No users found. Seeding default admin... (Length: {len(admin_password)})")
                 user_in = UserCreate(
-                    email="admin@example.com",
-                    password="Admin@123",
+                    email=admin_email,
+                    password=admin_password,
                     name="System Admin"
                 )
                 user_service.create_user(user_in)
-                print("Default admin created: admin@example.com / Admin@123")
+                print(f"Default admin created: {admin_email} / {admin_password}")
         except Exception as e:
             print(f"Error seeding admin: {e}")
         finally:

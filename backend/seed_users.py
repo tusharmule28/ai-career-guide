@@ -14,7 +14,7 @@ def seed_admin_user():
     user_service = UserService(db)
     
     admin_email = "admin@example.com"
-    admin_password = "Admin@123"
+    admin_password = "admin123"
     
     print(f"Checking if admin user {admin_email} exists...")
     
