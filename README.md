@@ -2,7 +2,7 @@
 
 An advanced AI-powered career assistant that matches user resumes with real-time job listings from the world's leading remote job boards.
 
-## 🚀 Key Features
+##  Key Features
 
 - **AI-Powered Matching**: Uses `pgvector` and Sentence Transformer embeddings (Hugging Face Inference API) to find high-relevance job matches.
 - **Real-Time Job Fetching**: Automated scrapers for **Remotive.io** and **We Work Remotely** to keep the job feed fresh.
@@ -10,7 +10,7 @@ An advanced AI-powered career assistant that matches user resumes with real-time
 - **Direct Application**: One-click "Apply" buttons for all matched roles.
 - **Skill Gap Analysis**: AI-driven insights into how your profile fits each specific role.
 
-## 🏗️ Architecture
+##  Architecture
 
 1.  **Frontend**: React (Vite) + Tailwind CSS, deployed on **Vercel**.
 2.  **Backend**: FastAPI (Python), deployed on **Render**.
@@ -18,7 +18,7 @@ An advanced AI-powered career assistant that matches user resumes with real-time
 4.  **AI Engine**: Hugging Face Inference API (`all-MiniLM-L6-v2`).
 5.  **Data Layer**: Custom scrapers for JSON/RSS source normalization.
 
-## 🛠️ Setup Instructions
+##  Setup Instructions
 
 ### Backend
 1.  Navigate to `backend/`.
