@@ -16,18 +16,28 @@ def create_application() -> FastAPI:
     )
 
     # Configure CORS
-    allowed_origins = [origin.strip() for origin in settings.ALLOWED_ORIGINS.split(",")] if settings.ALLOWED_ORIGINS else ["*"]
-    if not allowed_origins or allowed_origins == [""]:
-        allowed_origins = ["*"]
-    
+    # NOTE: allow_credentials=True is INCOMPATIBLE with allow_origins=["*"].
+    # You MUST list explicit origins when using credentials (cookies/auth headers).
+    _raw_origins = settings.ALLOWED_ORIGINS or ""
+    allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
+    # Fallback: if nothing is configured, default to the known Vercel frontend
+    if not allowed_origins:
+        allowed_origins = [
+            "https://ai-career-guide-rho.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+        ]
+
     print(f"DEBUG: Allowed CORS Origins: {allowed_origins}")
-    
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
 
     # Include API router
