@@ -57,6 +57,6 @@ async def process_resume_upload(db: Session, upload_file: UploadFile, user_id: i
     db.refresh(db_resume)
     
     # 4. Generate Embedding for vector search
-    matching_service.update_resume_embedding(db, db_resume)
+    await matching_service.update_resume_embedding(db, db_resume)
     
     return db_resume

@@ -13,8 +13,7 @@ huggingface_hub
 redis
 passlib[bcrypt]
 python-jose[cryptography]
-sentence-transformers
-faiss-cpu
+httpx
 numpy
 pgvector
 pytest

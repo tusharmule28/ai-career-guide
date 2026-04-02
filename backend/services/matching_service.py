@@ -15,7 +15,8 @@ class MatchingService:
         Utilizes the cosine distance operator (<=>).
         """
         # 1. Generate embedding for the input resume text
-        resume_embedding = embedding_service.generate_embedding(resume_text).tolist()
+        embeddings = await embedding_service.generate_embedding(resume_text)
+        resume_embedding = embeddings.tolist()
         
         # 2. Query jobs using Cosine Distance
         # We want to minimize distance, so order by <=> and limit
@@ -39,24 +40,24 @@ class MatchingService:
             
         return results
 
-    def update_job_embedding(self, db: Session, job: Job):
+    async def update_job_embedding(self, db: Session, job: Job):
         """
         Update the vector embedding for a single job based on its content.
         """
         content = f"{job.title} {job.description} {' '.join(job.required_skills)}"
-        embedding = embedding_service.generate_embedding(content)
+        embedding = await embedding_service.generate_embedding(content)
         job.embedding = embedding.tolist()
         db.add(job)
         db.commit()
 
-    def update_resume_embedding(self, db: Session, resume: Resume):
+    async def update_resume_embedding(self, db: Session, resume: Resume):
         """
         Update the vector embedding for a resume.
         """
         if not resume.extracted_text:
             return
             
-        embedding = embedding_service.generate_embedding(resume.extracted_text)
+        embedding = await embedding_service.generate_embedding(resume.extracted_text)
         resume.embedding = embedding.tolist()
         db.add(resume)
         db.commit()

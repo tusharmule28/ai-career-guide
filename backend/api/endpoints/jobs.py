@@ -10,7 +10,7 @@ from services.matching_service import matching_service
 router = APIRouter()
 
 @router.get("/", response_model=List[JobResponse])
-def get_jobs(db: Session = Depends(get_db)):
+async def get_jobs(db: Session = Depends(get_db)):
     jobs = db.query(Job).all()
     
     # If no jobs exist, let's create some seed data for demonstration
@@ -44,7 +44,7 @@ def get_jobs(db: Session = Depends(get_db)):
         
         # Backfill embeddings for seed jobs
         for job in seed_jobs:
-            matching_service.update_job_embedding(db, job)
+            await matching_service.update_job_embedding(db, job)
             
         jobs = db.query(Job).all()
         

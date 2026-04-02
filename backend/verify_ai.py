@@ -11,9 +11,9 @@ from services.matching_service import matching_service
 from models.job import Job
 
 async def test_matching():
-    print("Testing Embedding Service...")
+    print("Testing Embedding Service (Hugging Face API)...")
     text = "Python developer with FastAPI experience"
-    embedding = embedding_service.generate_embedding(text)
+    embedding = await embedding_service.generate_embedding(text)
     print(f"Embedding generated. Shape: {embedding.shape}")
     
     print("\nTesting Matching Service...")
@@ -25,10 +25,7 @@ async def test_matching():
             print("No jobs found, seed data might be needed.")
             return
 
-        # 2. Build index
-        matching_service.build_index(db)
-        
-        # 3. Find matches
+        # 2. Find matches
         matches = await matching_service.find_matches(db, text)
         print(f"Found {len(matches)} matches.")
         for match in matches:
