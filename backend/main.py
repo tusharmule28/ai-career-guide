@@ -16,20 +16,15 @@ def create_application() -> FastAPI:
     )
 
     # Configure CORS
-    # NOTE: allow_credentials=True is INCOMPATIBLE with allow_origins=["*"].
-    # You MUST list explicit origins when using credentials (cookies/auth headers).
+    # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec
     _raw_origins = settings.ALLOWED_ORIGINS or ""
-    allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip() and o.strip() != "*"]
 
-    # Fallback: if ALLOWED_ORIGINS env var is not set, use environment-aware defaults
+    # Fallback: if ALLOWED_ORIGINS is empty or was only "*", use environment-aware defaults
     if not allowed_origins:
         if settings.ENVIRONMENT == "production":
-            # Production (Render): only allow the deployed Vercel frontend
-            allowed_origins = [
-                "https://ai-career-guide-rho.vercel.app",
-            ]
+            allowed_origins = ["https://ai-career-guide-rho.vercel.app"]
         else:
-            # Local development: allow Vercel + localhost frontends
             allowed_origins = [
                 "https://ai-career-guide-rho.vercel.app",
                 "http://localhost:3000",
@@ -37,7 +32,7 @@ def create_application() -> FastAPI:
                 "http://localhost:8080",
             ]
 
-    print(f"DEBUG: Allowed CORS Origins: {allowed_origins}")
+    print(f"DEBUG: ENVIRONMENT={settings.ENVIRONMENT} | CORS Origins: {allowed_origins}")
 
     app.add_middleware(
         CORSMiddleware,

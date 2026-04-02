@@ -15,8 +15,9 @@ class Settings(BaseSettings):
     # AI Models
     HUGGING_FACE_API_TOKEN: str = ""
 
-    # CORS
-    ALLOWED_ORIGINS: str = "*"
+    # CORS - leave empty to use environment-aware defaults in main.py
+    # Set explicitly to override: "https://yourdomain.com,https://other.com"
+    ALLOWED_ORIGINS: str = ""
 
     # Redis
     REDIS_HOST: str = "localhost"
