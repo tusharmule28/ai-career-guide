@@ -55,19 +55,22 @@ def create_application() -> FastAPI:
         db = SessionLocal()
         try:
             user_service = UserService(db)
-            # Check if any user exists
-            users = user_service.get_users(limit=1)
-            if not users:
-                admin_email = "admin@example.com"
-                admin_password = "admin123"
-                print(f"No users found. Seeding default admin... (Length: {len(admin_password)})")
+            admin_email = "admin@example.com"
+            admin_password = "admin123"
+            
+            # Check if the specific admin exists
+            admin_user = user_service.get_user_by_email(admin_email)
+            if not admin_user:
+                print(f"Admin {admin_email} not found. Seeding now...")
                 user_in = UserCreate(
                     email=admin_email,
                     password=admin_password,
                     name="System Admin"
                 )
                 user_service.create_user(user_in)
-                print(f"Default admin created: {admin_email} / {admin_password}")
+                print(f"Default admin created successfully.")
+            else:
+                print(f"Admin {admin_email} already exists.")
         except Exception as e:
             print(f"Error seeding admin: {e}")
         finally:
