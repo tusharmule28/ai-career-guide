@@ -8,6 +8,8 @@ class JobBase(BaseModel):
     location: Optional[str] = None
     description: str
     required_skills: List[str]
+    apply_url: str
+    source: Optional[str] = None
 
 class JobCreate(JobBase):
     pass

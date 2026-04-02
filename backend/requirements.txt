@@ -20,3 +20,4 @@ pgvector
 pytest
 pytest-asyncio
 pytest-mock
+beautifulsoup4

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -6,8 +6,17 @@ from db.database import get_db
 from models.job import Job
 from schemas.job import JobResponse, JobCreate
 from services.matching_service import matching_service
+from scrapers.job_fetcher import job_fetcher
 
 router = APIRouter()
+
+@router.post("/sync", status_code=status.HTTP_202_ACCEPTED)
+async def sync_jobs(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """
+    Manually trigger a background job synchronization from all sources.
+    """
+    background_tasks.add_task(job_fetcher.sync_jobs, db)
+    return {"message": "Job synchronization started in the background."}
 
 @router.get("/", response_model=List[JobResponse])
 async def get_jobs(db: Session = Depends(get_db)):
@@ -21,21 +30,30 @@ async def get_jobs(db: Session = Depends(get_db)):
                 company="TechCorp",
                 location="Remote",
                 description="Looking for a React expert with Tailwind CSS experience.",
-                required_skills=["React", "Tailwind CSS", "JavaScript", "Vite"]
+                required_skills=["React", "Tailwind CSS", "JavaScript", "Vite"],
+                apply_url="https://example.com/apply/frontend",
+                source="Seed",
+                external_id="seed_1"
             ),
             Job(
                 title="Backend Engineer",
                 company="DataSystems",
                 location="New York",
                 description="FastAPI and PostgreSQL specialist needed for high-scale systems.",
-                required_skills=["Python", "FastAPI", "PostgreSQL", "Docker"]
+                required_skills=["Python", "FastAPI", "PostgreSQL", "Docker"],
+                apply_url="https://example.com/apply/backend",
+                source="Seed",
+                external_id="seed_2"
             ),
             Job(
                 title="Fullstack Developer",
                 company="AI Solutions",
                 location="San Francisco",
                 description="Build the future of AI tools with Next.js and Python.",
-                required_skills=["Next.js", "Python", "TypeScript", "LLMs"]
+                required_skills=["Next.js", "Python", "TypeScript", "LLMs"],
+                apply_url="https://example.com/apply/fullstack",
+                source="Seed",
+                external_id="seed_3"
             )
         ]
         for job in seed_jobs:

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -8,11 +8,13 @@ from services.matching_service import matching_service
 from models.resume import Resume
 from core.security import get_current_user
 from models.user import User
+from scrapers.job_fetcher import job_fetcher
 
 router = APIRouter()
 
 @router.post("/match", response_model=List[dict])
 async def match_resume_to_jobs(
+    background_tasks: BackgroundTasks,
     resume_id: Optional[int] = None,
     top_n: int = 5,
     db: Session = Depends(get_db),
@@ -22,6 +24,9 @@ async def match_resume_to_jobs(
     Match a resume against all available jobs.
     If resume_id is not provided, uses the current user's latest resume.
     """
+    # Trigger background job fetch to ensure fresh data for NEXT time or later
+    background_tasks.add_task(job_fetcher.sync_jobs, db)
+
     if resume_id:
         resume = db.query(Resume).filter(Resume.id == resume_id).first()
     else:
@@ -31,11 +36,6 @@ async def match_resume_to_jobs(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Resume not found. Please upload a resume first."
-        )
-    if not resume:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Resume not found"
         )
     
     if not resume.extracted_text:
@@ -58,7 +58,9 @@ async def match_resume_to_jobs(
                 "score": match["score"],
                 "description": job.description,
                 "location": job.location,
-                "required_skills": job.required_skills
+                "required_skills": job.required_skills,
+                "apply_url": job.apply_url,
+                "source": job.source
             })
             
         return response_data

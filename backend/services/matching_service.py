@@ -35,7 +35,9 @@ class MatchingService:
             match_score = (1 - float(distance)) * 100
             results.append({
                 "job": job,
-                "score": round(max(0, match_score), 2)
+                "score": round(max(0, match_score), 2),
+                "apply_url": job.apply_url,
+                "source": job.source
             })
             
         return results

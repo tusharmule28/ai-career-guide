@@ -77,6 +77,21 @@ const Jobs = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={async () => {
+              try {
+                await api.post('/jobs/sync');
+                alert('Job synchronization started in the background. Refresh in a few moments!');
+              } catch (err) {
+                alert('Failed to start sync: ' + err.message);
+              }
+            }}
+            className="hidden sm:flex border-primary/20 text-primary"
+          >
+            Sync Jobs
+          </Button>
           <Button variant="secondary" size="sm" className="hidden sm:flex">
             <SlidersHorizontal size={18} className="mr-2" />
             Filters

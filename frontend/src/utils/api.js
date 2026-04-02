@@ -23,20 +23,25 @@ async function request(endpoint, options = {}) {
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
     if (response.status === 401) {
+      console.warn(`[API] 401 Unauthorized for ${endpoint}. Logging out...`);
       logout();
       window.location.href = '/login';
       return null;
     }
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.detail || 'Something went wrong');
+      console.error(`[API ERROR] ${response.status} ${response.statusText}`, {
+        url: `${BASE_URL}${endpoint}`,
+        data,
+      });
+      throw new Error(data.detail || `Server returned ${response.status}`);
     }
 
     return data;
   } catch (error) {
-    console.error('API Error:', error);
+    console.error(`[API Network/Parse Error] ${endpoint}:`, error);
     throw error;
   }
 }
