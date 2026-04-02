@@ -16,9 +16,14 @@ def create_application() -> FastAPI:
     )
 
     # Configure CORS
+    
+    def clean_origin(o: str) -> str:
+        # Strip whitespace, quotes, and trailing slashes which break exact matches
+        return o.strip().strip('"').strip("'").rstrip('/')
+
     # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec
     _raw_origins = settings.ALLOWED_ORIGINS or ""
-    allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip() and o.strip() != "*"]
+    allowed_origins = [clean_origin(o) for o in _raw_origins.split(",") if o.strip() and clean_origin(o) != "*"]
 
     # Fallback: if ALLOWED_ORIGINS is empty or was only "*", use environment-aware defaults
     if not allowed_origins:
