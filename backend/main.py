@@ -31,10 +31,23 @@ def create_application() -> FastAPI:
 
     @app.on_event("startup")
     async def on_startup():
-        from db.database import SessionLocal
+        from db.database import SessionLocal, Base, engine
         from services.user_service import UserService
         from schemas.user import UserCreate
         
+        # Ensure all tables exist before seeding
+        try:
+            # Create extension if it doesn't exist (required for pgvector)
+            from sqlalchemy import text
+            with engine.connect() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                conn.commit()
+            
+            Base.metadata.create_all(bind=engine)
+            print("Database tables initialized.")
+        except Exception as e:
+            print(f"Error initializing database: {e}")
+
         db = SessionLocal()
         try:
             user_service = UserService(db)
