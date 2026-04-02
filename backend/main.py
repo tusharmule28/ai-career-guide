@@ -21,13 +21,21 @@ def create_application() -> FastAPI:
     _raw_origins = settings.ALLOWED_ORIGINS or ""
     allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
 
-    # Fallback: if nothing is configured, default to the known Vercel frontend
+    # Fallback: if ALLOWED_ORIGINS env var is not set, use environment-aware defaults
     if not allowed_origins:
-        allowed_origins = [
-            "https://ai-career-guide-rho.vercel.app",
-            "http://localhost:3000",
-            "http://localhost:5173",
-        ]
+        if settings.ENVIRONMENT == "production":
+            # Production (Render): only allow the deployed Vercel frontend
+            allowed_origins = [
+                "https://ai-career-guide-rho.vercel.app",
+            ]
+        else:
+            # Local development: allow Vercel + localhost frontends
+            allowed_origins = [
+                "https://ai-career-guide-rho.vercel.app",
+                "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:8080",
+            ]
 
     print(f"DEBUG: Allowed CORS Origins: {allowed_origins}")
 
