@@ -17,9 +17,18 @@ def create_application() -> FastAPI:
 
     # Configure CORS
     
+    import urllib.parse
+
     def clean_origin(o: str) -> str:
-        # Strip whitespace, quotes, and trailing slashes which break exact matches
-        return o.strip().strip('"').strip("'").rstrip('/')
+        # Strip whitespace and quotes, and intelligently extract only the true origin
+        o = o.strip().strip('"').strip("'").rstrip('/')
+        try:
+            parsed = urllib.parse.urlparse(o)
+            if parsed.scheme and parsed.netloc:
+                return f"{parsed.scheme}://{parsed.netloc}"
+        except Exception:
+            pass
+        return o
 
     # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec
     _raw_origins = settings.ALLOWED_ORIGINS or ""
