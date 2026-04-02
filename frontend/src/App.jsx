@@ -1,0 +1,75 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Jobs from './pages/Jobs';
+import ResumeUploadPage from './components/ResumeUpload'; // Assuming it's a page component now
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
+  
+  if (!user) return <Navigate to="/login" replace />;
+  
+  return children;
+};
+
+const AppContent = () => {
+  const { user } = useAuth();
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main>
+        <Routes>
+          <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+          <Route path="/signup" element={user ? <Navigate to="/" /> : <Signup />} />
+          
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/jobs" element={
+            <ProtectedRoute>
+              <Jobs />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/resume-upload" element={
+            <ProtectedRoute>
+              <ResumeUploadPage />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </main>
+      
+      <footer className="py-12 border-t border-gray-100 bg-white">
+        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
+          © 2026 AI Career Guide. All rights reserved. Built with precision and care.
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
+  );
+};
+
+export default App;
