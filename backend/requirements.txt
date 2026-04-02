@@ -11,7 +11,8 @@ PyMuPDF>=1.23.0
 python-multipart
 huggingface_hub
 redis
-passlib[bcrypt]
+passlib[argon2]
+argon2-cffi
 python-jose[cryptography]
 httpx
 numpy
