@@ -49,6 +49,28 @@ export const api = {
     request(endpoint, { ...options, method: 'PUT', body: JSON.stringify(body) }),
   delete: (endpoint, options) => request(endpoint, { ...options, method: 'DELETE' }),
 
+  login: async (username, password) => {
+    const formData = new URLSearchParams();
+    formData.append('username', username);
+    formData.append('password', password);
+
+    const response = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail || 'Login failed');
+    }
+
+    return data;
+  },
+
   // For file uploads (multipart)
   upload: async (endpoint, formData) => {
     const token = getToken();
@@ -72,3 +94,5 @@ export const api = {
     return data;
   },
 };
+
+export { BASE_URL };

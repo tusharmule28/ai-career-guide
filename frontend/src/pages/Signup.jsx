@@ -30,23 +30,7 @@ const Signup = () => {
       });
 
       // 2. Login newly created User
-      const formData = new URLSearchParams();
-      formData.append('username', email);
-      formData.append('password', password);
-
-      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || 'Login failed after signup');
-      }
+      const data = await api.login(email, password);
 
       login({ name, email }, data.access_token);
       navigate('/');

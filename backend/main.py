@@ -29,6 +29,31 @@ def create_application() -> FastAPI:
     # Include API router
     app.include_router(api_router, prefix="/api/v1")
 
+    @app.on_event("startup")
+    async def on_startup():
+        from db.database import SessionLocal
+        from services.user_service import UserService
+        from schemas.user import UserCreate
+        
+        db = SessionLocal()
+        try:
+            user_service = UserService(db)
+            # Check if any user exists
+            users = user_service.get_users(limit=1)
+            if not users:
+                print("No users found. Seeding default admin...")
+                user_in = UserCreate(
+                    email="admin@example.com",
+                    password="Admin@123",
+                    name="System Admin"
+                )
+                user_service.create_user(user_in)
+                print("Default admin created: admin@example.com / Admin@123")
+        except Exception as e:
+            print(f"Error seeding admin: {e}")
+        finally:
+            db.close()
+
     return app
 
 app = create_application()
