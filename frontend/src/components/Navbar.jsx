@@ -21,6 +21,8 @@ const Navbar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Job Matches', href: '/jobs', icon: Briefcase },
+    { name: 'Application Hub', href: '/applications', icon: CheckCircle2 },
+    { name: 'Profile Settings', href: '/profile', icon: UserIcon },
     { name: 'Resume Analysis', href: '/resume-upload', icon: FileText },
   ];
 

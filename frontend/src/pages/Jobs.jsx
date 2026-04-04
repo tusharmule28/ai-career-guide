@@ -131,9 +131,10 @@ const Jobs = () => {
       </div>
 
       {loading && jobs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-          <Loader2 size={48} className="animate-spin mb-4 text-primary/50" />
-          <p className="font-medium">Curating your customized job feed...</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+             <div key={i} className="h-64 skeleton-pulse rounded-3xl"></div>
+          ))}
         </div>
       ) : error ? (
         <Card className="flex flex-col items-center justify-center py-12 text-red-500 bg-red-50/50 border-red-100">
@@ -147,63 +148,82 @@ const Jobs = () => {
           <div className="lg:col-span-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredJobs.length > 0 ? (
-                filteredJobs.map(job => (
-                  <Card key={job.id} className={`group hover:shadow-xl transition-all duration-300 border-primary/5 hover:border-primary/20 ${selectedJob?.id === job.id ? 'ring-2 ring-primary border-transparent shadow-lg bg-primary/[0.01]' : ''}`}>
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="bg-primary/5 p-3 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                        <Briefcase size={24} />
+                filteredJobs.map((job, index) => (
+                  <Card key={job.id} 
+                    className={`group hover:shadow-premium transition-all duration-500 glass-card p-6 relative overflow-hidden ${selectedJob?.id === job.id ? 'ring-2 ring-primary border-transparent shadow-lg' : ''}`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden transition-smooth group-hover:scale-110">
+                          <img 
+                            src={job.company_logo || `https://ui-avatars.com/api/?name=${job.company}&background=random`} 
+                            alt={job.company} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-extrabold text-gray-900 text-lg leading-tight group-hover:text-primary transition-colors">
+                            {job.title}
+                          </h3>
+                          <p className="text-primary font-bold text-xs uppercase tracking-widest mt-1 opacity-80">{job.company}</p>
+                        </div>
                       </div>
+                      
                       <div className="flex gap-2">
                          <Button 
                             variant="ghost" 
                             size="sm" 
-                            className={isSaved(job.id) ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:bg-gray-100'}
+                            className={`rounded-xl transition-smooth ${isSaved(job.id) ? 'text-green-600 bg-green-50' : 'text-gray-300 hover:bg-gray-100'}`}
                             onClick={() => saveJob(job.id)}
                           >
                             {isSaved(job.id) ? <CheckCircle size={18} /> : <Bookmark size={18} />}
                           </Button>
-                          <a href={job.apply_url} target="_blank" rel="noopener noreferrer">
-                            <Button variant="ghost" size="sm" className="text-gray-400 hover:bg-gray-100">
-                              <ExternalLink size={18} />
-                            </Button>
-                          </a>
                       </div>
                     </div>
                     
-                    <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-primary transition-colors">
-                      {job.title}
-                    </h3>
-                    <p className="text-primary font-semibold text-sm mb-4">{job.company}</p>
-                    
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center text-gray-500 text-sm gap-2">
-                        <MapPin size={16} />
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="flex items-center text-gray-500 text-[11px] font-bold gap-2 bg-gray-50/50 p-2 rounded-lg">
+                        <MapPin size={14} className="text-primary/60" />
                         {job.location}
                       </div>
-                      <div className="flex items-center text-gray-500 text-sm gap-2">
-                        <Briefcase size={16} />
-                        {job.experience_min}-{job.experience_max} years
+                      <div className="flex items-center text-gray-500 text-[11px] font-bold gap-2 bg-gray-50/50 p-2 rounded-lg">
+                        <Briefcase size={14} className="text-primary/60" />
+                        {job.work_type || 'On-site'}
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-6">
+                    <div className="flex flex-wrap gap-2 mb-8">
                        {job.required_skills?.slice(0, 3).map((skill, i) => (
-                         <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                         <span key={i} className="px-3 py-1 bg-white/60 text-gray-600 rounded-full text-[10px] font-bold border border-gray-100 shadow-sm transition-smooth hover:bg-white hover:shadow-md">
                            {skill}
                          </span>
                        ))}
                     </div>
 
-                    <Button 
-                      variant={selectedJob?.id === job.id ? 'primary' : 'outline'} 
-                      className="w-full"
-                      onClick={() => {
-                        setSelectedJob(job);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                    >
-                      {selectedJob?.id === job.id ? 'Active Insights' : 'AI Insights'}
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button 
+                        variant={selectedJob?.id === job.id ? 'primary' : 'outline'} 
+                        className="flex-1 rounded-xl font-bold py-5 h-auto text-sm"
+                        onClick={() => {
+                          setSelectedJob(job);
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                      >
+                        {selectedJob?.id === job.id ? 'Active Analysis' : 'AI Analysis'}
+                      </Button>
+                      
+                      <Button 
+                        variant="secondary" 
+                        className="rounded-xl px-5 transition-smooth hover:scale-105 active:scale-95"
+                        onClick={async () => {
+                          window.open(job.apply_url, '_blank');
+                          try { await api.post(`/applications/${job.id}`); } catch (e) {}
+                        }}
+                      >
+                         <ExternalLink size={20} />
+                      </Button>
+                    </div>
                   </Card>
                 ))
               ) : (
@@ -232,15 +252,18 @@ const Jobs = () => {
                   />
                 </div>
                 <Button 
-                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-100"
-                  onClick={() => window.open(selectedJob.apply_url, '_blank')}
+                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-100 h-14 rounded-2xl font-bold"
+                  onClick={async () => {
+                    window.open(selectedJob.apply_url, '_blank');
+                    try { await api.post(`/applications/${selectedJob.id}`); } catch (e) {}
+                  }}
                 >
                   Apply Directly <ExternalLink size={18} className="ml-2" />
                 </Button>
               </div>
             ) : (
-              <Card className="flex flex-col items-center justify-center py-16 text-center bg-white/50 border-dashed border-2">
-                <div className="bg-gray-100 p-4 rounded-full text-gray-300 mb-4">
+              <Card className="flex flex-col items-center justify-center py-16 text-center bg-white/50 border-dashed border-2 rounded-3xl">
+                <div className="bg-gray-100 p-4 rounded-full text-gray-300 mb-4 animate-float">
                   <Sparkles size={32} />
                 </div>
                 <p className="font-bold text-gray-900 mb-1 leading-tight">AI Analysis Ready</p>

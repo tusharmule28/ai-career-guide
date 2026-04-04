@@ -47,6 +47,7 @@ class IndianJobsScraper:
                     location_elem = card.select_one("[data-testid='text-location']")
                     link_elem = card.select_one("h2.jobTitle a")
                     snippet_elem = card.select_one(".job-snippet")
+                    salary_elem = card.select_one(".salary-snippet-container") or card.select_one(".estimated-salary")
 
                     if not title_elem or not link_elem:
                         continue
@@ -56,6 +57,25 @@ class IndianJobsScraper:
                     # Deduplication ID
                     external_id = hashlib.md5(job_url.encode()).hexdigest()
 
+                    # Simple salary parsing logic
+                    salary_min, salary_max = None, None
+                    if salary_elem:
+                        salary_text = salary_elem.get_text(strip=True)
+                        # Very crude parser for demo purposes
+                        import re
+                        numbers = re.findall(r'\d+', salary_text.replace(',', ''))
+                        if len(numbers) >= 2:
+                            salary_min, salary_max = int(numbers[0]), int(numbers[1])
+                        elif len(numbers) == 1:
+                            salary_min = int(numbers[0])
+
+                    # Simple work-type detection
+                    work_type = "On-site"
+                    if "remote" in location_elem.get_text(strip=True).lower() or "remote" in title_elem.get_text(strip=True).lower():
+                        work_type = "Remote"
+                    elif "hybrid" in location_elem.get_text(strip=True).lower():
+                        work_type = "Hybrid"
+
                     jobs.append({
                         "title": title_elem.get_text(strip=True),
                         "company": company_elem.get_text(strip=True) if company_elem else "Unknown",
@@ -64,9 +84,13 @@ class IndianJobsScraper:
                         "apply_url": job_url,
                         "external_id": external_id,
                         "source": "Indeed India",
-                        "required_skills": [], # Need secondary parsing for this
-                        "experience_min": 0,    # Default
-                        "experience_max": 2     # Default
+                        "required_skills": [], 
+                        "experience_min": 0,    
+                        "experience_max": 2,
+                        "salary_min": salary_min,
+                        "salary_max": salary_max,
+                        "work_type": work_type,
+                        "company_logo": f"https://ui-avatars.com/api/?name={company_elem.get_text(strip=True) if company_elem else 'U'}&background=random"
                     })
                 except Exception as e:
                     logger.error(f"Error parsing job card: {e}")
@@ -110,7 +134,11 @@ class IndianJobsScraper:
                     source=job_data["source"],
                     required_skills=job_data["required_skills"],
                     experience_min=job_data["experience_min"],
-                    experience_max=job_data["experience_max"]
+                    experience_max=job_data["experience_max"],
+                    salary_min=job_data["salary_min"],
+                    salary_max=job_data["salary_max"],
+                    work_type=job_data["work_type"],
+                    company_logo=job_data["company_logo"]
                 )
 
                 # Generate embedding

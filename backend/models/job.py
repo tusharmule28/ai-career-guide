@@ -13,6 +13,9 @@ class Job(Base):
     description = Column(Text, nullable=False)
     required_skills = Column(JSON, nullable=False) # List of skills
     posted_at = Column(DateTime(timezone=True), server_default=func.now())
+    salary_min = Column(Integer, nullable=True)
+    salary_max = Column(Integer, nullable=True)
+    work_type = Column(String, default="On-site") # Remote, Hybrid, On-site
     embedding = Column(Vector(384), nullable=True) # AI Vector representation
     apply_url = Column(String, nullable=False) # Direct application link
     source = Column(String, nullable=True) # E.g., 'Remotive', 'WWR'

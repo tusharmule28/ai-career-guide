@@ -8,6 +8,8 @@ import Signup from './pages/Signup';
 import Jobs from './pages/Jobs';
 import ResumeUploadPage from './components/ResumeUpload';
 import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Applications from './pages/Applications';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -51,6 +53,18 @@ const AppContent = () => {
           <Route path="/resume-upload" element={
             <ProtectedRoute>
               <ResumeUploadPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/applications" element={
+            <ProtectedRoute>
+              <Applications />
             </ProtectedRoute>
           } />
         </Routes>
