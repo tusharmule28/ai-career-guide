@@ -79,6 +79,7 @@ def create_application() -> FastAPI:
         import models.job      # noqa: F401
         import models.resume   # noqa: F401
         import models.user     # noqa: F401
+        import models.saved_job # noqa: F401
         
         # Ensure all tables exist before seeding
         try:
@@ -123,6 +124,27 @@ def create_application() -> FastAPI:
             print(f"Error seeding admin: {e}")
         finally:
             db.close()
+
+        # Phase 4: Start background Job Sync Scheduler
+        import asyncio
+        from scrapers.job_fetcher import job_fetcher
+        
+        async def schedule_job_sync():
+            while True:
+                try:
+                    print("Periodic Job Sync: Starting...")
+                    db = SessionLocal()
+                    await job_fetcher.sync_jobs(db)
+                    db.close()
+                    print("Periodic Job Sync: Completed.")
+                except Exception as e:
+                    print(f"Periodic Job Sync: Error: {e}")
+                
+                # Sleep for 30 minutes
+                await asyncio.sleep(1800)
+
+        # Run in the background
+        asyncio.create_task(schedule_job_sync())
 
     return app
 

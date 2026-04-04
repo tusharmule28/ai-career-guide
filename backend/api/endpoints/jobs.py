@@ -7,12 +7,55 @@ import traceback
 
 from db.database import get_db, engine, Base
 from models.job import Job
+from models.saved_job import SavedJob
+from models.user import User
+from core.security import get_current_user
 from schemas.job import JobResponse, JobCreate
 from services.matching_service import matching_service
 from scrapers.job_fetcher import job_fetcher
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+@router.post("/{job_id}/save", status_code=status.HTTP_201_CREATED)
+def save_job(
+    job_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Save a job for the current user."""
+    # Check if job exists
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Check if already saved
+    existing = db.query(SavedJob).filter(
+        SavedJob.user_id == current_user.id,
+        SavedJob.job_id == job_id
+    ).first()
+    
+    if existing:
+        return {"message": "Job already saved"}
+    
+    saved_job = SavedJob(user_id=current_user.id, job_id=job_id)
+    db.add(saved_job)
+    db.commit()
+    return {"message": "Job saved successfully"}
+
+
+@router.get("/saved", response_model=List[JobResponse])
+def get_saved_jobs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Fetch all jobs saved by the current user."""
+    saved_jobs = db.query(Job).join(
+        SavedJob, Job.id == SavedJob.job_id
+    ).filter(SavedJob.user_id == current_user.id).all()
+    
+    return saved_jobs
 
 
 def _ensure_jobs_table(db: Session):

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from models.job import Job
 from services.embedding_service import embedding_service
 from jobspy import scrape_jobs
+from scrapers.indian_jobs_scraper import indian_jobs_scraper
 
 logger = logging.getLogger(__name__)
 

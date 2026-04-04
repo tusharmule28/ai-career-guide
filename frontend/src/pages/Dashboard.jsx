@@ -13,40 +13,34 @@ import {
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Link } from 'react-router-dom';
-import { api } from '../utils/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    matches: 0,
-    applications: 0,
-    skillMatches: 0
-  });
-  const [activities, setActivities] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { matchedJobs, savedJobs, loading, fetchMatchedJobs, fetchSavedJobs } = useJobStore();
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const data = await api.get('/dashboard/summary');
-        setStats({
-          matches: data.match_count,
-          applications: data.application_count,
-          skillMatches: data.skill_score
-        });
-        setActivities(data.activities);
-        setRecommendations(data.recommendations);
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
+    fetchMatchedJobs();
+    fetchSavedJobs();
   }, []);
 
+  const stats = {
+    matches: matchedJobs.length,
+    applications: 0, // Placeholder
+    savedCount: savedJobs.length,
+    skillMatches: matchedJobs.length > 0 ? Math.round(matchedJobs[0].score) : 0
+  };
+
+  const activities = savedJobs.slice(0, 3).map(job => ({
+    id: job.id,
+    title: `Saved: ${job.title}`,
+    status: 'completed',
+    time: 'Recently'
+  }));
+
+  const recommendations = matchedJobs.slice(0, 2).map(job => ({
+    category: 'Top Match',
+    text: `You are a ${Math.round(job.score)}% match for ${job.title} at ${job.company}.`
+  }));
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -67,33 +61,41 @@ const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <Card className="flex items-center gap-5">
-          <div className="bg-primary/10 p-4 rounded-2xl text-primary">
-            <Briefcase size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Job Matches</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.matches}</p>
-          </div>
-        </Card>
-        <Card className="flex items-center gap-5">
-          <div className="bg-accent/10 p-4 rounded-2xl text-accent">
-            <TrendingUp size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Skill Score</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.skillMatches}%</p>
-          </div>
-        </Card>
-        <Card className="flex items-center gap-5">
-          <div className="bg-green-50 p-4 rounded-2xl text-green-600">
-            <CheckCircle2 size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500">Applications</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.applications}</p>
-          </div>
-        </Card>
+        <Link to="/jobs" className="block transition-transform hover:scale-[1.02]">
+          <Card className="flex items-center gap-5 h-full">
+            <div className="bg-primary/10 p-4 rounded-2xl text-primary">
+              <Briefcase size={28} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Job Matches</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.matches}</p>
+            </div>
+          </Card>
+        </Link>
+        
+        <Link to="/jobs" className="block transition-transform hover:scale-[1.02]">
+          <Card className="flex items-center gap-5 h-full">
+            <div className="bg-accent/10 p-4 rounded-2xl text-accent">
+              <TrendingUp size={28} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Skill Score</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.skillMatches}%</p>
+            </div>
+          </Card>
+        </Link>
+
+        <Link to="/jobs" className="block transition-transform hover:scale-[1.02]">
+          <Card className="flex items-center gap-5 h-full">
+            <div className="bg-green-50 p-4 rounded-2xl text-green-600">
+              <CheckCircle2 size={28} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-500">Saved Jobs</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.savedCount}</p>
+            </div>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

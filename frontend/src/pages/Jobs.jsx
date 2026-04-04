@@ -1,57 +1,54 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Filter, SlidersHorizontal, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Filter, SlidersHorizontal, Sparkles, Loader2, AlertCircle, MapPin, Briefcase, Bookmark, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
-import JobCard from '../components/JobCard';
+import useJobStore from '../store/jobStore';
 import SkillGap from '../components/SkillGap';
 import ExplanationPanel from '../components/ExplanationPanel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
 const Jobs = () => {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [selectedJob, setSelectedJob] = useState(null);
+  const { jobs, loading, error, fetchJobs, saveJob, savedJobs } = useJobStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [filters, setFilters] = useState({
+    location: 'All',
+    experience: 'All'
+  });
 
   useEffect(() => {
     fetchJobs();
-  }, []);
+  }, [fetchJobs]);
 
-  const fetchJobs = async () => {
-    setLoading(true);
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = (job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          job.company?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesLocation = filters.location === 'All' || 
+                            job.location?.toLowerCase().includes(filters.location.toLowerCase());
+                            
+    const matchesExperience = filters.experience === 'All' || 
+                              (job.experience_min <= parseInt(filters.experience.split('-')[1] || 100) && 
+                               job.experience_max >= parseInt(filters.experience.split('-')[0] || 0));
+
+    return matchesSearch && matchesLocation && matchesExperience;
+  });
+
+  const isSaved = (jobId) => savedJobs.some(s => s.id === jobId);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
     try {
-      // 1. Try to get AI matches first
-      try {
-        const matches = await api.post('/matching/match', {});
-        if (matches && matches.length > 0) {
-          // Flatten match data for display
-          const matchedJobs = matches.map(m => ({
-            ...m,
-            id: m.job_id, // Map job_id to id for consistency
-            matchScore: m.score
-          }));
-          setJobs(matchedJobs);
-          return;
-        }
-      } catch (matchErr) {
-        console.warn('AI matching not available or no resume found:', matchErr);
-      }
-
-      // 2. Fallback to regular jobs list if matching fails or no resume
-      const data = await api.get('/jobs');
-      setJobs(data);
+      await api.post('/jobs/sync');
+      alert('Job synchronization started in the background. Please wait a few seconds and refresh.');
+      setTimeout(() => fetchJobs(), 5000);
     } catch (err) {
-      setError(err.message || 'Failed to fetch jobs.');
+      alert('Failed to start sync: ' + err.message);
     } finally {
-      setLoading(false);
+      setIsSyncing(false);
     }
   };
-
-  const filteredJobs = jobs.filter(job => 
-    job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.company?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -80,26 +77,60 @@ const Jobs = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={async () => {
-              try {
-                await api.post('/jobs/sync');
-                alert('Job synchronization started in the background. Refresh in a few moments!');
-              } catch (err) {
-                alert('Failed to start sync: ' + err.message);
-              }
-            }}
-            className="hidden sm:flex border-primary/20 text-primary"
+            disabled={isSyncing}
+            onClick={handleSync}
+            className="flex border-primary/20 text-primary"
           >
+            {isSyncing ? <Loader2 size={18} className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
             Sync Jobs
-          </Button>
-          <Button variant="secondary" size="sm" className="hidden sm:flex">
-            <SlidersHorizontal size={18} className="mr-2" />
-            Filters
           </Button>
         </div>
       </div>
 
-      {loading ? (
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-4 mb-8 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+          <Filter size={16} className="text-primary" />
+          Quick Filters:
+        </div>
+        
+        <select 
+          className="bg-gray-50 border-none text-xs font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+          value={filters.location}
+          onChange={(e) => setFilters({...filters, location: e.target.value})}
+        >
+          <option value="All">All Locations</option>
+          <option value="Remote">Remote</option>
+          <option value="India">India</option>
+          <option value="Bangalore">Bangalore</option>
+          <option value="Mumbai">Mumbai</option>
+        </select>
+
+        <select 
+          className="bg-gray-50 border-none text-xs font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+          value={filters.experience}
+          onChange={(e) => setFilters({...filters, experience: e.target.value})}
+        >
+          <option value="All">All Experience</option>
+          <option value="0-2">0-2 years</option>
+          <option value="2-5">2-5 years</option>
+          <option value="5-10">5-10 years</option>
+        </select>
+
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="ml-auto text-gray-400 hover:text-primary"
+          onClick={() => {
+            setSearchTerm('');
+            setFilters({ location: 'All', experience: 'All' });
+          }}
+        >
+          Reset Filters
+        </Button>
+      </div>
+
+      {loading && jobs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-gray-400">
           <Loader2 size={48} className="animate-spin mb-4 text-primary/50" />
           <p className="font-medium">Curating your customized job feed...</p>
@@ -117,16 +148,71 @@ const Jobs = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredJobs.length > 0 ? (
                 filteredJobs.map(job => (
-                  <JobCard 
-                    key={job.id} 
-                    job={job} 
-                    onSelect={setSelectedJob} 
-                  />
+                  <Card key={job.id} className={`group hover:shadow-xl transition-all duration-300 border-primary/5 hover:border-primary/20 ${selectedJob?.id === job.id ? 'ring-2 ring-primary border-transparent shadow-lg bg-primary/[0.01]' : ''}`}>
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="bg-primary/5 p-3 rounded-xl text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <Briefcase size={24} />
+                      </div>
+                      <div className="flex gap-2">
+                         <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={isSaved(job.id) ? 'text-green-600 bg-green-50' : 'text-gray-400 hover:bg-gray-100'}
+                            onClick={() => saveJob(job.id)}
+                          >
+                            {isSaved(job.id) ? <CheckCircle size={18} /> : <Bookmark size={18} />}
+                          </Button>
+                          <a href={job.apply_url} target="_blank" rel="noopener noreferrer">
+                            <Button variant="ghost" size="sm" className="text-gray-400 hover:bg-gray-100">
+                              <ExternalLink size={18} />
+                            </Button>
+                          </a>
+                      </div>
+                    </div>
+                    
+                    <h3 className="font-bold text-gray-900 text-lg mb-1 group-hover:text-primary transition-colors">
+                      {job.title}
+                    </h3>
+                    <p className="text-primary font-semibold text-sm mb-4">{job.company}</p>
+                    
+                    <div className="space-y-2 mb-6">
+                      <div className="flex items-center text-gray-500 text-sm gap-2">
+                        <MapPin size={16} />
+                        {job.location}
+                      </div>
+                      <div className="flex items-center text-gray-500 text-sm gap-2">
+                        <Briefcase size={16} />
+                        {job.experience_min}-{job.experience_max} years
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mb-6">
+                       {job.required_skills?.slice(0, 3).map((skill, i) => (
+                         <span key={i} className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                           {skill}
+                         </span>
+                       ))}
+                    </div>
+
+                    <Button 
+                      variant={selectedJob?.id === job.id ? 'primary' : 'outline'} 
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedJob(job);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    >
+                      {selectedJob?.id === job.id ? 'Active Insights' : 'AI Insights'}
+                    </Button>
+                  </Card>
                 ))
               ) : (
                 <div className="col-span-full py-20 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                   <p className="text-gray-500 font-medium">No matches found for "{searchTerm}"</p>
-                   <Button variant="ghost" onClick={() => setSearchTerm('')} className="mt-2">Clear search</Button>
+                   <p className="text-gray-500 font-medium">No Indian jobs found matching your criteria.</p>
+                   <Button variant="ghost" onClick={() => {
+                     setSearchTerm('');
+                     setFilters({ location: 'All', experience: 'All' });
+                   }} className="mt-2">Clear filters</Button>
                 </div>
               )}
             </div>
@@ -145,15 +231,21 @@ const Jobs = () => {
                     jobTitle={selectedJob.title}
                   />
                 </div>
+                <Button 
+                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-100"
+                  onClick={() => window.open(selectedJob.apply_url, '_blank')}
+                >
+                  Apply Directly <ExternalLink size={18} className="ml-2" />
+                </Button>
               </div>
             ) : (
-              <Card className="flex flex-col items-center justify-center py-16 text-center bg-white/50 animate-pulse">
+              <Card className="flex flex-col items-center justify-center py-16 text-center bg-white/50 border-dashed border-2">
                 <div className="bg-gray-100 p-4 rounded-full text-gray-300 mb-4">
                   <Sparkles size={32} />
                 </div>
-                <p className="font-bold text-gray-400 mb-1 leading-tight">No Job Selected</p>
+                <p className="font-bold text-gray-900 mb-1 leading-tight">AI Analysis Ready</p>
                 <p className="text-sm text-gray-400 max-w-[200px]">
-                  Click "Details" on any job card to see AI insights.
+                  Select a job card to generate match explanations and skill gap insights.
                 </p>
               </Card>
             )}

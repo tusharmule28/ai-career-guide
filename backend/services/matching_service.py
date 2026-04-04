@@ -31,11 +31,26 @@ class MatchingService:
         results = []
         for job, distance in query.all():
             # Convert cosine distance to a 0-100 similarity score
-            # similarity = 1 - distance
             match_score = (1 - float(distance)) * 100
+            
+            # Simple skill-gap analysis
+            # We compare the job's required skills with the resume text (case-insensitive)
+            required_skills = job.required_skills if isinstance(job.required_skills, list) else []
+            found_skills = []
+            missing_skills = []
+            
+            resume_text_lower = resume_text.lower()
+            for skill in required_skills:
+                if skill.lower() in resume_text_lower:
+                    found_skills.append(skill)
+                else:
+                    missing_skills.append(skill)
+            
             results.append({
                 "job": job,
                 "score": round(max(0, match_score), 2),
+                "found_skills": found_skills,
+                "missing_skills": missing_skills,
                 "apply_url": job.apply_url,
                 "source": job.source
             })

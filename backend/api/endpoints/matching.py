@@ -12,11 +12,15 @@ from scrapers.job_fetcher import job_fetcher
 
 router = APIRouter()
 
+from pydantic import BaseModel
+class MatchRequest(BaseModel):
+    resume_id: Optional[int] = None
+    top_n: int = 5
+
 @router.post("/match", response_model=List[dict])
 async def match_resume_to_jobs(
     background_tasks: BackgroundTasks,
-    resume_id: Optional[int] = None,
-    top_n: int = 5,
+    request: MatchRequest = MatchRequest(),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -26,6 +30,9 @@ async def match_resume_to_jobs(
     """
     # Trigger background job fetch to ensure fresh data for NEXT time or later
     background_tasks.add_task(job_fetcher.sync_jobs, db)
+
+    resume_id = request.resume_id
+    top_n = request.top_n
 
     if resume_id:
         resume = db.query(Resume).filter(Resume.id == resume_id).first()
@@ -56,6 +63,8 @@ async def match_resume_to_jobs(
                 "title": job.title,
                 "company": job.company,
                 "score": match["score"],
+                "found_skills": match.get("found_skills", []),
+                "missing_skills": match.get("missing_skills", []),
                 "description": job.description,
                 "location": job.location,
                 "required_skills": job.required_skills,
