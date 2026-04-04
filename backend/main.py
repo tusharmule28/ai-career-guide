@@ -20,7 +20,7 @@ def create_application() -> FastAPI:
     import urllib.parse
 
     def clean_origin(o: str) -> str:
-        # Strip whitespace and quotes, and intelligently extract only the true origin
+        # Strip whitespace, quotes, and trailing slashes to ensure exact origin matching
         o = o.strip().strip('"').strip("'").rstrip('/')
         try:
             parsed = urllib.parse.urlparse(o)
@@ -29,6 +29,19 @@ def create_application() -> FastAPI:
         except Exception:
             pass
         return o
+    
+    # Traceback middleware for production debugging — logs 500 errors to the console
+    from starlette.middleware.base import BaseHTTPMiddleware
+    import traceback
+    
+    class ErrorLoggingMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):
+            try:
+                return await call_next(request)
+            except Exception as e:
+                print(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
+                print(traceback.format_exc())
+                raise e from None
 
     # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec
     _raw_origins = settings.ALLOWED_ORIGINS or ""
@@ -47,12 +60,14 @@ def create_application() -> FastAPI:
             ]
 
     print(f"DEBUG: ENVIRONMENT={settings.ENVIRONMENT} | CORS Origins: {allowed_origins}")
-
+    
+    # Layer order: Logging first, then CORS middleware
+    app.add_middleware(ErrorLoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_methods=["*"],
         allow_headers=["*"],
         expose_headers=["*"],
     )
