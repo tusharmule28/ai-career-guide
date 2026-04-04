@@ -26,7 +26,7 @@ class JobFetcher:
             # JobSpy is synchronous, run in executor to avoid blocking event loop
             def do_scrape():
                 return scrape_jobs(
-                    site_name=["linkedin", "indeed", "glassdoor", "google"],
+                    site_name=["linkedin", "indeed", "google"], # Removed Glassdoor due to 403 blocks
                     search_term=search_term,
                     location="India",
                     results_wanted=limit,
@@ -154,11 +154,15 @@ class JobFetcher:
                 external_id=job_data["external_id"],
                 title=job_data["title"],
                 company=job_data["company"],
-                description=job_data["description"][:10000], # Increased limit for better AI matching
+                description=job_data["description"][:10000],
                 location=job_data["location"],
                 apply_url=job_data["apply_url"],
                 source=job_data["source"],
-                required_skills=job_data["required_skills"]
+                required_skills=job_data["required_skills"],
+                salary_min=None,
+                salary_max=None,
+                work_type="On-site",
+                company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
             )
             
             # Generate embedding for the new job
