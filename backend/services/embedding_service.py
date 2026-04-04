@@ -23,11 +23,11 @@ class EmbeddingService:
         if not text:
             return np.array([])
         
-        # Ensure text is clean
+        # Ensure text is clean and truncated to avoid API limits (all-MiniLM-L6-v2 has a 512 token limit)
         if isinstance(text, str):
-            payload = {"inputs": text.strip()}
+            payload = {"inputs": text.strip()[:2000]}
         elif isinstance(text, list):
-            payload = {"inputs": [t.strip() for t in text if t.strip()]}
+            payload = {"inputs": [t.strip()[:2000] for t in text if t.strip()]}
             
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
