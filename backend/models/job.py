@@ -16,6 +16,7 @@ class Job(Base):
     salary_min = Column(Integer, nullable=True)
     salary_max = Column(Integer, nullable=True)
     work_type = Column(String, default="On-site") # Remote, Hybrid, On-site
+    company_logo = Column(String, nullable=True)
     embedding = Column(Vector(384), nullable=True) # AI Vector representation
     apply_url = Column(String, nullable=False) # Direct application link
     source = Column(String, nullable=True) # E.g., 'Remotive', 'WWR'

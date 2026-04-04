@@ -80,6 +80,7 @@ def create_application() -> FastAPI:
         import models.resume   # noqa: F401
         import models.user     # noqa: F401
         import models.saved_job # noqa: F401
+        import models.application # noqa: F401
         
         # Ensure all tables exist before seeding
         try:
