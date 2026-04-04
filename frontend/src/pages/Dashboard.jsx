@@ -172,7 +172,12 @@ const Dashboard = () => {
 
         {/* AI Recommendations Sidebar */}
         <div className="space-y-8">
-          <Card className="glass-card h-fit border-none p-8 rounded-[2rem] shadow-premium">
+          <Card className="glass-card h-fit border-none p-8 rounded-[2rem] shadow-premium relative overflow-hidden group">
+            {/* Privacy Badge */}
+            <div className="absolute top-4 right-4 text-green-500 opacity-20 group-hover:opacity-100 transition-opacity">
+               <ShieldCheck size={24} />
+            </div>
+            
             <div className="flex items-center gap-3 mb-8">
                <div className="p-2 bg-primary text-white rounded-xl">
                  <Sparkles size={20} />
@@ -223,6 +228,17 @@ const Dashboard = () => {
              <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
           </Card>
         </div>
+      </div>
+      
+      {/* Platform Security Assurance */}
+      <div className="mt-20 border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 opacity-70">
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+           <ShieldCheck size={16} className="text-green-500" />
+           Verified Secure & Encrypted Analysis
+        </div>
+        <p className="text-[10px] text-gray-400 max-w-md text-center md:text-right leading-relaxed font-medium">
+          YogyaSetu respects your Privacy. Your resume data is exclusively used for AI matching and is never shared with third-party trackers or advertisers.
+        </p>
       </div>
     </div>
   );

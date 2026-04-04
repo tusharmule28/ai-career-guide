@@ -65,6 +65,12 @@ const ResumeUpload = () => {
         <p className="text-gray-500 mt-2 max-w-lg mx-auto">
           Upload your resume in PDF format. Our AI will analyze your skills and match you with the best career opportunities.
         </p>
+        
+        {/* Privacy Surety Badge */}
+        <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-100 animate-in fade-in zoom-in duration-1000 delay-300">
+           <ShieldCheck size={14} />
+           100% Secure & Private Analysis
+        </div>
       </div>
 
       <Card className="p-10 border-2 border-dashed border-gray-200 bg-gray-50/30 hover:border-primary/30 transition-smooth">

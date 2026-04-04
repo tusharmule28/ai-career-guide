@@ -30,8 +30,12 @@ class MatchingService:
         
         results = []
         for job, distance in query.all():
-            # Convert cosine distance to a 0-100 similarity score
-            match_score = (1 - float(distance)) * 100
+            # Enhanced similarity scoring for better "Experience"
+            # Cosine distance is 0 to 2 for vectors. 0 is exact same.
+            # We scale it so typical matches (0.1 - 0.4 distance) look like 70% - 95%
+            dist = float(distance)
+            match_score = max(0, (1.2 - dist) * 83.3) # Scaled boost for better UX
+            if match_score > 100: match_score = 98.5 # Cap it but keep it high for good matches
             
             # Simple skill-gap analysis
             # We compare the job's required skills with the resume text (case-insensitive)

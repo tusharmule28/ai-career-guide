@@ -35,12 +35,15 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="bg-primary p-2 rounded-xl text-white group-hover:scale-110 transition-smooth">
-                <Sparkles size={20} />
+              <div className="bg-primary p-2 rounded-xl text-white group-hover:rotate-12 transition-smooth shadow-lg shadow-primary/20">
+                <ShieldCheck size={22} />
               </div>
-              <span className="text-xl font-bold tracking-tight text-gray-900">
-                AI Career <span className="text-primary">Guide</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xl font-extrabold tracking-tight text-gray-900 leading-none">
+                  Yogya<span className="text-primary">Setu</span>
+                </span>
+                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Secure Career AI</span>
+              </div>
             </Link>
           </div>
 
