@@ -1,14 +1,36 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import text, inspect
 from typing import List
+import logging
+import traceback
 
-from db.database import get_db
+from db.database import get_db, engine, Base
 from models.job import Job
 from schemas.job import JobResponse, JobCreate
 from services.matching_service import matching_service
 from scrapers.job_fetcher import job_fetcher
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+def _ensure_jobs_table(db: Session):
+    """Make sure the jobs table exists, create it if missing."""
+    try:
+        inspector = inspect(engine)
+        if "jobs" not in inspector.get_table_names():
+            logger.warning("'jobs' table not found — creating it now.")
+            # Ensure pgvector extension exists first
+            with engine.connect() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+                conn.commit()
+            Job.__table__.create(bind=engine, checkfirst=True)
+            logger.info("'jobs' table created successfully.")
+    except Exception as e:
+        logger.error(f"Error ensuring jobs table: {e}")
+        raise
+
 
 @router.post("/sync", status_code=status.HTTP_202_ACCEPTED)
 async def sync_jobs(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
@@ -18,64 +40,110 @@ async def sync_jobs(background_tasks: BackgroundTasks, db: Session = Depends(get
     background_tasks.add_task(job_fetcher.sync_jobs, db)
     return {"message": "Job synchronization started in the background."}
 
+
 @router.get("", response_model=List[JobResponse])
 @router.get("/", response_model=List[JobResponse], include_in_schema=False)
 async def get_jobs(db: Session = Depends(get_db)):
-    jobs = db.query(Job).all()
-    
-    # If no jobs exist, let's create some seed data for demonstration
-    if not jobs:
-        seed_jobs = [
-            Job(
-                title="Frontend Developer",
-                company="TechCorp",
-                location="Remote",
-                description="Looking for a React expert with Tailwind CSS experience.",
-                required_skills=["React", "Tailwind CSS", "JavaScript", "Vite"],
-                apply_url="https://example.com/apply/frontend",
-                source="Seed",
-                external_id="seed_1"
-            ),
-            Job(
-                title="Backend Engineer",
-                company="DataSystems",
-                location="New York",
-                description="FastAPI and PostgreSQL specialist needed for high-scale systems.",
-                required_skills=["Python", "FastAPI", "PostgreSQL", "Docker"],
-                apply_url="https://example.com/apply/backend",
-                source="Seed",
-                external_id="seed_2"
-            ),
-            Job(
-                title="Fullstack Developer",
-                company="AI Solutions",
-                location="San Francisco",
-                description="Build the future of AI tools with Next.js and Python.",
-                required_skills=["Next.js", "Python", "TypeScript", "LLMs"],
-                apply_url="https://example.com/apply/fullstack",
-                source="Seed",
-                external_id="seed_3"
-            )
-        ]
-        for job in seed_jobs:
-            db.add(job)
-        db.commit()
-        
-        # Backfill embeddings for seed jobs
-        for job in seed_jobs:
-            try:
-                await matching_service.update_job_embedding(db, job)
-            except Exception as e:
-                import logging
-                logging.getLogger(__name__).error(f"Failed to update job embedding during seed: {e}")
-            
+    try:
+        # Ensure table exists before querying
+        _ensure_jobs_table(db)
+
         jobs = db.query(Job).all()
-        
-    return jobs
+
+        # If no jobs exist, create some seed data for demonstration
+        if not jobs:
+            try:
+                seed_jobs = [
+                    Job(
+                        title="Frontend Developer",
+                        company="TechCorp",
+                        location="Remote",
+                        description="Looking for a React expert with Tailwind CSS experience.",
+                        required_skills=["React", "Tailwind CSS", "JavaScript", "Vite"],
+                        apply_url="https://example.com/apply/frontend",
+                        source="Seed",
+                        external_id="seed_1"
+                    ),
+                    Job(
+                        title="Backend Engineer",
+                        company="DataSystems",
+                        location="New York",
+                        description="FastAPI and PostgreSQL specialist needed for high-scale systems.",
+                        required_skills=["Python", "FastAPI", "PostgreSQL", "Docker"],
+                        apply_url="https://example.com/apply/backend",
+                        source="Seed",
+                        external_id="seed_2"
+                    ),
+                    Job(
+                        title="Fullstack Developer",
+                        company="AI Solutions",
+                        location="San Francisco",
+                        description="Build the future of AI tools with Next.js and Python.",
+                        required_skills=["Next.js", "Python", "TypeScript", "LLMs"],
+                        apply_url="https://example.com/apply/fullstack",
+                        source="Seed",
+                        external_id="seed_3"
+                    )
+                ]
+                for job in seed_jobs:
+                    db.merge(job)  # merge avoids duplicate external_id crashes
+                db.commit()
+
+                # Backfill embeddings for seed jobs (non-critical)
+                for job in seed_jobs:
+                    try:
+                        await matching_service.update_job_embedding(db, job)
+                    except Exception as e:
+                        logger.error(f"Failed to update job embedding during seed: {e}")
+
+                jobs = db.query(Job).all()
+            except Exception as e:
+                db.rollback()
+                logger.error(f"Failed to seed jobs: {e}")
+                # Return empty list rather than crash
+                jobs = []
+
+        return jobs
+
+    except Exception as e:
+        logger.error(f"Error in get_jobs: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch jobs: {str(e)}"
+        )
+
+
+@router.get("/debug-table")
+def debug_jobs_table(db: Session = Depends(get_db)):
+    """Diagnostic endpoint to check the jobs table status."""
+    info = {"table_exists": False, "row_count": 0, "error": None, "columns": []}
+    try:
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
+        info["all_tables"] = tables
+        info["table_exists"] = "jobs" in tables
+        if info["table_exists"]:
+            info["columns"] = [c["name"] for c in inspector.get_columns("jobs")]
+            count = db.execute(text("SELECT COUNT(*) FROM jobs")).scalar()
+            info["row_count"] = count
+    except Exception as e:
+        info["error"] = str(e)
+    return info
+
 
 @router.get("/{job_id}", response_model=JobResponse)
 def get_job(job_id: int, db: Session = Depends(get_db)):
-    job = db.query(Job).filter(Job.id == job_id).first()
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
+    try:
+        _ensure_jobs_table(db)
+        job = db.query(Job).filter(Job.id == job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return job
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_job: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch job: {str(e)}"
+        )

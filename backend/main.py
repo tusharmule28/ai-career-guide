@@ -70,9 +70,15 @@ def create_application() -> FastAPI:
 
     @app.on_event("startup")
     async def on_startup():
+        import traceback
         from db.database import SessionLocal, Base, engine
         from services.user_service import UserService
         from schemas.user import UserCreate
+        
+        # Force-import ALL models so Base.metadata knows about every table
+        import models.job      # noqa: F401
+        import models.resume   # noqa: F401
+        import models.user     # noqa: F401
         
         # Ensure all tables exist before seeding
         try:
@@ -84,8 +90,15 @@ def create_application() -> FastAPI:
             
             Base.metadata.create_all(bind=engine)
             print("Database tables initialized.")
+            
+            # Verify jobs table was created
+            from sqlalchemy import inspect as sa_inspect
+            inspector = sa_inspect(engine)
+            tables = inspector.get_table_names()
+            print(f"Tables in database: {tables}")
         except Exception as e:
             print(f"Error initializing database: {e}")
+            print(traceback.format_exc())
 
         db = SessionLocal()
         try:
