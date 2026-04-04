@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Filter, SlidersHorizontal, Sparkles, Loader2, AlertCircle, MapPin, Briefcase, Bookmark, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
-import useJobStore from '../store/jobStore';
+import { useJobStore } from '../store/jobStore';
 import SkillGap from '../components/SkillGap';
 import ExplanationPanel from '../components/ExplanationPanel';
 import Card from '../components/ui/Card';

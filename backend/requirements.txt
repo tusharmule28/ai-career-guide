@@ -22,3 +22,4 @@ pytest-asyncio
 pytest-mock
 beautifulsoup4
 python-jobspy
+playwright

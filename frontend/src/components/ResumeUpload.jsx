@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { Upload, FileText, CheckCircle2, AlertCircle, X, Loader2, Sparkles } from 'lucide-react';
+import { Upload, FileText, CheckCircle2, AlertCircle, X, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import { api } from '../utils/api';

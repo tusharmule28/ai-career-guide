@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import useJobStore from '../store/jobStore';
+import { useJobStore } from '../store/jobStore';
 import {
   Sparkles,
   Briefcase,
@@ -11,7 +11,9 @@ import {
   TrendingUp,
   Search,
   Zap,
-  Target
+  Target,
+  ShieldCheck,
+  User as UserIcon
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';

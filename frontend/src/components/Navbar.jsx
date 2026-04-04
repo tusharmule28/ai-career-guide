@@ -9,7 +9,9 @@ import {
   Menu, 
   X, 
   User as UserIcon,
-  Sparkles
+  Sparkles,
+  ShieldCheck,
+  CheckCircle2
 } from 'lucide-react';
 import Button from './ui/Button';
 

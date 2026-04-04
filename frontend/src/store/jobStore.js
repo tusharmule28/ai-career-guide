@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../utils/api';
 
-const useJobStore = create((set, get) => ({
+export const useJobStore = create((set, get) => ({
   jobs: [],
   matchedJobs: [],
   savedJobs: [],
