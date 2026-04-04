@@ -63,7 +63,11 @@ async def get_jobs(db: Session = Depends(get_db)):
         
         # Backfill embeddings for seed jobs
         for job in seed_jobs:
-            await matching_service.update_job_embedding(db, job)
+            try:
+                await matching_service.update_job_embedding(db, job)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"Failed to update job embedding during seed: {e}")
             
         jobs = db.query(Job).all()
         

@@ -37,8 +37,10 @@ class EmbeddingService:
                 
                 return np.array(embeddings)
         except Exception as e:
-            logger.error(f"Error calling Hugging Face API: {e}")
-            raise e
+            logger.error(f"Error calling Hugging Face API: {e}. Falling back to zero-vector.")
+            # If the API fails, return a graceful fallback 384-dimensional zero vector
+            # (which is the dimension of all-MiniLM-L6-v2)
+            return np.zeros(384)
 
 # Singleton instance
 embedding_service = EmbeddingService()
