@@ -26,7 +26,7 @@ class JobFetcher:
             # JobSpy is synchronous, run in executor to avoid blocking event loop
             def do_scrape():
                 return scrape_jobs(
-                    site_name=["linkedin", "indeed", "google"], # Removed Glassdoor due to 403 blocks
+                    site_name=["linkedin", "indeed"], # Removed Google (429 rate-limit) and Glassdoor (403)
                     search_term=search_term,
                     location="India",
                     results_wanted=limit,
@@ -130,8 +130,8 @@ class JobFetcher:
         for term in search_terms:
             jobs = await self.fetch_india_jobs(search_term=term, limit=15)
             all_fetched_jobs.extend(jobs)
-            # Politeness delay
-            await asyncio.sleep(2)
+            # Politeness delay — longer to avoid rate-limits on Render
+            await asyncio.sleep(10)
         
         # Also keep original sources for diversity if needed, 
         # but the user specifically asked for real-time India matching.
