@@ -3,7 +3,7 @@ from huggingface_hub import InferenceClient
 from core.config import settings
 from core.utils import retry_with_backoff
 
-@retry_with_backoff(retries=3)
+@retry_with_backoff(retries=5)
 async def get_match_explanation(resume_text: str, job_description: str) -> str:
     """Generate a concise explanation of why the resume matches the job."""
     if not settings.HUGGING_FACE_API_TOKEN:
@@ -21,13 +21,13 @@ async def get_match_explanation(resume_text: str, job_description: str) -> str:
     
     response = client.text_generation(
         prompt,
-        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        model="HuggingFaceH4/zephyr-7b-beta",
         max_new_tokens=300,
-        temperature=0.5
+        temperature=0.7
     )
     return response.strip()
 
-@retry_with_backoff(retries=3)
+@retry_with_backoff(retries=5)
 async def get_improvement_suggestions(missing_skills: Optional[List[str]]) -> str:
     """Provide a brief learning plan or improvement areas."""
     if not settings.HUGGING_FACE_API_TOKEN:
@@ -46,8 +46,8 @@ async def get_improvement_suggestions(missing_skills: Optional[List[str]]) -> st
     
     response = client.text_generation(
         prompt,
-        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        model="HuggingFaceH4/zephyr-7b-beta",
         max_new_tokens=300,
-        temperature=0.5
+        temperature=0.7
     )
     return response.strip()
