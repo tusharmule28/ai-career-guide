@@ -144,17 +144,25 @@ def create_application() -> FastAPI:
         # Phase 4: Start background Job Sync Scheduler
         import asyncio
         from scrapers.job_fetcher import job_fetcher
+        from services.notification_service import notification_service
         
         async def schedule_job_sync():
             while True:
                 try:
-                    print("Periodic Job Sync: Starting...")
+                    logger.info("Periodic Job Sync: Starting...")
                     db = SessionLocal()
-                    await job_fetcher.sync_jobs(db)
+                    # 1. Fetch new jobs
+                    new_jobs = await job_fetcher.sync_jobs(db)
+                    
+                    # 2. Notify users of high-score matches
+                    if new_jobs:
+                        logger.info(f"Sync complete. Processing notifications for {len(new_jobs)} new jobs...")
+                        await notification_service.notify_matching_users(db, new_jobs)
+                    
                     db.close()
-                    print("Periodic Job Sync: Completed.")
+                    logger.info("Periodic Job Sync: Completed.")
                 except Exception as e:
-                    print(f"Periodic Job Sync: Error: {e}")
+                    logger.error(f"Periodic Job Sync: Error: {e}")
                 
                 # Sleep for 30 minutes
                 await asyncio.sleep(1800)

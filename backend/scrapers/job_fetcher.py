@@ -117,9 +117,10 @@ class JobFetcher:
             logger.error(f"Error fetching from WWR: {e}")
             return []
 
-    async def sync_jobs(self, db: Session):
+    async def sync_jobs(self, db: Session) -> List[Job]:
         """
         Fetch jobs from all sources and save new ones to the database.
+        Returns a list of newly created Job objects.
         """
         logger.info("Starting Job Sync: Targeting Indian Tech Hubs & Major Platforms...")
         
@@ -143,7 +144,7 @@ class JobFetcher:
         
         logger.info(f"Fetched total of {len(all_fetched_jobs)} jobs from JobSpy.")
 
-        new_jobs_count = 0
+        new_jobs = []
         for job_data in all_fetched_jobs:
             # Check for existing job
             existing_job = db.query(Job).filter(Job.external_id == job_data["external_id"]).first()
@@ -173,15 +174,17 @@ class JobFetcher:
                 new_job.embedding = embedding.tolist()
                 
                 db.add(new_job)
-                new_jobs_count += 1
+                new_jobs.append(new_job)
             except Exception as e:
                 logger.error(f"Failed to generate embedding for job {new_job.external_id}: {e}")
                 continue
 
-        if new_jobs_count > 0:
+        if len(new_jobs) > 0:
             db.commit()
-            logger.info(f"Successfully synced {new_jobs_count} new jobs via JobSpy.")
+            logger.info(f"Successfully synced {len(new_jobs)} new jobs via JobSpy.")
         else:
             logger.info("No new JobSpy jobs to sync.")
+        
+        return new_jobs
 
 job_fetcher = JobFetcher()

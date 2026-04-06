@@ -10,6 +10,7 @@ import ResumeUploadPage from './components/ResumeUpload';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Applications from './pages/Applications';
+import NotificationsPage from './pages/Notifications';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -65,6 +66,12 @@ const AppContent = () => {
           <Route path="/applications" element={
             <ProtectedRoute>
               <Applications />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <NotificationsPage />
             </ProtectedRoute>
           } />
         </Routes>
