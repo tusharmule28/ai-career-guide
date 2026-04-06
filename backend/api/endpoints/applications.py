@@ -27,21 +27,54 @@ async def apply_to_job(
     ).first()
     
     if existing:
-        return {"message": "Already applied", "id": existing.id}
+        return {"message": "Already tracked", "id": existing.id, "status": existing.status.value}
     
     new_app = Application(user_id=current_user.id, job_id=job_id)
     db.add(new_app)
     db.commit()
     db.refresh(new_app)
     
-    return {"message": "Application tracked", "id": new_app.id}
+    return {"message": "Application tracked as Pending", "id": new_app.id, "status": "Pending"}
+
+@router.patch("/{id}", response_model=dict)
+async def update_application_status(
+    id: int,
+    status: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    app = db.query(Application).filter(Application.id == id, Application.user_id == current_user.id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    try:
+        # Convert string to enum
+        app.status = ApplicationStatus(status)
+        db.commit()
+        return {"message": "Status updated", "status": app.status.value}
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {[s.value for s in ApplicationStatus]}")
+
+@router.delete("/{id}", response_model=dict)
+async def delete_application(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    app = db.query(Application).filter(Application.id == id, Application.user_id == current_user.id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+    
+    db.delete(app)
+    db.commit()
+    return {"message": "Application removed"}
 
 @router.get("/", response_model=List[dict])
 async def get_my_applications(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    apps = db.query(Application).filter(Application.user_id == current_user.id).all()
+    apps = db.query(Application).filter(Application.user_id == current_user.id).order_by(Application.applied_at.desc()).all()
     
     results = []
     for app in apps:
