@@ -121,26 +121,27 @@ class JobFetcher:
         """
         Fetch jobs from all sources and save new ones to the database.
         """
-        logger.info("Starting job synchronization for Indian market...")
+        logger.info("Starting Job Sync: Targeting Indian Tech Hubs & Major Platforms...")
         
-        # Search for a few popular categories in India
-        search_terms = ["Software Engineer", "Full Stack Developer", "Data Scientist", "Python Developer"]
+        # 1. Run the specialized Playwright scraper for Indeed India first (High quality)
+        try:
+            await indian_jobs_scraper.run_sync(db)
+        except Exception as e:
+            logger.error(f"IndianJobsScraper failed: {e}")
+
+        # 2. Use JobSpy for broader coverage of LinkedIn & Indeed across regions
+        search_terms = ["Software Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer", "Data Scientist", "DevOps Engineer"]
+        indian_hubs = ["Bangalore", "Pune", "Hyderabad", "Mumbai", "Delhi NCR", "Chennai", "Remote, India"]
         
         all_fetched_jobs = []
-        for term in search_terms:
-            jobs = await self.fetch_india_jobs(search_term=term, limit=15)
-            all_fetched_jobs.extend(jobs)
-            # Politeness delay — longer to avoid rate-limits on Render
-            await asyncio.sleep(10)
+        for city in indian_hubs:
+            for term in search_terms[:3]: # Limit combinations for faster sync
+                jobs = await self.fetch_india_jobs(search_term=f"{term} {city}", limit=10)
+                all_fetched_jobs.extend(jobs)
+                # Politeness delay to avoid rate-limits
+                await asyncio.sleep(5)
         
-        # Also keep original sources for diversity if needed, 
-        # but the user specifically asked for real-time India matching.
-        # remotive_jobs = await self.fetch_remotive_jobs()
-        # wwr_jobs = await self.fetch_wwr_jobs()
-        # all_fetched_jobs.extend(remotive_jobs)
-        # all_fetched_jobs.extend(wwr_jobs)
-        
-        logger.info(f"Fetched total of {len(all_fetched_jobs)} jobs.")
+        logger.info(f"Fetched total of {len(all_fetched_jobs)} jobs from JobSpy.")
 
         new_jobs_count = 0
         for job_data in all_fetched_jobs:
@@ -165,8 +166,7 @@ class JobFetcher:
                 company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
             )
             
-            # Generate embedding for the new job
-            # Combine title and description for embedding
+            # Generate embedding
             content_to_embed = f"{new_job.title} {new_job.description[:2000]}" 
             try:
                 embedding = await embedding_service.generate_embedding(content_to_embed)
@@ -180,8 +180,8 @@ class JobFetcher:
 
         if new_jobs_count > 0:
             db.commit()
-            logger.info(f"Successfully synced {new_jobs_count} new Indian jobs.")
+            logger.info(f"Successfully synced {new_jobs_count} new jobs via JobSpy.")
         else:
-            logger.info("No new jobs to sync.")
+            logger.info("No new JobSpy jobs to sync.")
 
 job_fetcher = JobFetcher()

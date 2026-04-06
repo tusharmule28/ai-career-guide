@@ -239,7 +239,7 @@ const Dashboard = () => {
            Verified Secure & Encrypted Analysis
         </div>
         <p className="text-[10px] text-gray-400 max-w-md text-center md:text-right leading-relaxed font-medium">
-          YogyaSetu respects your Privacy. Your resume data is exclusively used for AI matching and is never shared with third-party trackers or advertisers.
+          CareerGuide AI respects your Privacy. Your resume data is exclusively used for AI matching and is never shared with third-party trackers or advertisers.
         </p>
       </div>
     </div>

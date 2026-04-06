@@ -42,9 +42,9 @@ const Navbar = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-2xl font-extrabold tracking-tight text-slate-900 leading-none">
-                  Yogya<span className="text-accent-600">Setu</span>
+                  CareerGuide<span className="text-accent-600"> AI</span>
                 </span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1.5 pt-0.5 border-t border-slate-100">Future-Proof Careers</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1.5 pt-0.5 border-t border-slate-100">AI Job Matcher</span>
               </div>
             </Link>
           </div>
