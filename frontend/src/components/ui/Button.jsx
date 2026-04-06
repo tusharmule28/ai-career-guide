@@ -12,17 +12,18 @@ const Button = ({
   const baseStyles = 'inline-flex items-center justify-center font-medium transition-smooth rounded-lg disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'bg-primary text-white hover:bg-primary-700 shadow-sm',
-    accent: 'bg-accent text-white hover:bg-accent/90 shadow-sm',
-    secondary: 'bg-white text-text border border-gray-200 hover:bg-gray-50',
-    ghost: 'bg-transparent text-text hover:bg-gray-100',
-    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
+    primary: 'bg-primary text-white hover:bg-slate-800 shadow-md hover:shadow-lg active:scale-[0.98]',
+    accent: 'premium-gradient text-white hover:opacity-90 shadow-glow active:scale-[0.98]',
+    secondary: 'bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50 hover:border-slate-300 shadow-sm',
+    outline: 'bg-transparent text-accent-600 border-2 border-accent-600 hover:bg-accent-50 active:scale-[0.98]',
+    ghost: 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+    danger: 'bg-red-500 text-white hover:bg-red-600 shadow-sm active:scale-[0.98]',
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
+    sm: 'px-3.5 py-1.5 text-sm',
+    md: 'px-5 py-2.5 text-base',
+    lg: 'px-7 py-3.5 text-lg font-semibold',
   };
 
   return (

@@ -1,45 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    background-color: #F9FAFB;
-    color: #111827;
-    font-family: "Inter", "system-ui", "-apple-system", "sans-serif";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-text antialiased;
+    font-family: "Outfit", "Inter", "system-ui", "sans-serif";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20;
+  }
+
+  .glass-card {
+    @apply bg-white/60 backdrop-blur-md border border-white/30 shadow-card hover:shadow-premium transition-smooth rounded-2xl;
+  }
+
+  .premium-gradient {
+    @apply bg-gradient-to-br from-indigo-600 via-accent-600 to-accent-700;
+  }
+
+  .premium-border {
+    @apply border border-slate-200/60 hover:border-accent-200/80 transition-smooth;
   }
 }
 
 ::selection {
-  background-color: #1E3A8A;
-  opacity: 0.2;
-  color: #1E3A8A;
-}
-
-.glass {
-  @apply bg-white/70 backdrop-blur-md border border-white/20;
-}
-
-.glass-card {
-  @apply bg-white/40 backdrop-blur-xl border border-white/40 shadow-card hover:shadow-premium transition-smooth;
+  @apply bg-accent-200 text-accent-900;
 }
 
 .transition-smooth {
-  @apply transition-all duration-300 ease-in-out;
-}
-
-.skeleton-pulse {
-  @apply animate-spin bg-gray-200/50 rounded;
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
+  @apply transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Custom scrollbar for premium feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300 transition-colors;
 }
