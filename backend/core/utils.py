@@ -27,6 +27,7 @@ def retry_with_backoff(
                 except Exception as e:
                     last_exception = e
                     if i == retries:
+                        logger.error(f"Function '{func.__name__}' failed after {retries} retries. Final error: {str(e)}")
                         break
                         
                     # Calculate wait time
@@ -35,13 +36,12 @@ def retry_with_backoff(
                         wait += random.uniform(0, 0.1 * wait)
                     
                     logger.warning(
-                        f"Retrying {func.__name__} in {wait:.2f}s due to error: {e} "
+                        f"Retrying '{func.__name__}' in {wait:.2f}s due to error: {str(e)[:100]} "
                         f"(Attempt {i+1}/{retries})"
                     )
                     
                     await asyncio.sleep(wait)
             
-            logger.error(f"Function {func.__name__} failed after {retries} retries.")
             raise last_exception
             
         return wrapper
