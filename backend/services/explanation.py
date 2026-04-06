@@ -1,4 +1,7 @@
+from typing import List, Optional
 from huggingface_hub import AsyncInferenceClient
+from core.config import settings
+from core.utils import retry_with_backoff
 import logging
 
 logger = logging.getLogger(__name__)
