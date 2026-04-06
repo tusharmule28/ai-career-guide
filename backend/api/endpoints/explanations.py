@@ -7,6 +7,9 @@ from models.resume import Resume
 from models.job import Job
 from schemas.explanation import ExplanationRequest, ExplanationResponse
 from services.explanation import get_match_explanation, get_improvement_suggestions
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -26,9 +29,10 @@ async def explain_match(request: ExplanationRequest):
             "improvement_plan": improvement_plan
         }
     except Exception as e:
+        logger.error(f"Explanation generation failed: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred during explanation generation: {str(e)}"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI Service is currently busy or rate-limited. Please try again in 1 minute."
         )
 
 @router.get("/{job_id}", response_model=dict)
@@ -67,7 +71,8 @@ async def get_explanation(
             "job_title": job.title
         }
     except Exception as e:
+        logger.error(f"Explanation fetch failed: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred during explanation generation: {str(e)}"
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI Service is currently busy or rate-limited. Please try again in 1 minute."
         )

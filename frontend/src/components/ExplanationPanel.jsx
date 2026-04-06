@@ -44,9 +44,20 @@ const ExplanationPanel = ({ jobId, jobTitle }) => {
     </Card>
   );
 
-  if (error) return null; // Silently fail for simplicity
+  if (error) return (
+    <Card className="p-8 border-dashed border-2 border-red-100 bg-red-50/30 text-center">
+      <AlertCircle size={32} className="mx-auto text-red-400 mb-2 truncate" />
+      <p className="text-xs font-bold text-red-800 mb-4">{error}</p>
+      <button 
+        onClick={fetchExplanation} 
+        className="text-[10px] font-bold uppercase tracking-widest text-primary px-4 py-2 bg-white rounded-lg border border-primary/10 hover:bg-primary hover:text-white transition-smooth"
+      >
+        Retry Analysis
+      </button>
+    </Card>
+  );
 
-  if (!explanation) return null;
+  if (!explanation && !loading) return null;
 
   return (
     <Card className="border-none shadow-none bg-primary/[0.03] rounded-3xl p-8 relative">

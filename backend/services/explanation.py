@@ -19,17 +19,13 @@ async def get_match_explanation(resume_text: str, job_description: str) -> str:
     Match Explanation:
     """
     
-    try:
-        response = client.text_generation(
-            prompt,
-            model="mistralai/Mistral-7B-Instruct-v0.2",
-            max_new_tokens=300,
-            temperature=0.5
-        )
-        return response.strip()
-    except Exception as e:
-        print(f"Error calling HF API for match explanation: {e}")
-        return "An error occurred while generating the match explanation."
+    response = client.text_generation(
+        prompt,
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        max_new_tokens=300,
+        temperature=0.5
+    )
+    return response.strip()
 
 @retry_with_backoff(retries=3)
 async def get_improvement_suggestions(missing_skills: Optional[List[str]]) -> str:
@@ -48,14 +44,10 @@ async def get_improvement_suggestions(missing_skills: Optional[List[str]]) -> st
     Improvement Plan:
     """
     
-    try:
-        response = client.text_generation(
-            prompt,
-            model="mistralai/Mistral-7B-Instruct-v0.2",
-            max_new_tokens=300,
-            temperature=0.5
-        )
-        return response.strip()
-    except Exception as e:
-        print(f"Error calling HF API for improvement plan: {e}")
-        return "An error occurred while generating the improvement plan."
+    response = client.text_generation(
+        prompt,
+        model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+        max_new_tokens=300,
+        temperature=0.5
+    )
+    return response.strip()

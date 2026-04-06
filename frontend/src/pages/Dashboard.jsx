@@ -64,7 +64,7 @@ const Dashboard = () => {
             </p>
           </div>
           <Link to="/jobs">
-            <Button size="lg" className="bg-white text-primary hover:bg-primary-50 border-none shadow-xl shadow-black/10 h-14 px-8 font-bold text-lg rounded-2xl group transition-smooth">
+            <Button size="lg" variant="accent" className="shadow-xl shadow-accent-500/20 h-14 px-8 font-bold text-lg rounded-2xl group transition-smooth">
               Find New Jobs <Search className="ml-2 group-hover:scale-110 transition-transform" size={20} />
             </Button>
           </Link>
