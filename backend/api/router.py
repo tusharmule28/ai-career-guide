@@ -1,3 +1,4 @@
+from fastapi import APIRouter
 from api.endpoints import health, users, resumes, skills, explanations, jobs, auth, matching, dashboard, applications, notifications
 
 api_router = APIRouter()
