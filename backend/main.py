@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from api.router import api_router
 from db.database import Base, engine
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 
