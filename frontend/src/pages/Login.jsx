@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, LogIn, ArrowRight, Sparkles } from 'lucide-react';
@@ -23,9 +24,11 @@ const Login = () => {
     try {
       const data = await api.login(email, password);
       login({ email }, data.access_token);
+      toast.success('Login successful! Welcome back.');
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

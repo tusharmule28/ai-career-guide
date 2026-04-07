@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, User, UserPlus, ArrowRight, Sparkles } from 'lucide-react';
@@ -33,9 +34,11 @@ const Signup = () => {
       const data = await api.login(email, password);
 
       login({ name, email }, data.access_token);
+      toast.success('Account created successfully! Welcome aboard.');
       navigate('/');
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -57,7 +60,7 @@ const Signup = () => {
             <Input
               label="Full Name"
               type="text"
-              placeholder="John Doe"
+              placeholder="Your name"
               icon={User}
               value={name}
               onChange={(e) => setName(e.target.value)}

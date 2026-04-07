@@ -1,3 +1,4 @@
+import { toast } from 'react-hot-toast';
 import { getToken, logout } from './auth';
 
 // Smart BASE_URL detection: use env var if present, otherwise default based on current hostname
@@ -43,16 +44,28 @@ async function request(endpoint, options = {}) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+      const errorMsg = data.detail || `Server error: ${response.status}`;
       console.error(`[API ERROR] ${response.status} ${response.statusText}`, {
         url: `${BASE_URL}${endpoint}`,
         data,
       });
-      throw new Error(data.detail || `Server returned ${response.status}`);
+      // We don't toast every 400/500 here to avoid double toasts in components, 
+      // but we throw it for components to handle.
+      throw new Error(errorMsg);
     }
 
     return data;
   } catch (error) {
     console.error(`[API Network/Parse Error] ${endpoint}:`, error);
+    
+    // Explicitly handle "Failed to fetch" which usually means network/CORS error
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      toast.error('Network Error: Cannot connect to the server. Please check your connection or CORS settings.', {
+        id: 'network-error', // Prevent duplicate toasts
+      });
+      throw new Error('Network Error');
+    }
+    
     throw error;
   }
 }

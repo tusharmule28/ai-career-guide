@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { User as UserIcon, Mail, MapPin, Briefcase, Link as LinkIcon, Camera, Save, Sparkles, TrendingUp, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -20,20 +21,34 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const [isNewUser, setIsNewUser] = useState(true);
+
   useEffect(() => {
-    // Fetch detailed profile info if needed
+    // Fetch detailed profile info
+    const fetchProfile = async () => {
+      try {
+        const data = await api.get('/users/profile');
+        if (data && data.full_name) {
+          setProfile(data);
+          setIsNewUser(false);
+        }
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
+      }
+    };
+    fetchProfile();
   }, []);
 
   const handleSave = async () => {
     setLoading(true);
-    setSaveSuccess(false);
     try {
-      // API call to update profile
       await api.post('/users/profile/update', profile);
+      toast.success(isNewUser ? 'Profile created successfully!' : 'Profile updated successfully!');
+      setIsNewUser(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
-      console.error(err);
+      toast.error(err.message || 'Failed to save profile');
     } finally {
       setLoading(false);
     }
@@ -107,7 +122,7 @@ const Profile = () => {
                   value={profile.full_name}
                   onChange={(e) => setProfile({...profile, full_name: e.target.value})}
                   className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-smooth"
-                  placeholder="e.g. Tushar Mule"
+                  placeholder="Enter your full name"
                 />
               </div>
               <div className="space-y-2">
@@ -117,7 +132,7 @@ const Profile = () => {
                   value={profile.job_title}
                   onChange={(e) => setProfile({...profile, job_title: e.target.value})}
                   className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-smooth"
-                  placeholder="e.g. Senior Software Engineer"
+                  placeholder="Your professional job title"
                 />
               </div>
               <div className="space-y-2">
@@ -127,7 +142,7 @@ const Profile = () => {
                   value={profile.location}
                   onChange={(e) => setProfile({...profile, location: e.target.value})}
                   className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-smooth"
-                  placeholder="e.g. Bangalore, India"
+                  placeholder="City, Country"
                 />
               </div>
               <div className="space-y-2">
@@ -137,7 +152,7 @@ const Profile = () => {
                   value={profile.linkedin}
                   onChange={(e) => setProfile({...profile, linkedin: e.target.value})}
                   className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-smooth"
-                  placeholder="linkedin.com/in/username"
+                  placeholder="URL to your LinkedIn profile"
                 />
               </div>
             </div>
@@ -161,7 +176,7 @@ const Profile = () => {
                 icon={saveSuccess ? CheckCircle2 : Save}
                 className={saveSuccess ? 'bg-green-600 border-green-600' : ''}
               >
-                {loading ? 'Saving...' : saveSuccess ? 'Profile Updated' : 'Save Profile'}
+                {loading ? 'Processing...' : saveSuccess ? (isNewUser ? 'Profile Created' : 'Profile Updated') : (isNewUser ? 'Save Changes' : 'Update Profile')}
               </Button>
             </div>
           </Card>

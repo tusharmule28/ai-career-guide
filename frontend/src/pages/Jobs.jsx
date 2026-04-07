@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Search, Filter, SlidersHorizontal, Sparkles, Loader2, AlertCircle, MapPin, Briefcase, Bookmark, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
 import { useJobStore } from '../store/jobStore';
@@ -41,10 +42,10 @@ const Jobs = () => {
     setIsSyncing(true);
     try {
       await api.post('/jobs/sync');
-      alert('Job synchronization started in the background. Please wait a few seconds and refresh.');
+      toast.success('Job sync started! Refreshing in 5s...', { duration: 5000 });
       setTimeout(() => fetchJobs(), 5000);
     } catch (err) {
-      alert('Failed to start sync: ' + err.message);
+      toast.error('Sync failed: ' + err.message);
     } finally {
       setIsSyncing(false);
     }
@@ -217,8 +218,12 @@ const Jobs = () => {
                         variant="secondary" 
                         className="rounded-xl px-5 transition-smooth hover:scale-105 active:scale-95"
                         onClick={async () => {
-                          window.open(job.apply_url, '_blank');
-                          try { await api.post(`/applications/${job.id}`); } catch (e) {}
+                          try { 
+                            await api.post(`/applications/${job.id}`); 
+                            toast.success(`Application sent to ${job.company}!`);
+                          } catch (e) {
+                            console.error('Application tracking failed:', e);
+                          }
                         }}
                       >
                          <ExternalLink size={20} />
@@ -255,7 +260,12 @@ const Jobs = () => {
                   className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-100 h-14 rounded-2xl font-bold"
                   onClick={async () => {
                     window.open(selectedJob.apply_url, '_blank');
-                    try { await api.post(`/applications/${selectedJob.id}`); } catch (e) {}
+                    try { 
+                      await api.post(`/applications/${selectedJob.id}`); 
+                      toast.success(`Application sent to ${selectedJob.company}!`);
+                    } catch (e) {
+                      console.error('Application tracking failed:', e);
+                    }
                   }}
                 >
                   Apply Directly <ExternalLink size={18} className="ml-2" />

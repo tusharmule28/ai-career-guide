@@ -52,15 +52,14 @@ def create_application() -> FastAPI:
 
     # Fallback: if ALLOWED_ORIGINS is empty or was only "*", use environment-aware defaults
     if not allowed_origins:
-        if settings.ENVIRONMENT == "production":
-            allowed_origins = ["https://ai-career-guide-rho.vercel.app"]
-        else:
-            allowed_origins = [
-                "https://ai-career-guide-rho.vercel.app",
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:8080",
-            ]
+        # We explicitly add the Vercel origin to ensure it's always allowed in both dev and prod
+        # to prevent common configuration issues on Render.
+        allowed_origins = [
+            "https://ai-career-guide-rho.vercel.app",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:8080",
+        ]
 
     print(f"DEBUG: ENVIRONMENT={settings.ENVIRONMENT} | CORS Origins: {allowed_origins}")
     
@@ -70,9 +69,10 @@ def create_application() -> FastAPI:
         CORSMiddleware,
         allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
         expose_headers=["*"],
+        max_age=600,
     )
 
     @app.get("/api/v1/debug-cors")

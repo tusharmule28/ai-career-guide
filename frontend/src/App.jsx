@@ -86,10 +86,26 @@ const AppContent = () => {
   );
 };
 
+import { Toaster } from 'react-hot-toast';
+
 const App = () => {
   return (
     <AuthProvider>
       <Router>
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#fff',
+              color: '#363636',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+              borderRadius: '16px',
+              padding: '16px',
+              fontWeight: '500',
+            },
+          }}
+        />
         <AppContent />
       </Router>
     </AuthProvider>
