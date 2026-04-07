@@ -13,6 +13,36 @@ router = APIRouter()
 def get_user_service(db: Session = Depends(get_db)) -> UserService:
     return UserService(db)
 
+@router.get("/profile", response_model=dict)
+async def get_profile(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    user = db.query(User).filter(User.id == current_user.id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Handle social links JSON
+    import json
+    socials = {}
+    if user.social_links:
+        try:
+            socials = json.loads(user.social_links)
+        except Exception:
+            pass
+            
+    return {
+        "full_name": user.name,
+        "email": user.email,
+        "bio": user.bio,
+        "location": user.location,
+        "job_title": user.job_title,
+        "skills": user.skills,
+        "github": socials.get("github", ""),
+        "linkedin": socials.get("linkedin", ""),
+        "profile_picture": user.profile_picture
+    }
+
 @router.post("/profile/update", response_model=dict)
 async def update_profile(
     profile_data: dict,
@@ -23,8 +53,8 @@ async def update_profile(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Update fields
-    user.full_name = profile_data.get("full_name", user.full_name)
+    # Update fields - Note: DB column is 'name', frontend uses 'full_name'
+    user.name = profile_data.get("full_name", user.name)
     user.bio = profile_data.get("bio", user.bio)
     user.location = profile_data.get("location", user.location)
     user.job_title = profile_data.get("job_title", user.job_title)
