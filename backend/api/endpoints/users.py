@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from db.database import get_db
-from schemas.user import UserResponse, UserCreate
+from schemas.user import UserResponse, UserCreate, ProfileUpdate
 from services.user_service import UserService
 from models.user import User
 from core.security import get_current_user
@@ -43,9 +43,9 @@ async def get_profile(
         "profile_picture": user.profile_picture
     }
 
-@router.post("/profile/update", response_model=dict)
+@router.post("/profile/update", response_model=UserResponse)
 async def update_profile(
-    profile_data: dict,
+    profile_data: ProfileUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -53,23 +53,42 @@ async def update_profile(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Update fields - Note: DB column is 'name', frontend uses 'full_name'
-    user.name = profile_data.get("full_name", user.name)
-    user.bio = profile_data.get("bio", user.bio)
-    user.location = profile_data.get("location", user.location)
-    user.job_title = profile_data.get("job_title", user.job_title)
-    user.skills = profile_data.get("skills", user.skills)
+    # Update fields - Note: DB column is 'name', frontend/schema uses 'full_name'
+    if profile_data.full_name is not None:
+        user.name = profile_data.full_name
+    if profile_data.bio is not None:
+        user.bio = profile_data.bio
+    if profile_data.location is not None:
+        user.location = profile_data.location
+    if profile_data.job_title is not None:
+        user.job_title = profile_data.job_title
+    if profile_data.skills is not None:
+        user.skills = profile_data.skills
     
     # Handle social links as JSON
     import json
-    socials = {
-        "github": profile_data.get("github"),
-        "linkedin": profile_data.get("linkedin")
-    }
+    socials = {}
+    if user.social_links:
+        try:
+            socials = json.loads(user.social_links)
+        except Exception:
+            pass
+            
+    if profile_data.github is not None:
+        socials["github"] = profile_data.github
+    if profile_data.linkedin is not None:
+        socials["linkedin"] = profile_data.linkedin
+        
     user.social_links = json.dumps(socials)
     
     db.commit()
-    return {"message": "Profile updated successfully"}
+    db.refresh(user)
+    
+    # Map for response
+    user.github = socials.get("github", "")
+    user.linkedin = socials.get("linkedin", "")
+    
+    return user
 
 @router.get("/", response_model=List[UserResponse])
 def get_users(
