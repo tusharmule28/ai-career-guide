@@ -155,6 +155,16 @@ const Profile = () => {
                   placeholder="URL to your LinkedIn profile"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">GitHub Profile</label>
+                <input 
+                  type="text" 
+                  value={profile.github}
+                  onChange={(e) => setProfile({...profile, github: e.target.value})}
+                  className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-smooth"
+                  placeholder="URL to your GitHub profile"
+                />
+              </div>
             </div>
 
             <div className="space-y-2 mb-8">
