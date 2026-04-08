@@ -4,23 +4,24 @@ import { toast } from 'react-hot-toast';
 import { Search, Filter, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
 import { useJobStore } from '../store/jobStore';
-import SkillGap from '../components/SkillGap';
-import ExplanationPanel from '../components/ExplanationPanel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import JobCard from '../components/JobCard';
 import { JobCardSkeleton } from '../components/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
+import JobDetailModal from '../components/JobDetailModal';
 
 const Jobs = () => {
   const { jobs, loading, error, fetchJobs } = useJobStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const isMatchFilter = queryParams.get('filter') === 'matches';
+  const jobIdFromQuery = queryParams.get('id');
 
   const [filters, setFilters] = useState({
     location: 'All',
@@ -28,8 +29,22 @@ const Jobs = () => {
   });
 
   useEffect(() => {
-    fetchJobs();
+    const initJobs = async () => {
+      await fetchJobs();
+    };
+    initJobs();
   }, [fetchJobs]);
+
+  // Handle auto-open for specific job ID from query params
+  useEffect(() => {
+    if (jobIdFromQuery && jobs.length > 0) {
+      const job = jobs.find(j => String(j.id) === String(jobIdFromQuery));
+      if (job) {
+        setSelectedJob(job);
+        setIsModalOpen(true);
+      }
+    }
+  }, [jobIdFromQuery, jobs]);
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = (job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,6 +69,22 @@ const Jobs = () => {
     } finally {
       setIsSyncing(false);
     }
+  };
+
+  const handleViewDetails = (job) => {
+    setSelectedJob(job);
+    setIsModalOpen(true);
+    // Optional: update URL with job ID without full navigation reload
+    const newParams = new URLSearchParams(location.search);
+    newParams.set('id', job.id);
+    navigate({ search: newParams.toString() }, { replace: true });
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    const newParams = new URLSearchParams(location.search);
+    newParams.delete('id');
+    navigate({ search: newParams.toString() }, { replace: true });
   };
 
   return (
@@ -129,68 +160,36 @@ const Jobs = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        <div className="lg:col-span-2">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(6)].map((_, i) => <JobCardSkeleton key={i} />)}
-            </div>
-          ) : filteredJobs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredJobs.map((job) => (
-                <JobCard 
-                  key={job.id} 
-                  job={job} 
-                  onSelect={(j) => {
-                    setSelectedJob(j);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }} 
-                />
-              ))}
-            </div>
-          ) : (
-            <EmptyState 
-              title="No roles found" 
-              description="Try adjusting your filters or search terms to see more results."
-              actionText="Clear Search"
-              onAction={() => setSearchTerm('')}
-            />
-          )}
-        </div>
-
-        <div className="space-y-8 h-fit lg:sticky lg:top-24">
-          {selectedJob ? (
-            <div className="animate-fade-in bg-white p-2 rounded-[2.5rem] shadow-premium border border-slate-100">
-              <ExplanationPanel 
-                jobId={selectedJob.id} 
-                jobTitle={selectedJob.title}
+      <div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => <JobCardSkeleton key={i} />)}
+          </div>
+        ) : filteredJobs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredJobs.map((job) => (
+              <JobCard 
+                key={job.id} 
+                job={job} 
+                onSelect={(j) => handleViewDetails(j)} 
               />
-              <div className="p-6 pt-0">
-                <SkillGap 
-                  jobId={selectedJob.id} 
-                  jobTitle={selectedJob.title}
-                />
-                <Button 
-                  className="w-full mt-8 bg-accent-600 hover:bg-accent-700 text-white shadow-xl shadow-accent-500/20 h-14 rounded-2xl font-bold transition-smooth"
-                  onClick={() => window.open(selectedJob.apply_url, '_blank')}
-                >
-                  Apply Directly
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <Card className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white/50 border-dashed border-2 rounded-[2.5rem]">
-              <div className="w-16 h-16 bg-slate-100 p-4 rounded-3xl text-slate-300 mb-6 animate-float">
-                <Sparkles size={32} />
-              </div>
-              <h4 className="font-bold text-slate-900 text-lg mb-2 leading-tight">Match Insights</h4>
-              <p className="text-sm text-slate-400 font-medium leading-relaxed">
-                Select a job card to unlock AI-powered match analysis and skill gap reports.
-              </p>
-            </Card>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState 
+            title="No roles found" 
+            description="Try adjusting your filters or search terms to see more results."
+            actionText="Clear Search"
+            onAction={() => setSearchTerm('')}
+          />
+        )}
       </div>
+
+      <JobDetailModal 
+        isOpen={isModalOpen} 
+        onClose={handleCloseModal} 
+        job={selectedJob} 
+      />
     </div>
   );
 };

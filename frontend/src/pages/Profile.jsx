@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { 
   User as UserIcon, Mail, MapPin, Briefcase, Link as LinkIcon, 
@@ -32,6 +33,8 @@ const Profile = () => {
   
   const [matchingJobs, setMatchingJobs] = useState([]);
   const [matchingLoading, setMatchingLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -307,7 +310,7 @@ const Profile = () => {
                 [...Array(3)].map((_, i) => <JobCardSkeleton key={i} />)
               ) : matchingJobs.length > 0 ? (
                 matchingJobs.map((job) => (
-                  <JobCard key={job.id} job={job} onSelect={(j) => window.open(j.apply_url, '_blank')} />
+                  <JobCard key={job.id} job={job} onSelect={(j) => navigate(`/jobs?id=${j.id}`)} />
                 ))
               ) : (
                 <div className="col-span-full">
