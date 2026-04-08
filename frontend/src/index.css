@@ -6,34 +6,35 @@
 
 @layer base {
   body {
-    @apply bg-background text-text antialiased;
+    @apply bg-background text-text antialiased selection:bg-accent-100 selection:text-accent-900;
     font-family: "Inter", "system-ui", "sans-serif";
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight;
+    @apply font-semibold tracking-tight text-slate-900;
+  }
+
+  /* Focus ring standardization */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent-500 ring-offset-2;
   }
 }
 
 @layer components {
   .glass {
-    @apply bg-white/70 backdrop-blur-lg border border-white/20;
+    @apply bg-white/80 backdrop-blur-md border border-slate-200/50;
   }
 
   .glass-card {
-    @apply bg-white/60 backdrop-blur-md border border-white/30 shadow-soft hover:shadow-premium transition-smooth rounded-3xl;
+    @apply bg-white border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 rounded-3xl;
   }
 
   .premium-gradient {
-    @apply bg-gradient-to-br from-indigo-600 via-accent-600 to-accent-700;
-  }
-
-  .premium-border {
-    @apply border border-slate-200/60 hover:border-accent-200/80 transition-smooth;
+    @apply bg-gradient-to-br from-indigo-500 to-accent-600;
   }
 
   .section-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12;
+    @apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16;
   }
 }
 

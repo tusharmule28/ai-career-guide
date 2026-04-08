@@ -55,7 +55,12 @@ const Dashboard = () => {
               <Button size="lg" className="h-12 px-8 font-bold rounded-xl" onClick={() => navigate('/jobs')}>
                 View All Matches
               </Button>
-              <Button variant="ghost" size="lg" className="h-12 px-6 font-bold rounded-xl text-white hover:bg-white/10">
+              <Button 
+                variant="ghost" 
+                size="lg" 
+                className="h-12 px-6 font-bold rounded-xl text-white hover:bg-white/10"
+                onClick={() => alert("Market Trends analysis coming soon! We are aggregating real-time data for you.")}
+              >
                 Explore Trends <ChevronRight size={18} className="ml-1" />
               </Button>
             </div>
@@ -127,11 +132,15 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <Card className="py-12 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center bg-transparent">
-             <div className="w-16 h-16 bg-slate-100 text-slate-300 rounded-full flex items-center justify-center mb-4">
+          <Card className="py-16 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center bg-slate-50/30 rounded-[2rem]">
+             <div className="w-20 h-20 bg-white shadow-sm text-accent-500 rounded-2xl flex items-center justify-center mb-6">
                 <Search size={32} />
              </div>
-             <p className="font-bold text-slate-500 italic">No fresh matches today. Try syncing again.</p>
+             <h3 className="text-lg font-bold text-slate-900 mb-2">No fresh matches found</h3>
+             <p className="max-w-xs text-slate-500 font-medium">We're constantly scanning. Try updating your profile or syncing again to see new opportunities.</p>
+             <Button variant="secondary" size="sm" className="mt-8" onClick={() => fetchMatchedJobs()}>
+                Sync Now
+             </Button>
           </Card>
         )}
       </section>

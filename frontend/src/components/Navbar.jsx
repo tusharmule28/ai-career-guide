@@ -96,9 +96,9 @@ const Navbar = () => {
                 key={item.name}
                 to={item.href}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-smooth
+                  flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200
                   ${isActive(item.href) 
-                    ? 'bg-accent-50 text-accent-700 shadow-sm' 
+                    ? 'bg-accent-50 text-accent-700' 
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                 `}
               >

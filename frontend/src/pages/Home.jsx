@@ -91,16 +91,16 @@ const Home = () => {
                 bg: 'bg-emerald-50'
               }
             ].map((feature, idx) => (
-              <div key={idx} className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-premium transition-smooth group cursor-default">
+              <Link key={idx} to={feature.title === 'Instant Extraction' ? '/signup' : '/jobs'} className="bg-white p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-accent-200 transition-all duration-300 group">
                 <div className={`w-14 h-14 rounded-2xl mb-8 flex items-center justify-center ${feature.bg} ${feature.color} group-hover:scale-110 transition-smooth`}>
                   <feature.icon size={28} strokeWidth={2.5} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-4">{feature.title}</h3>
                 <p className="text-slate-500 leading-relaxed font-medium">{feature.description}</p>
-                <div className="mt-8 flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-accent-600 transition-colors">
+                <div className="mt-8 flex items-center gap-2 text-xs font-bold text-accent-600 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
                   Learn more <ChevronRight size={14} />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -113,7 +113,7 @@ const Home = () => {
             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-8 tracking-tight">Ready to find your <br />perfect match?</h2>
             <p className="text-slate-400 text-lg mb-12 font-medium">Join thousands of job seekers who found their dream role with AI Career Guide.</p>
             <Link to="/signup">
-              <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-dark text-slate-900 hover:bg-slate-100 shadow-xl font-black">
+              <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-white text-slate-900 hover:bg-slate-50 shadow-2xl font-bold transition-all hover:scale-105 active:scale-95">
                 Sign Up Now — It's Free
               </Button>
             </Link>

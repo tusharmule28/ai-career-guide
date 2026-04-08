@@ -124,11 +124,6 @@ const Profile = () => {
                     <UserIcon size={48} />
                   )}
                 </div>
-                {isEditing && (
-                  <button className="absolute -bottom-1 -right-1 bg-accent-600 text-white p-2.5 rounded-2xl shadow-lg border-2 border-white hover:scale-110 active:scale-95 transition-smooth">
-                    <Camera size={18} />
-                  </button>
-                )}
               </div>
               
               <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">
@@ -153,14 +148,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex justify-center gap-3 mt-8">
-                 <button className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-accent-50 hover:text-accent-600 transition-smooth flex items-center justify-center">
-                    <Globe size={18} />
-                 </button>
-                 <button className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-smooth flex items-center justify-center">
-                    <LinkIcon size={18} />
-                 </button>
-              </div>
+
             </div>
           </Card>
 
@@ -176,9 +164,7 @@ const Profile = () => {
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-8">
                    <div className="h-full bg-accent-500 rounded-full w-[65%] shadow-glow shadow-accent-500/50"></div>
                 </div>
-                <Button variant="ghost" className="w-full h-12 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold transition-smooth">
-                   Run AI Audit
-                </Button>
+
              </div>
              <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-accent-500/10 rounded-full blur-[80px]"></div>
           </Card>
@@ -326,7 +312,11 @@ const Profile = () => {
             
             {matchingJobs.length > 0 && (
               <div className="flex justify-center">
-                 <Button variant="ghost" className="group text-slate-400 hover:text-accent-600 font-bold gap-2 transition-smooth">
+                 <Button 
+                    variant="ghost" 
+                    className="group text-slate-400 hover:text-accent-600 font-bold gap-2 transition-smooth"
+                    onClick={() => navigate('/jobs')}
+                 >
                     Explore all matched roles
                     <ChevronRight size={18} className="group-hover:translate-x-1 transition-smooth" />
                  </Button>
