@@ -4,10 +4,50 @@ from models.job import Job
 from models.resume import Resume
 from services.embedding_service import embedding_service
 from typing import List, Dict, Any
+from core.config import settings
+import asyncio
+import json
+import logging
+from groq import AsyncGroq
+
+logger = logging.getLogger(__name__)
 
 class MatchingService:
     def __init__(self):
-        pass
+        self.groq_client = None
+        if settings.GROQ_API_KEY:
+            try:
+                self.groq_client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+            except Exception as e:
+                logger.error(f"Failed to initialize Groq client: {e}")
+
+    async def _analyze_skill_gap_with_ai(self, resume_text: str, job: Job, match_data: Dict):
+        """Use Groq to analyze skill gap."""
+        if not self.groq_client: return
+        
+        prompt = f"""
+        Analyze the exact skill gap between this candidate's resume and the job description.
+        Return ONLY valid JSON in this exact format: {{"found_skills": ["skill1"], "missing_skills": ["skill2"]}}
+        Do not include markdown blocks or any other text.
+        
+        Job Title: {job.title}
+        Job Requirements/Skills: {', '.join(job.required_skills) if job.required_skills else (job.description[:500] if job.description else '')}
+        
+        Candidate Resume: {resume_text[:2000]}
+        """
+        try:
+            completion = await self.groq_client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0,
+                max_tokens=200,
+                response_format={"type": "json_object"}
+            )
+            response = json.loads(completion.choices[0].message.content)
+            match_data["found_skills"] = response.get("found_skills", match_data["found_skills"])
+            match_data["missing_skills"] = response.get("missing_skills", match_data["missing_skills"])
+        except Exception as e:
+            logger.error(f"Groq API error for job {job.id}: {e}")
 
     async def find_matches(self, db: Session, resume_text: str, top_n: int = 5) -> List[Dict[str, Any]]:
         """
@@ -58,6 +98,13 @@ class MatchingService:
                 "apply_url": job.apply_url,
                 "source": job.source
             })
+            
+        # Enhance top 3 results with Groq API concurrently
+        if self.groq_client and results:
+            tasks = []
+            for i, res in enumerate(results[:3]):
+                tasks.append(self._analyze_skill_gap_with_ai(resume_text, res["job"], res))
+            await asyncio.gather(*tasks)
             
         return results
 

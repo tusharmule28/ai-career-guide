@@ -22,6 +22,10 @@ class Settings(BaseSettings):
 
     # AI Models
     HUGGING_FACE_API_TOKEN: str = ""
+    GROQ_API_KEY: str = ""
+
+    # Constants limits/Auth for jobs
+    CRON_SECRET: str = "default_cron_secret_replace_in_prod"
 
     # CORS - leave empty to use environment-aware defaults in main.py
     # Set explicitly to override: "https://yourdomain.com,https://other.com"

@@ -23,3 +23,5 @@ pytest-mock
 beautifulsoup4
 python-jobspy
 playwright
+slowapi>=0.1.9
+groq>=0.4.2

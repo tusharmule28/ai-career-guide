@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Search, Filter, Sparkles, Loader2, RefreshCw } from 'lucide-react';
+import { Search, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
 import { useJobStore } from '../store/jobStore';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import JobCard from '../components/JobCard';
 import { JobCardSkeleton } from '../components/Skeleton';
 import EmptyState from '../components/ui/EmptyState';
 import JobDetailModal from '../components/JobDetailModal';
+import JobFilterBar from '../components/JobFilterBar';
 
-const Jobs = () => {
-  const { jobs, matchedJobs, loading, error, fetchJobs, fetchMatchedJobs } = useJobStore();
+const JobExplore = () => {
+  const { jobs, loading, error, fetchJobs } = useJobStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const isMatchFilter = queryParams.get('filter') === 'matches';
   const jobIdFromQuery = queryParams.get('id');
 
   const [filters, setFilters] = useState({
@@ -30,17 +30,9 @@ const Jobs = () => {
   });
 
   useEffect(() => {
-    const initJobs = async () => {
-      if (isMatchFilter) {
-        await fetchMatchedJobs({ top_n: 20 });
-      } else {
-        await fetchJobs();
-      }
-    };
-    initJobs();
-  }, [fetchJobs, fetchMatchedJobs, isMatchFilter]);
+    fetchJobs();
+  }, [fetchJobs]);
 
-  // Handle auto-open for specific job ID from query params
   useEffect(() => {
     if (jobIdFromQuery && jobs.length > 0) {
       const job = jobs.find(j => String(j.id) === String(jobIdFromQuery));
@@ -51,19 +43,15 @@ const Jobs = () => {
     }
   }, [jobIdFromQuery, jobs]);
 
-  const dataSource = isMatchFilter ? matchedJobs : jobs;
-
-  const filteredJobs = dataSource.filter(job => {
+  const filteredJobs = jobs.filter(job => {
     const searchLower = searchTerm.toLowerCase().trim();
     const matchesSearch = !searchLower || 
                           (job.title?.toLowerCase().includes(searchLower) ||
                           job.company?.toLowerCase().includes(searchLower));
     
-    // Use stored location/experience/type from filters state
     const matchesLocation = filters.location === 'All' || 
                             job.location?.toLowerCase().includes(filters.location.toLowerCase());
 
-    // Determine derived experience
     let derivedExp = job.experience_level;
     if (!derivedExp) {
        const titleLower = (job.title || '').toLowerCase();
@@ -76,7 +64,6 @@ const Jobs = () => {
     const matchesExperience = filters.experience === 'All' || 
                               derivedExp.toLowerCase() === filters.experience.toLowerCase();
 
-    // Determine derived job type
     let derivedWorkType = job.work_type;
     if (!derivedWorkType) {
        const titleLower = (job.title || '').toLowerCase();
@@ -91,15 +78,7 @@ const Jobs = () => {
                            derivedWorkType.toLowerCase() === filters.jobType.toLowerCase();
 
     return matchesSearch && matchesLocation && matchesExperience && matchesJobType;
-  }).sort((a, b) => {
-    // For matches, high score first, then newest
-    if (isMatchFilter) {
-      if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
-      return (b.id || 0) - (a.id || 0);
-    }
-    // For general jobs, newest first
-    return (b.id || 0) - (a.id || 0);
-  });
+  }).sort((a, b) => (b.id || 0) - (a.id || 0));
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -117,7 +96,6 @@ const Jobs = () => {
   const handleViewDetails = (job) => {
     setSelectedJob(job);
     setIsModalOpen(true);
-    // Optional: update URL with job ID without full navigation reload
     const newParams = new URLSearchParams(location.search);
     newParams.set('id', job.id);
     navigate({ search: newParams.toString() }, { replace: true });
@@ -135,15 +113,13 @@ const Jobs = () => {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
-             <Sparkles size={12} /> {isMatchFilter ? 'AI Prioritized' : 'Explore All'}
+             Explore All
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            {isMatchFilter ? 'AI Curated Roles' : 'Discover Opportunities'}
+            Discover Opportunities
           </h1>
           <p className="text-slate-500 font-medium mt-2 leading-relaxed">
-            {isMatchFilter 
-              ? "Roles where your skills and experience align perfectly with market demands."
-              : "Discover a wide range of roles tailored to your professional interests."}
+            Discover a wide range of roles tailored to your professional interests.
           </p>
         </div>
         
@@ -170,63 +146,14 @@ const Jobs = () => {
         </div>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-4 mb-10 pb-6 border-b border-slate-100">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">
-          <Filter size={14} />
-          Filters
-        </div>
-        
-        <select 
-          className="bg-slate-50 border-none text-[11px] font-bold rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer transition-all hover:bg-slate-100"
-          value={filters.location}
-          onChange={(e) => setFilters({...filters, location: e.target.value})}
-        >
-          <option value="All">All Locations</option>
-          <option value="Remote">Remote Only</option>
-          <option value="India">India</option>
-          <option value="San Francisco">San Francisco</option>
-          <option value="New York">New York</option>
-          <option value="London">London</option>
-        </select>
-
-        <select 
-          className="bg-slate-50 border-none text-[11px] font-bold rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer transition-all hover:bg-slate-100"
-          value={filters.experience}
-          onChange={(e) => setFilters({...filters, experience: e.target.value})}
-        >
-          <option value="All">Experience Level</option>
-          <option value="Entry">Entry Level</option>
-          <option value="Mid">Mid-Level</option>
-          <option value="Senior">Senior Level</option>
-          <option value="Lead">Lead/Director</option>
-        </select>
-
-        <select 
-          className="bg-slate-50 border-none text-[11px] font-bold rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer transition-all hover:bg-slate-100"
-          value={filters.jobType}
-          onChange={(e) => setFilters({...filters, jobType: e.target.value})}
-        >
-          <option value="All">Job Type</option>
-          <option value="Full-time">Full-time</option>
-          <option value="Contract">Contract</option>
-          <option value="Part-time">Part-time</option>
-          <option value="Internship">Internship</option>
-        </select>
-
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-[11px] font-bold text-slate-400 hover:text-accent-600 ml-auto"
-          onClick={() => {
-            setSearchTerm('');
-            setFilters({ location: 'All', experience: 'All', jobType: 'All' });
-            if (isMatchFilter) navigate('/jobs');
-          }}
-        >
-          Reset All
-        </Button>
-      </div>
+      <JobFilterBar 
+        filters={filters} 
+        setFilters={setFilters} 
+        onReset={() => {
+          setSearchTerm('');
+          setFilters({ location: 'All', experience: 'All', jobType: 'All' });
+        }} 
+      />
 
       <div>
         {loading ? (
@@ -240,7 +167,7 @@ const Jobs = () => {
                 key={job.id} 
                 job={job} 
                 onSelect={(j) => handleViewDetails(j)} 
-                highlight={isMatchFilter}
+                highlight={false}
               />
             ))}
           </div>
@@ -263,4 +190,4 @@ const Jobs = () => {
   );
 };
 
-export default Jobs;
+export default JobExplore;

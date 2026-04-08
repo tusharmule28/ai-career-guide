@@ -64,8 +64,8 @@ const Navbar = () => {
 
   const navigation = [
     { name: 'Home', href: '/dashboard', icon: Home },
-    { name: 'Jobs', href: '/jobs', icon: Briefcase },
-    { name: 'Matches', href: '/jobs?filter=matches', icon: Sparkles },
+    { name: 'Explore Roles', href: '/jobs/explore', icon: Briefcase },
+    { name: 'My Matches', href: '/jobs/matches', icon: Sparkles },
   ];
 
   const isActive = (path) => (location.pathname + location.search) === path;

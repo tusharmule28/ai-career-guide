@@ -4,10 +4,13 @@ from core.config import settings
 from api.router import api_router
 from db.database import Base, engine
 import logging
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 logger = logging.getLogger(__name__)
 
-
+limiter = Limiter(key_func=get_remote_address)
 
 def create_application() -> FastAPI:
     app = FastAPI(
@@ -17,6 +20,9 @@ def create_application() -> FastAPI:
         docs_url="/docs",
         redoc_url="/redoc"
     )
+
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
     # Configure CORS
     
@@ -143,35 +149,6 @@ def create_application() -> FastAPI:
             print(f"Error seeding admin: {e}")
         finally:
             db.close()
-
-        # Phase 4: Start background Job Sync Scheduler
-        import asyncio
-        from scrapers.job_fetcher import job_fetcher
-        from services.notification_service import notification_service
-        
-        async def schedule_job_sync():
-            while True:
-                try:
-                    logger.info("Periodic Job Sync: Starting...")
-                    db = SessionLocal()
-                    # 1. Fetch new jobs
-                    new_jobs = await job_fetcher.sync_jobs(db)
-                    
-                    # 2. Notify users of high-score matches
-                    if new_jobs:
-                        logger.info(f"Sync complete. Processing notifications for {len(new_jobs)} new jobs...")
-                        await notification_service.notify_matching_users(db, new_jobs)
-                    
-                    db.close()
-                    logger.info("Periodic Job Sync: Completed.")
-                except Exception as e:
-                    logger.error(f"Periodic Job Sync: Error: {e}")
-                
-                # Sleep for 30 minutes
-                await asyncio.sleep(1800)
-
-        # Run in the background
-        asyncio.create_task(schedule_job_sync())
 
     return app
 

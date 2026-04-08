@@ -1,5 +1,15 @@
 {
+    "crons": [
+        {
+            "path": "/api/cron-sync",
+            "schedule": "0 * * * *"
+        }
+    ],
     "rewrites": [
+        {
+            "source": "/api/cron-sync",
+            "destination": "https://your-render-app.onrender.com/api/v1/cron/sync"
+        },
         {
             "source": "/(.*)",
             "destination": "/index.html"

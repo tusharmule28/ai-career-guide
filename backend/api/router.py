@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from api.endpoints import health, users, resumes, skills, explanations, jobs, auth, matching, dashboard, applications, notifications
+from api.endpoints import health, users, resumes, skills, explanations, jobs, auth, matching, dashboard, applications, notifications, cron
 
 api_router = APIRouter()
 
@@ -14,3 +14,4 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboar
 api_router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
 api_router.include_router(auth.router, prefix="/auth", tags=["Auth"])
 api_router.include_router(matching.router, prefix="/matching", tags=["Matching"])
+api_router.include_router(cron.router, prefix="/cron", tags=["Cron"])
