@@ -66,7 +66,6 @@ const Navbar = () => {
     { name: 'Home', href: '/dashboard', icon: Home },
     { name: 'Jobs', href: '/jobs', icon: Briefcase },
     { name: 'Matches', href: '/jobs?filter=matches', icon: Sparkles },
-    { name: 'Profile', href: '/profile', icon: UserIcon },
   ];
 
   const isActive = (path) => location.pathname === path;

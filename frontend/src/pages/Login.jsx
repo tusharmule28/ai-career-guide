@@ -23,7 +23,24 @@ const Login = () => {
 
     try {
       const data = await api.login(email, password);
+      
+      // Fetch full profile to get the user's name
+      // Note: We need to set the token first so the profile request is authorized
+      // However, our AuthContext.login handles token storage, so we'll do it manually here for the profile fetch if needed
+      // Actually, api.js getToken() uses localStorage directly. AuthContext.login sets both.
+      
+      // We'll call login first to set the state and token, then fetch profile and update it
       login({ email }, data.access_token);
+      
+      try {
+        const profile = await api.get('/users/profile');
+        if (profile && profile.full_name) {
+          login({ name: profile.full_name, email }, data.access_token);
+        }
+      } catch (profileErr) {
+        console.warn('Failed to fetch profile names after login:', profileErr);
+      }
+      
       toast.success('Login successful! Welcome back.');
       navigate('/dashboard');
     } catch (err) {
