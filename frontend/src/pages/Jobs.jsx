@@ -12,7 +12,7 @@ import EmptyState from '../components/ui/EmptyState';
 import JobDetailModal from '../components/JobDetailModal';
 
 const Jobs = () => {
-  const { jobs, loading, error, fetchJobs } = useJobStore();
+  const { jobs, matchedJobs, loading, error, fetchJobs, fetchMatchedJobs } = useJobStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,10 +31,14 @@ const Jobs = () => {
 
   useEffect(() => {
     const initJobs = async () => {
-      await fetchJobs();
+      if (isMatchFilter) {
+        await fetchMatchedJobs({ top_n: 20 });
+      } else {
+        await fetchJobs();
+      }
     };
     initJobs();
-  }, [fetchJobs]);
+  }, [fetchJobs, fetchMatchedJobs, isMatchFilter]);
 
   // Handle auto-open for specific job ID from query params
   useEffect(() => {
@@ -47,17 +51,30 @@ const Jobs = () => {
     }
   }, [jobIdFromQuery, jobs]);
 
-  const filteredJobs = jobs.filter(job => {
+  const dataSource = isMatchFilter ? matchedJobs : jobs;
+
+  const filteredJobs = dataSource.filter(job => {
     const matchesSearch = (job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           job.company?.toLowerCase().includes(searchTerm.toLowerCase()));
     
+    // Use stored location/experience/type from filters state
+    const matchesLocation = filters.location === 'All' || 
+                            job.location?.toLowerCase().includes(filters.location.toLowerCase());
+
+    const matchesExperience = filters.experience === 'All' || 
+                              job.experience_level?.toLowerCase() === filters.experience.toLowerCase();
+
+    const matchesJobType = filters.jobType === 'All' || 
+                           job.work_type?.toLowerCase() === filters.jobType.toLowerCase();
+
     return matchesSearch && matchesLocation && matchesExperience && matchesJobType;
   }).sort((a, b) => {
-    // Prioritize high scores first, then recency for 'fresh' matches
+    // For matches, high score first, then newest
     if (isMatchFilter) {
       if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
       return (b.id || 0) - (a.id || 0);
     }
+    // For general jobs, newest first
     return (b.id || 0) - (a.id || 0);
   });
 
@@ -98,7 +115,7 @@ const Jobs = () => {
              <Sparkles size={12} /> {isMatchFilter ? 'AI Prioritized' : 'Explore All'}
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            {isMatchFilter ? 'Your AI Matches' : 'Discover Opportunities'}
+            {isMatchFilter ? 'AI Curated Roles' : 'Discover Opportunities'}
           </h1>
           <p className="text-slate-500 font-medium mt-2 leading-relaxed">
             {isMatchFilter 

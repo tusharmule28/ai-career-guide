@@ -18,10 +18,10 @@ export const useJobStore = create((set, get) => ({
     }
   },
 
-  fetchMatchedJobs: async (resumeId = null) => {
+  fetchMatchedJobs: async (params = {}) => {
     set({ loading: true, error: null });
     try {
-      const data = await api.post('/matching/match', { resume_id: resumeId });
+      const data = await api.post('/matching/match', params);
       set({ matchedJobs: data, loading: false });
     } catch (err) {
       set({ error: err.message, loading: false });
