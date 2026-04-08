@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { Search, Filter, SlidersHorizontal, Sparkles, Loader2, AlertCircle, MapPin, Briefcase, Bookmark, CheckCircle, ExternalLink, RefreshCw } from 'lucide-react';
+import { Search, Filter, Sparkles, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
 import { useJobStore } from '../store/jobStore';
 import SkillGap from '../components/SkillGap';
 import ExplanationPanel from '../components/ExplanationPanel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import JobCard from '../components/JobCard';
+import { JobCardSkeleton } from '../components/Skeleton';
+import EmptyState from '../components/ui/EmptyState';
 
 const Jobs = () => {
-  const { jobs, loading, error, fetchJobs, saveJob, savedJobs } = useJobStore();
+  const { jobs, loading, error, fetchJobs } = useJobStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryParams = new URLSearchParams(location.search);
+  const isMatchFilter = queryParams.get('filter') === 'matches';
+
   const [filters, setFilters] = useState({
     location: 'All',
     experience: 'All'
@@ -28,22 +37,18 @@ const Jobs = () => {
     
     const matchesLocation = filters.location === 'All' || 
                             job.location?.toLowerCase().includes(filters.location.toLowerCase());
-                            
-    const matchesExperience = filters.experience === 'All' || 
-                              (job.experience_min <= parseInt(filters.experience.split('-')[1] || 100) && 
-                               job.experience_max >= parseInt(filters.experience.split('-')[0] || 0));
 
-    return matchesSearch && matchesLocation && matchesExperience;
+    if (isMatchFilter && (job.score || 0) < 70) return false;
+
+    return matchesSearch && matchesLocation;
   });
-
-  const isSaved = (jobId) => savedJobs.some(s => s.id === jobId);
 
   const handleSync = async () => {
     setIsSyncing(true);
     try {
       await api.post('/jobs/sync');
-      toast.success('Job sync started! Refreshing in 5s...', { duration: 5000 });
-      setTimeout(() => fetchJobs(), 5000);
+      toast.success('Analyzing new roles... This may take a moment.');
+      setTimeout(() => fetchJobs(), 3000);
     } catch (err) {
       toast.error('Sync failed: ' + err.message);
     } finally {
@@ -52,239 +57,140 @@ const Jobs = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-            <Sparkles className="text-primary" size={28} />
-            AI Matched Roles
+    <div className="section-container animate-fade-in">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
+             <Sparkles size={12} /> {isMatchFilter ? 'AI Prioritized' : 'Explore All'}
+          </div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+            {isMatchFilter ? 'Your AI Matches' : 'Discover Opportunities'}
           </h1>
-          <p className="text-gray-500 mt-1">
-            Discover roles tailored specifically to your unique skill set and experience.
+          <p className="text-slate-500 font-medium mt-2 leading-relaxed">
+            {isMatchFilter 
+              ? "Roles where your skills and experience align perfectly with market demands."
+              : "Discover a wide range of roles tailored to your professional interests."}
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[280px]">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text"
-              placeholder="Search roles or companies..."
-              className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/10 focus:border-primary outline-none transition-smooth w-full md:w-64"
+              placeholder="Search roles, companies, or keywords..."
+              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Button 
-            variant="outline" 
-            size="sm" 
+            variant="ghost" 
             disabled={isSyncing}
             onClick={handleSync}
-            className="flex border-primary/20 text-primary"
+            className="h-11 px-5 border-slate-200 text-slate-600 bg-white shadow-sm font-bold rounded-xl"
           >
             {isSyncing ? <Loader2 size={18} className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
-            Sync Jobs
+            Sync
           </Button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-4 mb-8 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-          <Filter size={16} className="text-primary" />
-          Quick Filters:
+      <div className="flex flex-wrap items-center gap-4 mb-10 pb-6 border-b border-slate-100">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-2">
+          <Filter size={14} />
+          Filters
         </div>
         
         <select 
-          className="bg-gray-50 border-none text-xs font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
+          className="bg-slate-50 border-none text-[11px] font-bold rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer"
           value={filters.location}
           onChange={(e) => setFilters({...filters, location: e.target.value})}
         >
           <option value="All">All Locations</option>
-          <option value="Remote">Remote</option>
-          <option value="India">India</option>
-          <option value="Bangalore">Bangalore</option>
-          <option value="Mumbai">Mumbai</option>
-        </select>
-
-        <select 
-          className="bg-gray-50 border-none text-xs font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/20"
-          value={filters.experience}
-          onChange={(e) => setFilters({...filters, experience: e.target.value})}
-        >
-          <option value="All">All Experience</option>
-          <option value="0-2">0-2 years</option>
-          <option value="2-5">2-5 years</option>
-          <option value="5-10">5-10 years</option>
+          <option value="Remote">Remote Only</option>
+          <option value="San Francisco">San Francisco</option>
+          <option value="New York">New York</option>
+          <option value="London">London</option>
         </select>
 
         <Button 
           variant="ghost" 
           size="sm" 
-          className="ml-auto text-gray-400 hover:text-primary"
+          className="text-[11px] font-bold text-slate-400 hover:text-accent-600 ml-auto"
           onClick={() => {
             setSearchTerm('');
             setFilters({ location: 'All', experience: 'All' });
+            if (isMatchFilter) navigate('/jobs');
           }}
         >
-          Reset Filters
+          Reset All
         </Button>
       </div>
 
-      {loading && jobs.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map(i => (
-             <div key={i} className="h-64 skeleton-pulse rounded-3xl"></div>
-          ))}
-        </div>
-      ) : error ? (
-        <Card className="flex flex-col items-center justify-center py-12 text-red-500 bg-red-50/50 border-red-100">
-          <AlertCircle size={48} className="mb-4" />
-          <p className="font-bold text-lg mb-2">Oops! Something went wrong.</p>
-          <p className="text-sm mb-6">{error}</p>
-          <Button variant="secondary" onClick={fetchJobs}>Try Again</Button>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2">
+          {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredJobs.length > 0 ? (
-                filteredJobs.map((job, index) => (
-                  <Card key={job.id} 
-                    className={`group hover:shadow-premium transition-all duration-500 glass-card p-6 relative overflow-hidden ${selectedJob?.id === job.id ? 'ring-2 ring-primary border-transparent shadow-lg' : ''}`}
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center overflow-hidden transition-smooth group-hover:scale-110">
-                          <img 
-                            src={job.company_logo || `https://ui-avatars.com/api/?name=${job.company}&background=random`} 
-                            alt={job.company} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-extrabold text-gray-900 text-lg leading-tight group-hover:text-primary transition-colors">
-                            {job.title}
-                          </h3>
-                          <p className="text-primary font-bold text-xs uppercase tracking-widest mt-1 opacity-80">{job.company}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                         <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className={`rounded-xl transition-smooth ${isSaved(job.id) ? 'text-green-600 bg-green-50' : 'text-gray-300 hover:bg-gray-100'}`}
-                            onClick={() => saveJob(job.id)}
-                          >
-                            {isSaved(job.id) ? <CheckCircle size={18} /> : <Bookmark size={18} />}
-                          </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="flex items-center text-gray-500 text-[11px] font-bold gap-2 bg-gray-50/50 p-2 rounded-lg">
-                        <MapPin size={14} className="text-primary/60" />
-                        {job.location}
-                      </div>
-                      <div className="flex items-center text-gray-500 text-[11px] font-bold gap-2 bg-gray-50/50 p-2 rounded-lg">
-                        <Briefcase size={14} className="text-primary/60" />
-                        {job.work_type || 'On-site'}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-8">
-                       {job.required_skills?.slice(0, 3).map((skill, i) => (
-                         <span key={i} className="px-3 py-1 bg-white/60 text-gray-600 rounded-full text-[10px] font-bold border border-gray-100 shadow-sm transition-smooth hover:bg-white hover:shadow-md">
-                           {skill}
-                         </span>
-                       ))}
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button 
-                        variant={selectedJob?.id === job.id ? 'primary' : 'outline'} 
-                        className="flex-1 rounded-xl font-bold py-5 h-auto text-sm"
-                        onClick={() => {
-                          setSelectedJob(job);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                      >
-                        {selectedJob?.id === job.id ? 'Active Analysis' : 'AI Analysis'}
-                      </Button>
-                      
-                      <Button 
-                        variant="secondary" 
-                        className="rounded-xl px-5 transition-smooth hover:scale-105 active:scale-95"
-                        onClick={async () => {
-                          try { 
-                            await api.post(`/applications/${job.id}`); 
-                            toast.success(`Application sent to ${job.company}!`);
-                          } catch (e) {
-                            console.error('Application tracking failed:', e);
-                          }
-                        }}
-                      >
-                         <ExternalLink size={20} />
-                      </Button>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full py-20 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                   <p className="text-gray-500 font-medium">No Indian jobs found matching your criteria.</p>
-                   <Button variant="ghost" onClick={() => {
-                     setSearchTerm('');
-                     setFilters({ location: 'All', experience: 'All' });
-                   }} className="mt-2">Clear filters</Button>
-                </div>
-              )}
+              {[...Array(6)].map((_, i) => <JobCardSkeleton key={i} />)}
             </div>
-          </div>
+          ) : filteredJobs.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredJobs.map((job) => (
+                <JobCard 
+                  key={job.id} 
+                  job={job} 
+                  onSelect={(j) => {
+                    setSelectedJob(j);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState 
+              title="No roles found" 
+              description="Try adjusting your filters or search terms to see more results."
+              actionText="Clear Search"
+              onAction={() => setSearchTerm('')}
+            />
+          )}
+        </div>
 
-          <div className="space-y-8 h-fit lg:sticky lg:top-24">
-            {selectedJob ? (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                <ExplanationPanel 
+        <div className="space-y-8 h-fit lg:sticky lg:top-24">
+          {selectedJob ? (
+            <div className="animate-fade-in bg-white p-2 rounded-[2.5rem] shadow-premium border border-slate-100">
+              <ExplanationPanel 
+                jobId={selectedJob.id} 
+                jobTitle={selectedJob.title}
+              />
+              <div className="p-6 pt-0">
+                <SkillGap 
                   jobId={selectedJob.id} 
                   jobTitle={selectedJob.title}
                 />
-                <div className="mt-8">
-                  <SkillGap 
-                    jobId={selectedJob.id} 
-                    jobTitle={selectedJob.title}
-                  />
-                </div>
                 <Button 
-                  className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-100 h-14 rounded-2xl font-bold"
-                  onClick={async () => {
-                    window.open(selectedJob.apply_url, '_blank');
-                    try { 
-                      await api.post(`/applications/${selectedJob.id}`); 
-                      toast.success(`Application sent to ${selectedJob.company}!`);
-                    } catch (e) {
-                      console.error('Application tracking failed:', e);
-                    }
-                  }}
+                  className="w-full mt-8 bg-accent-600 hover:bg-accent-700 text-white shadow-xl shadow-accent-500/20 h-14 rounded-2xl font-bold transition-smooth"
+                  onClick={() => window.open(selectedJob.apply_url, '_blank')}
                 >
-                  Apply Directly <ExternalLink size={18} className="ml-2" />
+                  Apply Directly
                 </Button>
               </div>
-            ) : (
-              <Card className="flex flex-col items-center justify-center py-16 text-center bg-white/50 border-dashed border-2 rounded-3xl">
-                <div className="bg-gray-100 p-4 rounded-full text-gray-300 mb-4 animate-float">
-                  <Sparkles size={32} />
-                </div>
-                <p className="font-bold text-gray-900 mb-1 leading-tight">AI Analysis Ready</p>
-                <p className="text-sm text-gray-400 max-w-[200px]">
-                  Select a job card to generate match explanations and skill gap insights.
-                </p>
-              </Card>
-            )}
-          </div>
+            </div>
+          ) : (
+            <Card className="flex flex-col items-center justify-center py-20 px-8 text-center bg-white/50 border-dashed border-2 rounded-[2.5rem]">
+              <div className="w-16 h-16 bg-slate-100 p-4 rounded-3xl text-slate-300 mb-6 animate-float">
+                <Sparkles size={32} />
+              </div>
+              <h4 className="font-bold text-slate-900 text-lg mb-2 leading-tight">Match Insights</h4>
+              <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                Select a job card to unlock AI-powered match analysis and skill gap reports.
+              </p>
+            </Card>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

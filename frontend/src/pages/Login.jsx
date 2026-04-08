@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, LogIn, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, LogIn, Sparkles } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
@@ -35,35 +35,39 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-gray-50/50">
-      <div className="w-full max-w-md animate-in fade-in zoom-in duration-500">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center bg-primary p-3 rounded-2xl text-white mb-4 shadow-lg shadow-primary/20">
-            <Sparkles size={28} />
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6 bg-slate-50/50">
+      <div className="w-full max-w-md animate-fade-in">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-900 rounded-[1.5rem] text-white mb-6 shadow-2xl shadow-slate-900/20">
+            <Sparkles size={32} />
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Welcome Back</h1>
-          <p className="text-gray-500 mt-2">Sign in to continue your career journey</p>
+          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Identity Access</h1>
+          <p className="text-slate-500 mt-3 font-medium">Continue your professional journey with AI.</p>
         </div>
 
-        <Card className="p-8">
-          <div className="mb-6 p-4 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-800">
-            <p className="font-semibold mb-1 flex items-center gap-2"><Sparkles size={16}/> Demo Credentials</p>
-            <p>Email: <strong>admin@example.com</strong></p>
-            <p>Password: <strong>admin123</strong></p>
+        <Card className="p-10 glass-card border-none shadow-premium">
+          <div className="mb-10 p-5 bg-accent-50 rounded-2xl border border-accent-100/50 flex flex-col gap-2">
+            <h4 className="text-[10px] font-bold text-accent-600 uppercase tracking-widest flex items-center gap-2">
+              <Sparkles size={14} /> Demo Environment
+            </h4>
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-slate-700 font-bold">Email: <span className="text-slate-500 font-medium ml-1">admin@example.com</span></p>
+              <p className="text-xs text-slate-700 font-bold">Pass: <span className="text-slate-500 font-medium ml-1">admin123</span></p>
+            </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <Input
-              label="Email Address"
+              label="Professional Email"
               type="email"
-              placeholder="name@example.com"
+              placeholder="name@company.com"
               icon={Mail}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
             <Input
-              label="Password"
+              label="Security Key"
               type="password"
               placeholder="••••••••"
               icon={Lock}
@@ -73,31 +77,32 @@ const Login = () => {
             />
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg animate-in shake-in">
+              <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-bold rounded-xl animate-shake">
                 {error}
               </div>
             )}
 
             <Button 
               type="submit" 
-              className="w-full py-3" 
+              variant="accent"
+              className="w-full h-14 text-base font-black shadow-glow" 
               loading={loading}
               icon={LogIn}
             >
-              Sign In
+              Sign In to Guide
             </Button>
           </form>
 
-          <div className="mt-8 text-center text-sm">
-            <span className="text-gray-500">Don't have an account? </span>
-            <Link to="/signup" className="font-semibold text-primary hover:text-primary-700 transition-smooth">
-              Create one for free
+          <div className="mt-10 text-center text-sm font-medium">
+            <span className="text-slate-400">New explorer? </span>
+            <Link to="/signup" className="text-accent-600 font-bold hover:text-accent-700 transition-smooth ml-1">
+              Create Free Account
             </Link>
           </div>
         </Card>
 
-        <p className="mt-8 text-center text-xs text-gray-400">
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+        <p className="mt-10 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">
+          Secured by Enterprise Grade Cryptography
         </p>
       </div>
     </div>
