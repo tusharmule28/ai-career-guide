@@ -68,7 +68,7 @@ const Navbar = () => {
     { name: 'Matches', href: '/jobs?filter=matches', icon: Sparkles },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => (location.pathname + location.search) === path;
   const userName = user?.name || user?.email?.split('@')[0] || 'User';
 
   return (

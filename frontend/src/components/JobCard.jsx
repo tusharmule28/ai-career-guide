@@ -1,10 +1,10 @@
 import React from 'react';
-import { Briefcase, MapPin, DollarSign, ChevronRight, Bookmark } from 'lucide-react';
+import { Briefcase, MapPin, DollarSign, ChevronRight, Bookmark, Sparkles } from 'lucide-react';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import ScoreBadge from './ui/ScoreBadge';
 
-const JobCard = ({ job, onSelect }) => {
+const JobCard = ({ job, onSelect, highlight }) => {
   const title = job.title || 'Untitled Role';
   const company = job.company || 'Confidential Company';
   const location = job.location || 'Remote';
@@ -14,15 +14,28 @@ const JobCard = ({ job, onSelect }) => {
   const applyUrl = job.apply_url || '#';
 
   return (
-    <Card className="glass-card p-6 flex flex-col h-full hover:shadow-premium border-slate-200/50 hover:border-accent-200 transition-smooth group relative overflow-hidden">
-      {/* Decorative Blur */}
+    <Card className={`glass-card p-6 flex flex-col h-full transition-smooth group relative overflow-hidden ${
+      highlight 
+        ? 'shadow-premium border-accent-300 ring-1 ring-accent-400/20 bg-accent-50/10' 
+        : 'hover:shadow-premium border-slate-200/50 hover:border-accent-200'
+    }`}>
+      {/* AI Sparkle Decor for Matches */}
+      {highlight && (
+        <div className="absolute top-0 right-0 p-3 text-accent-500 animate-pulse">
+          <Sparkles size={16} />
+        </div>
+      )}
       <div className="absolute -right-4 -top-4 w-24 h-24 bg-accent-500/5 rounded-full blur-2xl group-hover:bg-accent-500/10 transition-colors pointer-events-none"></div>
 
       <div className="flex justify-between items-start mb-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold uppercase tracking-wider rounded-md border border-slate-200/50">
-              {job.work_type || 'Full-time'}
+            <span className={`px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-md border ${
+              highlight 
+                ? 'bg-accent-600 text-white border-accent-600' 
+                : 'bg-slate-100 text-slate-600 border-slate-200/50'
+            }`}>
+              {highlight ? 'Perfect Match' : (job.work_type || 'Full-time')}
             </span>
             {source && (
               <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">

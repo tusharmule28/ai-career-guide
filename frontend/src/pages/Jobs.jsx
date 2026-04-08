@@ -217,6 +217,7 @@ const Jobs = () => {
                 key={job.id} 
                 job={job} 
                 onSelect={(j) => handleViewDetails(j)} 
+                highlight={isMatchFilter}
               />
             ))}
           </div>
