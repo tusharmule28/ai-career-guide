@@ -22,18 +22,18 @@ const Home = () => {
             <Sparkles size={14} className="text-accent-500" />
             Empowering the modern workforce
           </div>
-          
+
           <h1 className="text-5xl md:text-8xl font-extrabold text-slate-900 mb-8 tracking-tight leading-[1.1]">
             Find Your Career <br className="hidden lg:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-600 via-indigo-600 to-accent-600 bg-[length:200%_auto] animate-gradient">
               North Star with AI
             </span>
           </h1>
-          
+
           <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed mb-12 font-medium">
             Join 10,000+ professionals using our AI matching engine to discover roles that perfectly align with their skills, ambition, and potential.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {!user ? (
               <>
@@ -69,22 +69,22 @@ const Home = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { 
-                title: 'Instant Extraction', 
+              {
+                title: 'Instant Extraction',
                 description: 'Our proprietary parsing engine extracts every nuance of your experience from your resume in seconds.',
                 icon: UploadCloud,
                 color: 'text-blue-600',
                 bg: 'bg-blue-50'
               },
-              { 
-                title: 'Semantic Analysis', 
+              {
+                title: 'Semantic Analysis',
                 description: 'We don\'t just match keywords. We understand the context and trajectory of your professional growth.',
                 icon: BrainCircuit,
                 color: 'text-indigo-600',
                 bg: 'bg-indigo-50'
               },
-              { 
-                title: 'Role Alignment', 
+              {
+                title: 'Role Alignment',
                 description: 'Receive role suggestions with detailed match scores and personalized skill-gap analysis.',
                 icon: Target,
                 color: 'text-emerald-600',
@@ -110,13 +110,13 @@ const Home = () => {
       <section className="py-32 section-container">
         <div className="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
           <div className="relative z-10 max-w-2xl mx-auto">
-             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-8 tracking-tight">Ready to find your <br />perfect match?</h2>
-             <p className="text-slate-400 text-lg mb-12 font-medium">Join thousands of job seekers who found their dream role with AI Career Guide.</p>
-             <Link to="/signup">
-                <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-white text-slate-900 hover:bg-slate-100 shadow-xl font-black">
-                  Sign Up Now — It's Free
-                </Button>
-             </Link>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-8 tracking-tight">Ready to find your <br />perfect match?</h2>
+            <p className="text-slate-400 text-lg mb-12 font-medium">Join thousands of job seekers who found their dream role with AI Career Guide.</p>
+            <Link to="/signup">
+              <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-dark text-slate-900 hover:bg-slate-100 shadow-xl font-black">
+                Sign Up Now — It's Free
+              </Button>
+            </Link>
           </div>
           {/* Decorative shapes */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-accent-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
