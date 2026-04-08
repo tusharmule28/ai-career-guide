@@ -113,7 +113,7 @@ const Home = () => {
             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-8 tracking-tight">Ready to find your <br />perfect match?</h2>
             <p className="text-slate-400 text-lg mb-12 font-medium">Join thousands of job seekers who found their dream role with AI Career Guide.</p>
             <Link to="/signup">
-              <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-white text-slate-900 hover:bg-slate-50 shadow-2xl font-bold transition-all hover:scale-105 active:scale-95">
+              <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-dark text-white hover:bg-slate-800 shadow-2xl font-bold transition-all hover:scale-105 active:scale-95">
                 Sign Up Now — It's Free
               </Button>
             </Link>
