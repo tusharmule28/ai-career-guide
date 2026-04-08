@@ -31,7 +31,7 @@ const Home = () => {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed mb-12 font-medium">
-            Join 10,000+ professionals using our AI matching engine to discover roles that perfectly align with their skills, ambition, and potential.
+            Upload your resume and let our AI engine analyze your unique skills to instantly discover high-quality roles tailored specifically to your professional potential.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -111,7 +111,7 @@ const Home = () => {
         <div className="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-8 tracking-tight">Ready to find your <br />perfect match?</h2>
-            <p className="text-slate-400 text-lg mb-12 font-medium">Join thousands of job seekers who found their dream role with AI Career Guide.</p>
+            <p className="text-slate-400 text-lg mb-12 font-medium">Start matching with high-quality roles tailored to your exact experience.</p>
             <Link to="/signup">
               <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-dark text-white hover:bg-slate-800 shadow-2xl font-bold transition-all hover:scale-105 active:scale-95">
                 Sign Up Now — It's Free
