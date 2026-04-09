@@ -5,8 +5,7 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import JobExplore from './pages/JobExplore';
-import JobMatches from './pages/JobMatches';
+import Jobs from './pages/Jobs';
 import ResumeUploadPage from './components/ResumeUpload';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
@@ -46,15 +45,9 @@ const AppContent = () => {
             </ProtectedRoute>
           } />
           
-          <Route path="/jobs" element={<Navigate to="/jobs/explore" replace />} />
-          <Route path="/jobs/explore" element={
+          <Route path="/jobs" element={
             <ProtectedRoute>
-              <JobExplore />
-            </ProtectedRoute>
-          } />
-          <Route path="/jobs/matches" element={
-            <ProtectedRoute>
-              <JobMatches />
+              <Jobs />
             </ProtectedRoute>
           } />
           

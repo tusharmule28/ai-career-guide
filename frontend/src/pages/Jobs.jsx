@@ -12,7 +12,7 @@ import EmptyState from '../components/ui/EmptyState';
 import JobDetailModal from '../components/JobDetailModal';
 
 const Jobs = () => {
-  const { jobs, matchedJobs, loading, error, fetchJobs, fetchMatchedJobs } = useJobStore();
+  const { jobs, matchedJobs, loading, fetchJobs, fetchMatchedJobs } = useJobStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJob, setSelectedJob] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -20,9 +20,7 @@ const Jobs = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
-  const isMatchFilter = queryParams.get('filter') === 'matches';
   const jobIdFromQuery = queryParams.get('id');
-  const [activeTab, setActiveTab] = useState(isMatchFilter ? 'matches' : 'all');
 
   const [filters, setFilters] = useState({
     location: 'All',
@@ -32,82 +30,84 @@ const Jobs = () => {
 
   useEffect(() => {
     const initJobs = async () => {
-      if (activeTab === 'matches') {
-        await fetchMatchedJobs({ top_n: 20 });
-      } else {
-        await fetchJobs();
-      }
+      // Fetch both in parallel
+      await Promise.all([
+        fetchMatchedJobs({ top_n: 6 }), // Top 6 recommended
+        fetchJobs()
+      ]);
     };
     initJobs();
-  }, [fetchJobs, fetchMatchedJobs, activeTab]);
+  }, [fetchJobs, fetchMatchedJobs]);
 
   // Handle auto-open for specific job ID from query params
   useEffect(() => {
-    if (jobIdFromQuery && jobs.length > 0) {
-      const job = jobs.find(j => String(j.id) === String(jobIdFromQuery));
+    if (jobIdFromQuery) {
+      const allAvailable = [...jobs, ...matchedJobs.map(m => ({ ...m, id: m.job_id }))];
+      const job = allAvailable.find(j => String(j.id || j.job_id) === String(jobIdFromQuery));
       if (job) {
         setSelectedJob(job);
         setIsModalOpen(true);
       }
     }
-  }, [jobIdFromQuery, jobs]);
+  }, [jobIdFromQuery, jobs, matchedJobs]);
 
-  const dataSource = activeTab === 'matches' ? matchedJobs : jobs;
+  const applyFilters = (jobList, isMatch = false) => {
+    return jobList.filter(job => {
+      const searchLower = searchTerm.toLowerCase().trim();
+      const matchesSearch = !searchLower || 
+                            (job.title?.toLowerCase().includes(searchLower) ||
+                            job.company?.toLowerCase().includes(searchLower));
+      
+      const matchesLocation = filters.location === 'All' || 
+                              job.location?.toLowerCase().includes(filters.location.toLowerCase());
 
-  const filteredJobs = dataSource.filter(job => {
-    const searchLower = searchTerm.toLowerCase().trim();
-    const matchesSearch = !searchLower || 
-                          (job.title?.toLowerCase().includes(searchLower) ||
-                          job.company?.toLowerCase().includes(searchLower));
-    
-    // Use stored location/experience/type from filters state
-    const matchesLocation = filters.location === 'All' || 
-                            job.location?.toLowerCase().includes(filters.location.toLowerCase());
+      // Determine derived experience
+      let derivedExp = job.experience_level;
+      if (!derivedExp) {
+         const titleLower = (job.title || '').toLowerCase();
+         if (titleLower.includes('lead') || titleLower.includes('manager') || titleLower.includes('director') || job.experience_min >= 8) derivedExp = 'Lead';
+         else if (titleLower.includes('senior') || titleLower.includes('sr') || titleLower.includes('staff') || job.experience_min >= 4) derivedExp = 'Senior';
+         else if (titleLower.includes('mid') || (job.experience_min >= 2 && job.experience_min < 4)) derivedExp = 'Mid';
+         else derivedExp = 'Entry';
+      }
 
-    // Determine derived experience
-    let derivedExp = job.experience_level;
-    if (!derivedExp) {
-       const titleLower = (job.title || '').toLowerCase();
-       if (titleLower.includes('lead') || titleLower.includes('manager') || titleLower.includes('director') || job.experience_min >= 8) derivedExp = 'Lead';
-       else if (titleLower.includes('senior') || titleLower.includes('sr') || titleLower.includes('staff') || job.experience_min >= 4) derivedExp = 'Senior';
-       else if (titleLower.includes('mid') || (job.experience_min >= 2 && job.experience_min < 4)) derivedExp = 'Mid';
-       else derivedExp = 'Entry';
-    }
+      const matchesExperience = filters.experience === 'All' || 
+                                derivedExp.toLowerCase() === filters.experience.toLowerCase();
 
-    const matchesExperience = filters.experience === 'All' || 
-                              derivedExp.toLowerCase() === filters.experience.toLowerCase();
+      // Determine derived job type
+      let derivedWorkType = job.work_type;
+      if (!derivedWorkType) {
+         const titleLower = (job.title || '').toLowerCase();
+         const descLower = (job.description || '').toLowerCase();
+         if (titleLower.includes('intern') || descLower.includes('internship')) derivedWorkType = 'Internship';
+         else if (titleLower.includes('contract') || titleLower.includes('freelance')) derivedWorkType = 'Contract';
+         else if (titleLower.includes('part-time') || titleLower.includes('part time')) derivedWorkType = 'Part-time';
+         else derivedWorkType = 'Full-time';
+      }
 
-    // Determine derived job type
-    let derivedWorkType = job.work_type;
-    if (!derivedWorkType) {
-       const titleLower = (job.title || '').toLowerCase();
-       const descLower = (job.description || '').toLowerCase();
-       if (titleLower.includes('intern') || descLower.includes('internship')) derivedWorkType = 'Internship';
-       else if (titleLower.includes('contract') || titleLower.includes('freelance')) derivedWorkType = 'Contract';
-       else if (titleLower.includes('part-time') || titleLower.includes('part time')) derivedWorkType = 'Part-time';
-       else derivedWorkType = 'Full-time';
-    }
+      const matchesJobType = filters.jobType === 'All' || 
+                             derivedWorkType.toLowerCase() === filters.jobType.toLowerCase();
 
-    const matchesJobType = filters.jobType === 'All' || 
-                           derivedWorkType.toLowerCase() === filters.jobType.toLowerCase();
+      return matchesSearch && matchesLocation && matchesExperience && matchesJobType;
+    });
+  };
 
-    return matchesSearch && matchesLocation && matchesExperience && matchesJobType;
-  }).sort((a, b) => {
-    // For matches, high score first, then newest
-    if (activeTab === 'matches') {
-      if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
-      return (b.id || 0) - (a.id || 0);
-    }
-    // For general jobs, newest first
-    return (b.id || 0) - (a.id || 0);
-  });
+  const filteredMatches = applyFilters(matchedJobs, true);
+  
+  // Exclude jobs that are already in matchedJobs to avoid duplicates
+  const matchedIds = new Set(matchedJobs.map(m => m.job_id));
+  const otherJobs = jobs.filter(j => !matchedIds.has(j.id));
+  const filteredOther = applyFilters(otherJobs);
 
   const handleSync = async () => {
     setIsSyncing(true);
     try {
       await api.post('/jobs/sync');
       toast.success('Analyzing new roles... This may take a moment.');
-      setTimeout(() => fetchJobs(), 3000);
+      setTimeout(() => {
+        fetchJobs();
+        fetchMatchedJobs({ top_n: 6 });
+      }, 3000);
     } catch (err) {
       toast.error('Sync failed: ' + err.message);
     } finally {
@@ -116,11 +116,13 @@ const Jobs = () => {
   };
 
   const handleViewDetails = (job) => {
-    setSelectedJob(job);
+    // Standardize job object for modal (ensure id is job_id if from matches)
+    const standardizedJob = job.job_id ? { ...job, id: job.job_id } : job;
+    setSelectedJob(standardizedJob);
     setIsModalOpen(true);
-    // Optional: update URL with job ID without full navigation reload
+    
     const newParams = new URLSearchParams(location.search);
-    newParams.set('id', job.id);
+    newParams.set('id', standardizedJob.id);
     navigate({ search: newParams.toString() }, { replace: true });
   };
 
@@ -133,40 +135,18 @@ const Jobs = () => {
 
   return (
     <div className="section-container animate-fade-in">
+      {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
-             <Sparkles size={12} /> {isMatchFilter ? 'AI Prioritized' : 'Explore All'}
+             <Sparkles size={12} /> Personalized Opportunities
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            {isMatchFilter ? 'AI Curated Roles' : 'Discover Opportunities'}
+            Job Market Explorer
           </h1>
           <p className="text-slate-500 font-medium mt-2 leading-relaxed">
-            {activeTab === 'matches' 
-              ? "Roles where your skills and experience align perfectly with market demands."
-              : "Discover a wide range of roles tailored to your professional interests."}
+            AI-curated matches followed by the latest global remote opportunities.
           </p>
-
-          <div className="flex items-center gap-1 mt-8 p-1 bg-slate-100 rounded-lg w-fit">
-            <button 
-              className={`px-6 py-2 text-xs font-bold rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => {
-                setActiveTab('all');
-                navigate('/jobs');
-              }}
-            >
-              All Jobs
-            </button>
-            <button 
-              className={`px-6 py-2 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${activeTab === 'matches' ? 'bg-white text-accent-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-              onClick={() => {
-                setActiveTab('matches');
-                navigate('/jobs?filter=matches');
-              }}
-            >
-              <Sparkles size={14} /> Recommended
-            </button>
-          </div>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -207,8 +187,7 @@ const Jobs = () => {
           <option value="All">All Locations</option>
           <option value="Remote">Remote Only</option>
           <option value="India">India</option>
-          <option value="San Francisco">San Francisco</option>
-          <option value="New York">New York</option>
+          <option value="United States">United States</option>
           <option value="London">London</option>
         </select>
 
@@ -243,36 +222,77 @@ const Jobs = () => {
           onClick={() => {
             setSearchTerm('');
             setFilters({ location: 'All', experience: 'All', jobType: 'All' });
-            if (isMatchFilter) navigate('/jobs');
           }}
         >
           Reset All
         </Button>
       </div>
 
-      <div>
+      {/* Main Content */}
+      <div className="space-y-16">
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => <JobCardSkeleton key={i} />)}
           </div>
-        ) : filteredJobs.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredJobs.map((job) => (
-              <JobCard 
-                key={job.id} 
-                job={job} 
-                onSelect={(j) => handleViewDetails(j)} 
-                highlight={activeTab === 'matches'}
-              />
-            ))}
-          </div>
         ) : (
-          <EmptyState 
-            title="No roles found" 
-            description="Try adjusting your filters or search terms to see more results."
-            actionText="Clear Search"
-            onAction={() => setSearchTerm('')}
-          />
+          <>
+            {/* Recommended Section */}
+            {filteredMatches.length > 0 && (
+              <section className="animate-slide-up">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-2 bg-accent-100 text-accent-600 rounded-lg">
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">AI Recommended for You</h2>
+                    <p className="text-sm text-slate-500">Highest matching score based on your profile.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredMatches.map((job) => (
+                    <JobCard 
+                      key={`match-${job.job_id}`} 
+                      job={job} 
+                      onSelect={(j) => handleViewDetails(j)} 
+                      highlight={true}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* General Jobs Section */}
+            <section className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-2 bg-slate-100 text-slate-600 rounded-lg">
+                  <Filter size={20} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">All Latest Roles</h2>
+                  <p className="text-sm text-slate-500">Explore global remote opportunities.</p>
+                </div>
+              </div>
+              
+              {filteredOther.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredOther.map((job) => (
+                    <JobCard 
+                      key={`job-${job.id}`} 
+                      job={job} 
+                      onSelect={(j) => handleViewDetails(j)} 
+                    />
+                  ))}
+                </div>
+              ) : filteredMatches.length === 0 && (
+                <EmptyState 
+                  title="No roles found" 
+                  description="Try adjusting your filters or search terms to see more results."
+                  actionText="Clear Search"
+                  onAction={() => setSearchTerm('')}
+                />
+              )}
+            </section>
+          </>
         )}
       </div>
 

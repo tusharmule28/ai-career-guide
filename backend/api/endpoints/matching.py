@@ -14,6 +14,7 @@ router = APIRouter()
 
 from pydantic import BaseModel
 class MatchRequest(BaseModel):
+    resume_id: Optional[int] = None
     top_n: int = 10
     sort_newest: bool = True
     min_score: float = 0.0
