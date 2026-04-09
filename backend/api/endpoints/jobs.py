@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text, inspect
-from typing import List
+from typing import List, Optional
 import logging
 import traceback
 
