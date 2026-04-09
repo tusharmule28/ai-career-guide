@@ -12,7 +12,7 @@ from models.user import User
 from core.security import get_current_user
 from schemas.job import JobResponse, JobCreate
 from services.matching_service import matching_service
-from scrapers.job_fetcher import job_fetcher
+from tasks.job_tasks import sync_all_jobs
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -76,22 +76,41 @@ def _ensure_jobs_table(db: Session):
 
 
 @router.post("/sync", status_code=status.HTTP_202_ACCEPTED)
-async def sync_jobs(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+async def sync_jobs(current_user: User = Depends(get_current_user)):
     """
-    Manually trigger a background job synchronization from all sources.
+    Manually trigger a background job synchronization from all sources via Celery.
+    Only authenticated users can trigger sync.
     """
-    background_tasks.add_task(job_fetcher.sync_jobs, db)
-    return {"message": "Job synchronization started in the background."}
+    task = sync_all_jobs.delay()
+    return {
+        "message": "Job synchronization started in the background.",
+        "task_id": task.id
+    }
 
 
 @router.get("", response_model=List[JobResponse])
 @router.get("/", response_model=List[JobResponse], include_in_schema=False)
-async def get_jobs(db: Session = Depends(get_db)):
+async def get_jobs(
+    skip: int = 0, 
+    limit: int = 20,
+    location: Optional[str] = None,
+    job_type: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     try:
         # Ensure table exists before querying
         _ensure_jobs_table(db)
 
-        jobs = db.query(Job).all()
+        query = db.query(Job)
+        
+        # Apply filters
+        if location and location != "All":
+            query = query.filter(Job.location.ilike(f"%{location}%"))
+        
+        if job_type and job_type != "All":
+            query = query.filter(Job.work_type.ilike(f"%{job_type}%"))
+            
+        jobs = query.order_by(Job.posted_at.desc()).offset(skip).limit(limit).all()
 
         # If no jobs exist, create some seed data for demonstration
         if not jobs:

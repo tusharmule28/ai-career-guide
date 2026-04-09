@@ -14,9 +14,10 @@ router = APIRouter()
 
 from pydantic import BaseModel
 class MatchRequest(BaseModel):
-    resume_id: Optional[int] = None
-    top_n: int = 5
+    top_n: int = 10
     sort_newest: bool = True
+    min_score: float = 0.0
+    recent_only: bool = False # Shows jobs < 24 hours
 
 @router.post("/match", response_model=List[dict])
 async def match_resume_to_jobs(
@@ -35,6 +36,8 @@ async def match_resume_to_jobs(
     resume_id = request.resume_id
     top_n = request.top_n
     sort_newest = request.sort_newest
+    min_score = request.min_score
+    recent_only = request.recent_only
 
     # 1. Get Resume
     if resume_id:
@@ -62,8 +65,8 @@ async def match_resume_to_jobs(
         )
         
     try:
-        # If sorting by newest, we fetch more similar jobs and then re-sort by date
-        fetch_n = 20 if sort_newest else top_n
+        # If filtering, we fetch more to ensure we have enough to show after filters
+        fetch_n = 50 if (sort_newest or min_score > 0 or recent_only) else top_n
         matches = await matching_service.find_matches(db, combined_text, fetch_n)
         
         # Format for response
@@ -85,7 +88,16 @@ async def match_resume_to_jobs(
                 "posted_at": job.posted_at
             })
         
-        # Sort by newest if requested
+        # 3. Apply Filters
+        from datetime import datetime, timedelta, timezone
+        
+        if min_score > 0:
+            response_data = [m for m in response_data if m["score"] >= min_score]
+            
+        if recent_only:
+            now = datetime.now(timezone.utc)
+            twenty_four_hours_ago = now - timedelta(hours=24)
+            response_data = [m for m in response_data if m["posted_at"] and m["posted_at"].replace(tzinfo=timezone.utc) >= twenty_four_hours_ago]
         if sort_newest:
             response_data.sort(key=lambda x: x["posted_at"] or "", reverse=True)
             # Limit back to top_n

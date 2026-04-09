@@ -11,6 +11,7 @@ PyMuPDF>=1.23.0
 python-multipart
 huggingface_hub
 redis
+celery
 passlib[argon2]
 argon2-cffi
 python-jose[cryptography]

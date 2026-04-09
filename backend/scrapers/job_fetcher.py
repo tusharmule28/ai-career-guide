@@ -9,6 +9,7 @@ from models.job import Job
 from services.embedding_service import embedding_service
 from jobspy import scrape_jobs
 from scrapers.indian_jobs_scraper import indian_jobs_scraper
+from services.deduplication_service import deduplication_service
 
 logger = logging.getLogger(__name__)
 
@@ -146,14 +147,26 @@ class JobFetcher:
 
         new_jobs = []
         for job_data in all_fetched_jobs:
-            # Check for existing job
-            existing_job = db.query(Job).filter(Job.external_id == job_data["external_id"]).first()
-            if existing_job:
+            # 1. Check for existing job by external_id (Fast)
+            existing_id = db.query(Job).filter(Job.external_id == job_data["external_id"]).first()
+            if existing_id:
+                continue
+            
+            # 2. Check for duplicate content (Robust)
+            content_hash = deduplication_service.generate_content_hash(
+                job_data["title"], 
+                job_data["description"], 
+                job_data["company"]
+            )
+            existing_hash = db.query(Job).filter(Job.content_hash == content_hash).first()
+            if existing_hash:
+                logger.info(f"Duplicate content found for {job_data['title']} at {job_data['company']}. Skipping.")
                 continue
 
             # Create new job
             new_job = Job(
                 external_id=job_data["external_id"],
+                content_hash=content_hash,
                 title=job_data["title"],
                 company=job_data["company"],
                 description=job_data["description"][:10000],

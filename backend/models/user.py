@@ -16,8 +16,13 @@ class User(Base):
     profile_picture = Column(String, nullable=True)
     social_links = Column(String, nullable=True) # Stored as JSON string for flexibility
     location = Column(String, nullable=True)
-    job_title = Column(String, nullable=True)
     skills = Column(String, nullable=True) # Manually overrideable skills
+    experience_years = Column(Integer, default=0)
+    
+    # Premium Fields
+    is_premium = Column(Boolean, default=False)
+    premium_until = Column(DateTime, nullable=True)
+    razorpay_customer_id = Column(String, nullable=True)
     
     hashed_password = Column(String, nullable=False)
     

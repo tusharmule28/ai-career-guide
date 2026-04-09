@@ -16,11 +16,13 @@ import Button from '../components/ui/Button';
 import JobCard from '../components/JobCard';
 import { JobCardSkeleton } from '../components/Skeleton';
 import { Link, useNavigate } from 'react-router-dom';
+import GapAnalysisModal from '../components/GapAnalysisModal';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { matchedJobs, loading, fetchMatchedJobs, fetchSavedJobs } = useJobStore();
+  const [isGapModalOpen, setIsGapModalOpen] = React.useState(false);
 
   useEffect(() => {
     fetchMatchedJobs();
@@ -175,12 +177,21 @@ const Dashboard = () => {
                 <p className="text-accent-100 text-sm font-medium mb-8 leading-relaxed">
                   Our AI has detected a skill gap in Cloud Architecture. Improving this could increase your match score by 25%.
                 </p>
-                <Button variant="ghost" className="w-full bg-white text-accent-600 hover:bg-accent-50 font-bold h-12 rounded-xl transition-smooth shadow-xl">
+                <Button 
+                  variant="ghost" 
+                  className="w-full bg-white text-accent-600 hover:bg-accent-50 font-bold h-12 rounded-xl transition-smooth shadow-xl"
+                  onClick={() => setIsGapModalOpen(true)}
+                >
                   Analyze Skill Gap
                 </Button>
               </div>
               <div className="absolute -right-16 -bottom-16 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
            </Card>
+
+           <GapAnalysisModal 
+             isOpen={isGapModalOpen} 
+             onClose={() => setIsGapModalOpen(false)} 
+           />
 
            <Card className="glass-card p-8 border-none">
               <h3 className="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2">

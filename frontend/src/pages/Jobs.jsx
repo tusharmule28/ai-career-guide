@@ -22,6 +22,7 @@ const Jobs = () => {
   const queryParams = new URLSearchParams(location.search);
   const isMatchFilter = queryParams.get('filter') === 'matches';
   const jobIdFromQuery = queryParams.get('id');
+  const [activeTab, setActiveTab] = useState(isMatchFilter ? 'matches' : 'all');
 
   const [filters, setFilters] = useState({
     location: 'All',
@@ -31,14 +32,14 @@ const Jobs = () => {
 
   useEffect(() => {
     const initJobs = async () => {
-      if (isMatchFilter) {
+      if (activeTab === 'matches') {
         await fetchMatchedJobs({ top_n: 20 });
       } else {
         await fetchJobs();
       }
     };
     initJobs();
-  }, [fetchJobs, fetchMatchedJobs, isMatchFilter]);
+  }, [fetchJobs, fetchMatchedJobs, activeTab]);
 
   // Handle auto-open for specific job ID from query params
   useEffect(() => {
@@ -51,7 +52,7 @@ const Jobs = () => {
     }
   }, [jobIdFromQuery, jobs]);
 
-  const dataSource = isMatchFilter ? matchedJobs : jobs;
+  const dataSource = activeTab === 'matches' ? matchedJobs : jobs;
 
   const filteredJobs = dataSource.filter(job => {
     const searchLower = searchTerm.toLowerCase().trim();
@@ -93,7 +94,7 @@ const Jobs = () => {
     return matchesSearch && matchesLocation && matchesExperience && matchesJobType;
   }).sort((a, b) => {
     // For matches, high score first, then newest
-    if (isMatchFilter) {
+    if (activeTab === 'matches') {
       if ((b.score || 0) !== (a.score || 0)) return (b.score || 0) - (a.score || 0);
       return (b.id || 0) - (a.id || 0);
     }
@@ -141,10 +142,31 @@ const Jobs = () => {
             {isMatchFilter ? 'AI Curated Roles' : 'Discover Opportunities'}
           </h1>
           <p className="text-slate-500 font-medium mt-2 leading-relaxed">
-            {isMatchFilter 
+            {activeTab === 'matches' 
               ? "Roles where your skills and experience align perfectly with market demands."
               : "Discover a wide range of roles tailored to your professional interests."}
           </p>
+
+          <div className="flex items-center gap-1 mt-8 p-1 bg-slate-100 rounded-lg w-fit">
+            <button 
+              className={`px-6 py-2 text-xs font-bold rounded-md transition-all ${activeTab === 'all' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => {
+                setActiveTab('all');
+                navigate('/jobs');
+              }}
+            >
+              All Jobs
+            </button>
+            <button 
+              className={`px-6 py-2 text-xs font-bold rounded-md transition-all flex items-center gap-2 ${activeTab === 'matches' ? 'bg-white text-accent-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => {
+                setActiveTab('matches');
+                navigate('/jobs?filter=matches');
+              }}
+            >
+              <Sparkles size={14} /> Recommended
+            </button>
+          </div>
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -240,7 +262,7 @@ const Jobs = () => {
                 key={job.id} 
                 job={job} 
                 onSelect={(j) => handleViewDetails(j)} 
-                highlight={isMatchFilter}
+                highlight={activeTab === 'matches'}
               />
             ))}
           </div>

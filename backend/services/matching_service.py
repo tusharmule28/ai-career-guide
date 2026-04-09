@@ -49,7 +49,7 @@ class MatchingService:
         except Exception as e:
             logger.error(f"Groq API error for job {job.id}: {e}")
 
-    async def find_matches(self, db: Session, resume_text: str, top_n: int = 5) -> List[Dict[str, Any]]:
+    async def find_matches(self, db: Session, resume_text: str, top_n: int = 5, user_experience: int = 0) -> List[Dict[str, Any]]:
         """
         Find the best job matches for a given resume text using pgvector.
         Utilizes the cosine distance operator (<=>).
@@ -75,6 +75,17 @@ class MatchingService:
             # We scale it so typical matches (0.1 - 0.4 distance) look like 70% - 95%
             dist = float(distance)
             match_score = max(0, (1.2 - dist) * 83.3) # Scaled boost for better UX
+            
+            # 2.1 Experience Penalty/Bonus
+            if job.experience_min and user_experience:
+                if user_experience < job.experience_min:
+                    # Penalty: Reduce score by 5% per missing year, max 20%
+                    penalty = min(20, (job.experience_min - user_experience) * 5)
+                    match_score -= penalty
+                elif user_experience > job.experience_max if job.experience_max else (job.experience_min + 5):
+                    # Slight overqualified penalty or neutral? Usually neutral/slight positive.
+                    pass
+            
             if match_score > 100: match_score = 98.5 # Cap it but keep it high for good matches
             
             # Simple skill-gap analysis

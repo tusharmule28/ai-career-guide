@@ -63,3 +63,13 @@ def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depend
         )
     
     return user
+
+def get_premium_user(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_premium:
+        # Check if premium_until is in the past
+        if not current_user.premium_until or current_user.premium_until < datetime.utcnow():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Premium subscription required for this feature."
+            )
+    return current_user

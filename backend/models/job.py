@@ -23,6 +23,7 @@ class Job(Base):
     external_id = Column(String, unique=True, index=True, nullable=True) # Deduplication ID
     experience_min = Column(Integer, nullable=True) # Years of experience
     experience_max = Column(Integer, nullable=True) # Years of experience
+    content_hash = Column(String, unique=True, index=True, nullable=True) # Normalized content hash
 
     def __repr__(self):
         return f"<Job(title={self.title}, company={self.company}>"
