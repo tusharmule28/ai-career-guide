@@ -58,10 +58,11 @@ def create_application() -> FastAPI:
 
     # Fallback: if ALLOWED_ORIGINS is empty or was only "*", use environment-aware defaults
     if not allowed_origins:
-        # We explicitly add the Vercel origin to ensure it's always allowed in both dev and prod
+        # We explicitly add the Vercel/Netlify origins to ensure they're always allowed in both dev and prod
         # to prevent common configuration issues on Render.
         allowed_origins = [
             "https://ai-career-guide-rho.vercel.app",
+            "https://ai-careerguide.netlify.app",
             "http://localhost:3000",
             "http://localhost:5173",
             "http://localhost:8080",
