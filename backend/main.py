@@ -114,15 +114,15 @@ def create_application() -> FastAPI:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
                 conn.commit()
             
-            # Run Alembic migrations programmatically
+            # Manual schema patches for Render compatibility (Alembic falls out of sync because of create_all)
             try:
-                import alembic.config
-                print("Running Alembic migrations...")
-                alembic_args = ["-c", "alembic.ini", "upgrade", "head"]
-                alembic.config.main(argv=alembic_args)
-                print("Alembic migrations completed successfully.")
-            except Exception as alembic_err:
-                print(f"Warning: Alembic migrations failed or were skipped: {alembic_err}")
+                from sqlalchemy import text
+                with engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE users ADD COLUMN IF NOT EXISTS job_title VARCHAR;'))
+                    conn.commit()
+                print("Manual schema migrations applied successfully.")
+            except Exception as e:
+                print(f"Warning: Manual schema migration failed: {e}")
                 
             Base.metadata.create_all(bind=engine)
             print("Database tables initialized.")
