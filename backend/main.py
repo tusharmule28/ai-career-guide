@@ -118,7 +118,24 @@ def create_application() -> FastAPI:
             try:
                 from sqlalchemy import text
                 with engine.connect() as conn:
-                    conn.execute(text('ALTER TABLE users ADD COLUMN IF NOT EXISTS job_title VARCHAR;'))
+                    # Comprehensive manual patch for ALL missing User model columns
+                    missing_user_columns = [
+                        'is_active BOOLEAN DEFAULT true',
+                        'is_superuser BOOLEAN DEFAULT false',
+                        'bio VARCHAR',
+                        'job_title VARCHAR',
+                        'profile_picture VARCHAR',
+                        'social_links VARCHAR',
+                        'location VARCHAR',
+                        'skills VARCHAR',
+                        'experience_years INTEGER DEFAULT 0',
+                        'is_premium BOOLEAN DEFAULT false',
+                        'premium_until TIMESTAMP',
+                        'razorpay_customer_id VARCHAR'
+                    ]
+                    for col in missing_user_columns:
+                        conn.execute(text(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col};'))
+                        
                     conn.commit()
                 print("Manual schema migrations applied successfully.")
             except Exception as e:
