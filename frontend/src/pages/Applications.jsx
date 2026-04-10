@@ -91,7 +91,7 @@ const Applications = () => {
             Application Hub
           </h1>
           <p className="text-gray-500 mt-3 md:text-lg max-w-xl">
-            Track your journey and recruitment status. Accidental clicks can be deleted, and statuses updated as you progress.
+            Track your applications and recruitment status.
           </p>
         </div>
         
@@ -112,7 +112,7 @@ const Applications = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-56 skeleton-pulse rounded-3xl"></div>
+            <div key={i} className="h-56 skeleton-pulse rounded-xl"></div>
           ))}
         </div>
       ) : filteredApps.length === 0 ? (
@@ -186,16 +186,16 @@ const Applications = () => {
       )}
       
       {/* Productivity Insight Section */}
-      <div className="mt-16 bg-primary/90 rounded-3xl p-10 text-white relative overflow-hidden shadow-premium animate-float">
+      <div className="mt-16 bg-primary/90 rounded-2xl p-10 text-white relative overflow-hidden shadow-md">
         <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
               <Sparkles size={14} />
-              AI Recruitment Insight
+              AI Insight
             </div>
-            <h2 className="text-3xl font-bold mb-4">You're in the top 5% of candidates for {applications[0]?.job_title || 'Software Engineering'} roles.</h2>
+            <h2 className="text-3xl font-bold mb-4">You're a strong match for {applications[0]?.job_title || 'Software Engineering'} roles.</h2>
             <p className="text-primary-100 text-lg mb-8 opacity-90 leading-relaxed">
-              Based on your recent applications and match scores, your profile strength is increasing. Keep updating your skills!
+              Based on your recent applications, your profile aligns well with these positions.
             </p>
           </div>
           <div className="flex justify-center md:justify-end">

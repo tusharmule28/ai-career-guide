@@ -41,7 +41,7 @@ const Dashboard = () => {
   return (
     <div className="section-container animate-fade-in">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 px-8 py-12 md:px-12 md:py-16 mb-12 shadow-premium">
+      <div className="relative overflow-hidden rounded-2xl bg-slate-900 px-8 py-12 md:px-12 md:py-16 mb-12 shadow-md">
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="max-w-xl text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-300 mb-6 border border-white/10">
@@ -51,7 +51,7 @@ const Dashboard = () => {
               Hi, {user?.name || 'User'}!
             </h1>
             <p className="text-slate-400 text-lg font-medium leading-relaxed mb-8">
-              We've analyzed {matchedJobs.length} specialized roles matching your background. Your next career move is just a click away.
+              We've found {matchedJobs.length} roles that match your background.
             </p>
             <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start">
               <Button size="lg" className="h-12 px-8 font-bold rounded-xl" onClick={() => navigate('/jobs')}>
@@ -70,7 +70,7 @@ const Dashboard = () => {
           
           <div className="hidden lg:block relative group">
             <div className="absolute inset-0 bg-accent-500/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-700"></div>
-            <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl">
+            <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-lg">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-accent-500 text-white rounded-2xl flex items-center justify-center shadow-lg">
                   <Layout size={24} />
@@ -134,12 +134,12 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <Card className="py-16 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center bg-slate-50/30 rounded-[2rem]">
-             <div className="w-20 h-20 bg-white shadow-sm text-accent-500 rounded-2xl flex items-center justify-center mb-6">
+          <Card className="py-16 border border-dashed border-slate-200 flex flex-col items-center justify-center text-center bg-slate-50/30 rounded-2xl">
+             <div className="w-16 h-16 bg-white shadow-sm text-slate-400 rounded-full flex items-center justify-center mb-6">
                 <Search size={32} />
              </div>
              <h3 className="text-lg font-bold text-slate-900 mb-2">No fresh matches found</h3>
-             <p className="max-w-xs text-slate-500 font-medium">We're constantly scanning. Try updating your profile or syncing again to see new opportunities.</p>
+             <p className="max-w-xs text-slate-500 font-medium">Try updating your profile or syncing again to see new matches.</p>
              <Button variant="secondary" size="sm" className="mt-8" onClick={() => fetchMatchedJobs()}>
                 Sync Now
              </Button>
@@ -175,7 +175,7 @@ const Dashboard = () => {
                 </div>
                 <h3 className="text-xl font-extrabold mb-4 leading-tight">Elevate Your Career with AI Strategy</h3>
                 <p className="text-accent-100 text-sm font-medium mb-8 leading-relaxed">
-                  Our AI has detected a skill gap in Cloud Architecture. Improving this could increase your match score by 25%.
+                  We noticed a potential skill priority in Cloud Architecture. Developing this could improve your matches.
                 </p>
                 <Button 
                   variant="ghost" 

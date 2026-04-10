@@ -20,25 +20,25 @@ const Home = () => {
         <div className="section-container relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-50 border border-slate-100 text-slate-500 font-bold text-[11px] uppercase tracking-widest mb-8 animate-float">
             <Sparkles size={14} className="text-accent-500" />
-            Empowering the modern workforce
+            Smart Job Matches
           </div>
 
-          <h1 className="text-5xl md:text-8xl font-extrabold text-slate-900 mb-8 tracking-tight leading-[1.1]">
-            Find Your Career <br className="hidden lg:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent-600 via-indigo-600 to-accent-600 bg-[length:200%_auto] animate-gradient">
-              North Star with AI
+          <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-8 tracking-tight leading-tight">
+            Find your next <br className="hidden lg:block" />
+            <span className="text-accent-600">
+              role, faster
             </span>
           </h1>
 
           <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed mb-12 font-medium">
-            Upload your resume and let our AI engine analyze your unique skills to instantly discover high-quality roles tailored specifically to your professional potential.
+            Upload your resume, and we'll instantly match you with relevant roles based on your skills and experience.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {!user ? (
               <>
                 <Link to="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" variant="accent" className="h-14 px-10 text-lg w-full sm:min-w-[200px] shadow-glow">
+                  <Button size="lg" variant="accent" className="h-14 px-10 text-lg w-full sm:min-w-[200px] shadow-sm hover:shadow-md transition-all">
                     Get Started <Rocket size={20} className="ml-2" />
                   </Button>
                 </Link>
@@ -50,7 +50,7 @@ const Home = () => {
               </>
             ) : (
               <Link to="/dashboard" className="w-full sm:w-auto">
-                <Button size="lg" variant="accent" className="h-14 px-10 text-lg w-full shadow-glow">
+                <Button size="lg" variant="accent" className="h-14 px-10 text-lg w-full shadow-sm hover:shadow-md transition-all">
                   Go to Dashboard <ArrowRight size={20} className="ml-2" />
                 </Button>
               </Link>
@@ -63,22 +63,22 @@ const Home = () => {
       <section className="bg-slate-50/50 py-32 border-y border-slate-100">
         <div className="section-container">
           <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6 tracking-tight">Built for the future of work</h2>
-            <p className="text-slate-500 font-medium text-lg">We've automated the most painful parts of the job search, so you can focus on making an impact.</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-6 tracking-tight">A smarter way to search</h2>
+            <p className="text-slate-500 font-medium text-lg">Skip the endless scrolling and get straight to the roles that fit your background.</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
                 title: 'Instant Extraction',
-                description: 'Our proprietary parsing engine extracts every nuance of your experience from your resume in seconds.',
+                description: 'We analyze your resume in seconds.',
                 icon: UploadCloud,
                 color: 'text-blue-600',
                 bg: 'bg-blue-50'
               },
               {
                 title: 'Semantic Analysis',
-                description: 'We don\'t just match keywords. We understand the context and trajectory of your professional growth.',
+                description: 'We match you based on context, not just keywords.',
                 icon: BrainCircuit,
                 color: 'text-indigo-600',
                 bg: 'bg-indigo-50'
@@ -91,8 +91,8 @@ const Home = () => {
                 bg: 'bg-emerald-50'
               }
             ].map((feature, idx) => (
-              <Link key={idx} to={feature.title === 'Instant Extraction' ? '/signup' : '/jobs'} className="bg-white p-10 rounded-[2.5rem] border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-accent-200 transition-all duration-300 group">
-                <div className={`w-14 h-14 rounded-2xl mb-8 flex items-center justify-center ${feature.bg} ${feature.color} group-hover:scale-110 transition-smooth`}>
+              <Link key={idx} to={feature.title === 'Instant Extraction' ? '/signup' : '/jobs'} className="bg-white p-8 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-md hover:border-accent-200 transition-all duration-300 group">
+                <div className={`w-12 h-12 rounded-xl mb-6 flex items-center justify-center ${feature.bg} ${feature.color} group-hover:scale-105 transition-smooth`}>
                   <feature.icon size={28} strokeWidth={2.5} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-4">{feature.title}</h3>
@@ -108,13 +108,13 @@ const Home = () => {
 
       {/* CTA Section */}
       <section className="py-32 section-container">
-        <div className="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden shadow-2xl">
+        <div className="bg-slate-900 rounded-3xl p-12 md:p-16 text-center relative overflow-hidden shadow-xl">
           <div className="relative z-10 max-w-2xl mx-auto">
             <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-8 tracking-tight">Ready to find your <br />perfect match?</h2>
-            <p className="text-slate-400 text-lg mb-12 font-medium">Start matching with high-quality roles tailored to your exact experience.</p>
+            <p className="text-slate-400 text-lg mb-12 font-medium">Get matched with roles that fit your background.</p>
             <Link to="/signup">
               <Button size="lg" className="h-14 px-12 text-lg rounded-2xl bg-dark text-white hover:bg-slate-800 shadow-2xl font-bold transition-all hover:scale-105 active:scale-95">
-                Sign Up Now — It's Free
+                Sign Up for Free
               </Button>
             </Link>
           </div>

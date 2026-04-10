@@ -26,7 +26,7 @@
   }
 
   .glass-card {
-    @apply bg-white border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 rounded-3xl;
+    @apply bg-white border border-slate-200/60 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-300 rounded-xl;
   }
 
   .premium-gradient {
