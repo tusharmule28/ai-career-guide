@@ -19,7 +19,7 @@ const GapAnalysisModal = ({ isOpen, onClose }) => {
     setError(null);
     try {
       const response = await api.get('/resumes/gap-analysis');
-      setAnalysis(response.data);
+      setAnalysis(response);
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to analyze resume gap.');
     } finally {

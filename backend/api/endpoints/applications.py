@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from pydantic import BaseModel
 from db.database import get_db
 from core.security import get_current_user
 from models.user import User
@@ -54,6 +55,26 @@ async def update_application_status(
         return {"message": "Status updated", "status": app.status.value}
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {[s.value for s in ApplicationStatus]}")
+
+
+class NotesUpdate(BaseModel):
+    notes: str
+
+
+@router.patch("/{id}/notes", response_model=dict)
+async def update_application_notes(
+    id: int,
+    body: NotesUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    app = db.query(Application).filter(Application.id == id, Application.user_id == current_user.id).first()
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    app.notes = body.notes
+    db.commit()
+    return {"message": "Notes saved", "notes": app.notes}
 
 @router.delete("/{id}", response_model=dict)
 async def delete_application(

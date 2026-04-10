@@ -12,8 +12,12 @@ import {
   Trash2,
   ChevronDown,
   MoreVertical,
-  AlertCircle
+  AlertCircle,
+  StickyNote,
+  ChevronUp,
+  Save
 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { api } from '../utils/api';
@@ -62,6 +66,16 @@ const Applications = () => {
       setApplications(prev => prev.filter(app => app.id !== appId));
     } catch (err) {
       alert('Failed to delete application: ' + err.message);
+    }
+  };
+
+  const handleNotesSave = async (appId, notes) => {
+    try {
+      await api.patch(`/applications/${appId}/notes`, { notes });
+      setApplications(prev => prev.map(app => app.id === appId ? { ...app, notes } : app));
+      toast.success('Notes saved!');
+    } catch (err) {
+      toast.error('Failed to save notes.');
     }
   };
 
@@ -129,6 +143,16 @@ const Applications = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredApps.map((app) => (
+            <AppCard
+              key={app.id}
+              app={app}
+              statusOptions={statusOptions}
+              getStatusColor={getStatusColor}
+              onStatusChange={handleStatusChange}
+              onDelete={handleDelete}
+              onNotesSave={handleNotesSave}
+            />
+          ))}
             <Card key={app.id} className="glass-card hover:translate-y-[-4px] group overflow-visible relative">
               <div className="flex justify-between items-start mb-4">
                 <div className="relative group/select">

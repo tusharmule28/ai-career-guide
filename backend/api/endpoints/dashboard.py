@@ -27,14 +27,16 @@ async def get_dashboard_summary(
     
     if resume and resume.embedding:
         # Find matches with >50% similarity
-        # Similarity = 1 - Distance
-        # 0.50 similarity = 0.50 distance
         matches = await matching_service.find_matches(db, resume.extracted_text, top_n=50)
         high_matches = [m for m in matches if m["score"] >= 50]
         match_count = len(high_matches)
         
         if matches:
             avg_score = sum(m["score"] for m in matches[:5]) / min(len(matches), 5)
+
+    # 1b. Real application count from DB
+    from models.application import Application
+    application_count = db.query(Application).filter(Application.user_id == current_user.id).count()
             
     # 2. Get recent sessions/activities
     # For now, we'll list resume uploads as activities
@@ -70,7 +72,7 @@ async def get_dashboard_summary(
     return {
         "match_count": match_count,
         "skill_score": round(avg_score, 1),
-        "application_count": 0,
+        "application_count": application_count,
         "activities": activities,
         "recommendations": recommendations[:3]
     }

@@ -5,7 +5,7 @@ import {
   User as UserIcon, Mail, MapPin, Briefcase, Link as LinkIcon, 
   Camera, Save, Sparkles, CheckCircle2, 
   Loader2, Edit3, X, RefreshCw, ExternalLink, ChevronRight,
-  Globe
+  Globe, Github, Linkedin
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -146,6 +146,34 @@ const Profile = () => {
                   </div>
                   {profile.location || 'Remote'}
                 </div>
+                {profile.github && (
+                  <a
+                    href={profile.github.startsWith('http') ? profile.github : `https://github.com/${profile.github}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-sm text-slate-500 font-medium hover:text-accent-600 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-accent-50 group-hover:text-accent-500 transition-colors">
+                      <Globe size={16} />
+                    </div>
+                    <span className="truncate max-w-[140px]">{profile.github.replace(/^https?:\/\//, '').replace(/^github\.com\//, '')}</span>
+                    <ExternalLink size={12} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </a>
+                )}
+                {profile.linkedin && (
+                  <a
+                    href={profile.linkedin.startsWith('http') ? profile.linkedin : `https://linkedin.com/in/${profile.linkedin}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-sm text-slate-500 font-medium hover:text-blue-600 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+                      <Linkedin size={16} />
+                    </div>
+                    <span className="truncate max-w-[140px]">LinkedIn Profile</span>
+                    <ExternalLink size={12} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </a>
+                )}
               </div>
 
 

@@ -1,17 +1,36 @@
-import React from 'react';
-import { Briefcase, MapPin, DollarSign, ChevronRight, Bookmark, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Briefcase, MapPin, DollarSign, ChevronRight, Bookmark, BookmarkCheck, Sparkles } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { api } from '../utils/api';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import ScoreBadge from './ui/ScoreBadge';
 
 const JobCard = ({ job, onSelect, highlight }) => {
+  const [saved, setSaved] = useState(false);
+
   const title = job.title || 'Untitled Role';
   const company = job.company || 'Confidential Company';
   const location = job.location || 'Remote';
-  const salary = job.salary_range || 'Competitive';
+  const salary = job.salary_min && job.salary_max
+    ? `$${Number(job.salary_min).toLocaleString()} – $${Number(job.salary_max).toLocaleString()}`
+    : job.salary_min ? `From $${Number(job.salary_min).toLocaleString()}`
+    : 'Competitive';
   const matchScore = job.score || job.matchScore || 0;
   const source = job.source || null;
   const applyUrl = job.apply_url || '#';
+  const jobId = job.id || job.job_id;
+
+  const handleSave = async (e) => {
+    e.stopPropagation();
+    try {
+      await api.post(`/jobs/${jobId}/save`);
+      setSaved(true);
+      toast.success('Job saved to your list!');
+    } catch (err) {
+      toast.error('Could not save job.');
+    }
+  };
 
   return (
     <Card className={`glass-card p-6 flex flex-col h-full transition-smooth group relative overflow-hidden ${
@@ -46,9 +65,13 @@ const JobCard = ({ job, onSelect, highlight }) => {
           <h3 className="text-lg font-bold text-slate-900 group-hover:text-accent-700 transition-colors line-clamp-1 leading-tight mb-1">
             {title}
           </h3>
-          <div className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
-             <Briefcase size={14} className="text-slate-400" />
-             <span>{company}</span>
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+            {job.company_logo ? (
+              <img src={job.company_logo} alt={company} className="w-5 h-5 rounded object-contain" />
+            ) : (
+              <Briefcase size={14} className="text-slate-400" />
+            )}
+            <span>{company}</span>
           </div>
         </div>
         <ScoreBadge score={matchScore} size="md" />
@@ -74,8 +97,15 @@ const JobCard = ({ job, onSelect, highlight }) => {
               </Button>
             </a>
           )}
-          <Button variant="ghost" size="sm" className="w-8 h-8 p-0 text-slate-400 hover:text-accent-600 hover:bg-accent-50 border border-transparent hover:border-accent-100">
-            <Bookmark size={14} />
+          <Button
+            variant="ghost" size="sm"
+            className={`w-8 h-8 p-0 border border-transparent transition-smooth ${
+              saved ? 'text-accent-600 bg-accent-50 border-accent-100' : 'text-slate-400 hover:text-accent-600 hover:bg-accent-50 hover:border-accent-100'
+            }`}
+            onClick={handleSave}
+            title={saved ? 'Saved!' : 'Save job'}
+          >
+            {saved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
           </Button>
         </div>
         <Button 

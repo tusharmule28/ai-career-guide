@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useJobStore } from '../store/jobStore';
 import {
@@ -9,7 +9,9 @@ import {
   Zap,
   ChevronRight,
   ShieldCheck,
-  Layout
+  Layout,
+  Clock,
+  CheckCircle2
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -17,22 +19,28 @@ import JobCard from '../components/JobCard';
 import { JobCardSkeleton } from '../components/Skeleton';
 import { Link, useNavigate } from 'react-router-dom';
 import GapAnalysisModal from '../components/GapAnalysisModal';
+import { api } from '../utils/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { matchedJobs, loading, fetchMatchedJobs, fetchSavedJobs } = useJobStore();
   const [isGapModalOpen, setIsGapModalOpen] = React.useState(false);
+  const [summary, setSummary] = useState({ match_count: 0, skill_score: 0, application_count: 0, activities: [], recommendations: [] });
 
   useEffect(() => {
     fetchMatchedJobs();
     fetchSavedJobs();
+    // Fetch real dashboard summary stats
+    api.get('/dashboard/summary').then(data => {
+      if (data) setSummary(data);
+    }).catch(() => {});  // fail silently — UI still works from matchedJobs
   }, [fetchMatchedJobs, fetchSavedJobs]);
 
   const stats = [
-    { label: 'Job Matches', value: matchedJobs.length, icon: Briefcase, color: 'text-accent-600', bg: 'bg-accent-50' },
-    { label: 'Skill Score', value: matchedJobs.length > 0 ? `${Math.round(matchedJobs[0].score)}%` : '0%', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Market Readiness', value: '92%', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Job Matches', value: summary.match_count || matchedJobs.length, icon: Briefcase, color: 'text-accent-600', bg: 'bg-accent-50' },
+    { label: 'Skill Score', value: summary.skill_score > 0 ? `${summary.skill_score}%` : matchedJobs.length > 0 ? `${Math.round(matchedJobs[0].score)}%` : '0%', icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Applications', value: summary.application_count, icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50' },
   ];
 
   const freshMatches = matchedJobs.slice(0, 4);
@@ -192,6 +200,43 @@ const Dashboard = () => {
              isOpen={isGapModalOpen} 
              onClose={() => setIsGapModalOpen(false)} 
            />
+
+           {summary.activities?.length > 0 && (
+             <Card className="glass-card p-8 border-none">
+               <h3 className="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+                 <Clock size={20} className="text-slate-400" /> Recent Activity
+               </h3>
+               <div className="space-y-4">
+                 {summary.activities.map((activity) => (
+                   <div key={activity.id} className="flex items-start gap-3">
+                     <div className="w-7 h-7 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                       <CheckCircle2 size={14} />
+                     </div>
+                     <div>
+                       <p className="text-xs font-bold text-slate-700">{activity.title}</p>
+                       <p className="text-[10px] text-slate-400 font-medium mt-0.5">{activity.time}</p>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </Card>
+           )}
+
+           {summary.recommendations?.length > 0 && (
+             <Card className="glass-card p-8 border-none">
+               <h3 className="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2">
+                 <Sparkles size={20} className="text-accent-500" /> AI Tips
+               </h3>
+               <div className="space-y-4">
+                 {summary.recommendations.map((rec, i) => (
+                   <div key={i} className="p-4 bg-accent-50/50 rounded-xl border border-accent-100">
+                     <p className="text-[10px] font-bold text-accent-600 uppercase tracking-widest mb-1">{rec.category}</p>
+                     <p className="text-xs text-slate-600 font-medium leading-relaxed">{rec.text}</p>
+                   </div>
+                 ))}
+               </div>
+             </Card>
+           )}
 
            <Card className="glass-card p-8 border-none">
               <h3 className="text-lg font-extrabold text-slate-900 mb-6 flex items-center gap-2">

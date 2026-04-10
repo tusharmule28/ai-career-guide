@@ -7,6 +7,7 @@ from models.resume import Resume
 from models.job import Job
 from schemas.explanation import ExplanationRequest, ExplanationResponse
 from services.explanation import get_match_explanation, get_improvement_suggestions
+from services.application_assistant import application_assistant
 import logging
 
 logger = logging.getLogger(__name__)
@@ -75,4 +76,49 @@ async def get_explanation(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI Service is currently busy or rate-limited. Please try again in 1 minute."
+        )
+
+
+@router.post("/cover-letter/{job_id}", response_model=dict)
+async def generate_cover_letter(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate a tailored AI cover letter and pre-fill form data for a specific job,
+    using the user's latest resume and profile.
+    """
+    # 1. Get latest resume
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).order_by(Resume.uploaded_at.desc()).first()
+    resume_text = resume.extracted_text if resume and resume.extracted_text else ""
+
+    # 2. Get job
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+
+    if not resume_text and not (current_user.bio or current_user.skills):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please upload a resume or update your profile bio/skills before generating a cover letter."
+        )
+
+    try:
+        result = await application_assistant.generate_application_package(
+            user=current_user,
+            job_title=job.title,
+            job_description=job.description,
+            resume_text=resume_text
+        )
+        if "error" in result:
+            raise HTTPException(status_code=503, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Cover letter generation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI Service is currently busy. Please try again in 1 minute."
         )
