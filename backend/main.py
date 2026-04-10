@@ -114,6 +114,16 @@ def create_application() -> FastAPI:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
                 conn.commit()
             
+            # Run Alembic migrations programmatically
+            try:
+                import alembic.config
+                print("Running Alembic migrations...")
+                alembic_args = ["-c", "alembic.ini", "upgrade", "head"]
+                alembic.config.main(argv=alembic_args)
+                print("Alembic migrations completed successfully.")
+            except Exception as alembic_err:
+                print(f"Warning: Alembic migrations failed or were skipped: {alembic_err}")
+                
             Base.metadata.create_all(bind=engine)
             print("Database tables initialized.")
             
