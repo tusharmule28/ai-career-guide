@@ -39,18 +39,18 @@ def create_application() -> FastAPI:
             pass
         return o
     
-    # Traceback middleware for production debugging — logs 500 errors to the console
-    from starlette.middleware.base import BaseHTTPMiddleware
+    # Traceback exception handler for production debugging — logs 500 errors to the console
     import traceback
+    from fastapi.responses import JSONResponse
+    from fastapi import Request
     
-    class ErrorLoggingMiddleware(BaseHTTPMiddleware):
-        async def dispatch(self, request, call_next):
-            try:
-                return await call_next(request)
-            except Exception as e:
-                print(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
-                print(traceback.format_exc())
-                raise e from None
+    async def global_exception_handler(request: Request, exc: Exception):
+        print(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
+        print(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error"}
+        )
 
     # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec
     _raw_origins = settings.ALLOWED_ORIGINS or ""
@@ -69,8 +69,8 @@ def create_application() -> FastAPI:
 
     print(f"DEBUG: ENVIRONMENT={settings.ENVIRONMENT} | CORS Origins: {allowed_origins}")
     
-    # Layer order: Logging first, then CORS middleware
-    app.add_middleware(ErrorLoggingMiddleware)
+    # Layer order: Register exception handler, then CORS middleware
+    app.add_exception_handler(Exception, global_exception_handler)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=allowed_origins,

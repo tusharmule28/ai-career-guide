@@ -13,6 +13,7 @@ class User(Base):
     
     # Profile Enhancements
     bio = Column(String, nullable=True)
+    job_title = Column(String, nullable=True)
     profile_picture = Column(String, nullable=True)
     social_links = Column(String, nullable=True) # Stored as JSON string for flexibility
     location = Column(String, nullable=True)
