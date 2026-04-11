@@ -63,15 +63,6 @@ const Login = () => {
         </div>
 
         <Card className="p-10 glass-card border-none shadow-premium">
-          <div className="mb-10 p-5 bg-accent-50 rounded-2xl border border-accent-100/50 flex flex-col gap-2">
-            <h4 className="text-[10px] font-bold text-accent-600 uppercase tracking-widest flex items-center gap-2">
-              <Sparkles size={14} /> Demo Environment
-            </h4>
-            <div className="flex flex-col gap-1">
-              <p className="text-xs text-slate-700 font-bold">Email: <span className="text-slate-500 font-medium ml-1">admin@example.com</span></p>
-              <p className="text-xs text-slate-700 font-bold">Pass: <span className="text-slate-500 font-medium ml-1">admin123</span></p>
-            </div>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input

@@ -246,3 +246,21 @@ async def get_job_insights(
         "missing_skills": specific_match.get("missing_skills", []),
         "found_skills": specific_match.get("found_skills", [])
     }
+
+
+@router.get("/{job_id}", response_model=JobResponse)
+def get_job(job_id: int, db: Session = Depends(get_db)):
+    try:
+        _ensure_jobs_table(db)
+        job = db.query(Job).filter(Job.id == job_id).first()
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        return job
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in get_job: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch job: {str(e)}"
+        )

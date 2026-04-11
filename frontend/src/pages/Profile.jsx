@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import { 
-  User as UserIcon, Mail, MapPin, Briefcase, Link as LinkIcon, 
-  Camera, Save, Sparkles, CheckCircle2, 
+import {
+  User as UserIcon, Mail, MapPin, Briefcase, Link as LinkIcon,
+  Camera, Save, Sparkles, CheckCircle2,
   Loader2, Edit3, X, RefreshCw, ExternalLink, ChevronRight,
-  Globe, Github, Linkedin
+  Globe, Github, Linkedin, Phone
 } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -34,7 +34,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const [matchingJobs, setMatchingJobs] = useState([]);
   const [matchingLoading, setMatchingLoading] = useState(false);
 
@@ -74,7 +74,7 @@ const Profile = () => {
       toast.success('Your professional profile is ready!');
       setSaveSuccess(true);
       setIsEditing(false);
-      updateUser({ name: profile.full_name });
+      updateUser({ ...profile, name: profile.full_name }); // Sync full profile to auth context
       fetchMatchingJobs();
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -91,7 +91,7 @@ const Profile = () => {
       <div className="flex flex-col lg:flex-row justify-between items-center lg:items-end mb-8 md:mb-12 gap-6 text-center lg:text-left">
         <div className="max-w-2xl mx-auto lg:mx-0">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
-             <Sparkles size={12} /> Personalized Content
+            <Sparkles size={12} /> Personalized Content
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
             Professional Profile
@@ -100,9 +100,9 @@ const Profile = () => {
             Manage your professional identity and refine your AI job matching accuracy.
           </p>
         </div>
-        
+
         {!isEditing && (
-          <Button 
+          <Button
             onClick={() => setIsEditing(true)}
             variant="accent"
             className="w-full lg:w-auto h-12 px-8 font-bold rounded-xl shadow-glow"
@@ -113,13 +113,12 @@ const Profile = () => {
         )}
       </div>
 
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Sidebar */}
         <div className="space-y-8">
           <Card className="p-8 text-center glass-card border-none relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-accent-500/10 via-indigo-500/5 to-transparent"></div>
-            
+
             <div className="relative z-10">
               <div className="relative inline-block mx-auto mb-6">
                 <div className="w-32 h-32 rounded-[2.5rem] bg-white flex items-center justify-center text-slate-300 border-4 border-white shadow-xl overflow-hidden">
@@ -130,7 +129,7 @@ const Profile = () => {
                   )}
                 </div>
               </div>
-              
+
               <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">
                 {profile.full_name || user?.name || 'Professional'}
               </h2>
@@ -145,12 +144,16 @@ const Profile = () => {
                   </div>
                   {user?.email}
                 </div>
+                <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                    <MapPin size={16} />
+                  </div>
                   {profile.location || 'Remote'}
                 </div>
                 {profile.phone && (
                   <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
                     <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                      <Mail size={16} /> {/* Should be Phone icon but keeping Mail for simplicity in this chunk or import Phone */}
+                      <Phone size={16} />
                     </div>
                     {profile.phone}
                   </div>
@@ -198,33 +201,30 @@ const Profile = () => {
                   </a>
                 )}
               </div>
-
-
             </div>
           </Card>
 
           <Card className="bg-slate-900 text-white p-8 rounded-[2.5rem] border-none shadow-premium relative overflow-hidden group">
-             <div className="relative z-10">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-400 mb-6 flex items-center justify-between gap-2">
-                   <div className="flex items-center gap-2">
-                      <Sparkles size={14} /> Profile Insights
-                   </div>
-                   {profile.is_premium && (
-                      <span className="bg-accent-500 text-white px-2 py-0.5 rounded text-[8px] font-black">PRO</span>
-                   )}
-                </h3>
-                <div className="text-4xl font-extrabold mb-2">{profile.is_premium ? '95%' : '65%'}</div>
-                <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6 opacity-80">
-                   {profile.is_premium 
-                      ? "Your premium profile is being prioritized in top-tier matching algorithms."
-                      : "Enhance your bio and list more specialized skills to increase matching accuracy."}
-                </p>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-8">
-                   <div className="h-full bg-accent-500 rounded-full shadow-glow shadow-accent-500/50" style={{ width: profile.is_premium ? '95%' : '65%' }}></div>
+            <div className="relative z-10">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-400 mb-6 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={14} /> Profile Insights
                 </div>
-
-             </div>
-             <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-accent-500/10 rounded-full blur-[80px]"></div>
+                {profile.is_premium && (
+                  <span className="bg-accent-500 text-white px-2 py-0.5 rounded text-[8px] font-black">PRO</span>
+                )}
+              </h3>
+              <div className="text-4xl font-extrabold mb-2">{profile.is_premium ? '95%' : '65%'}</div>
+              <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6 opacity-80">
+                {profile.is_premium
+                  ? "Your premium profile is being prioritized in top-tier matching algorithms."
+                  : "Enhance your bio and list more specialized skills to increase matching accuracy."}
+              </p>
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-8">
+                <div className="h-full bg-accent-500 rounded-full shadow-glow shadow-accent-500/50" style={{ width: profile.is_premium ? '95%' : '65%' }}></div>
+              </div>
+            </div>
+            <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-accent-500/10 rounded-full blur-[80px]"></div>
           </Card>
         </div>
 
@@ -322,6 +322,7 @@ const Profile = () => {
                       placeholder="website.com"
                     />
                   </div>
+                </div>
 
                 <div className="space-y-2 mb-8">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Professional Bio</label>
@@ -355,12 +356,11 @@ const Profile = () => {
                     {saveSuccess ? 'Profile Updated' : 'Save Changes'}
                   </Button>
                 </div>
-
               </div>
             ) : (
               <div className="animate-fade-in">
                 <div className="flex justify-between items-center mb-10">
-                   <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center">
                       <Briefcase size={16} />
                     </div>
@@ -400,9 +400,9 @@ const Profile = () => {
           <div className="space-y-8">
             <div className="flex items-center justify-between pb-2 border-b border-slate-200/50">
               <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">AI Curated Roles</h3>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={fetchMatchingJobs}
                 loading={matchingLoading}
                 className="text-slate-400 hover:text-accent-600 font-bold gap-2 px-3 py-2 bg-slate-50 hover:bg-accent-50 rounded-xl"
@@ -416,13 +416,13 @@ const Profile = () => {
               {matchingLoading ? (
                 [...Array(3)].map((_, i) => <JobCardSkeleton key={i} />)
               ) : matchingJobs.length > 0 ? (
-                matchingJobs.map((job) => (
-                  <JobCard key={job.id} job={job} onSelect={(j) => navigate(`/jobs?id=${j.id}`)} />
+                matchingJobs.map((item) => (
+                  <JobCard key={item.job?.id || item.id} job={item} onSelect={(j) => navigate(`/job/${j.id || j.job_id}`)} />
                 ))
               ) : (
                 <div className="col-span-full">
-                  <EmptyState 
-                    title="No strategic matches" 
+                  <EmptyState
+                    title="No strategic matches"
                     description="Upload your latest resume or refine your skills to unlock tailored opportunities."
                     actionText="Edit Profile"
                     onAction={() => setIsEditing(true)}
@@ -430,17 +430,17 @@ const Profile = () => {
                 </div>
               )}
             </div>
-            
+
             {matchingJobs.length > 0 && (
               <div className="flex justify-center">
-                 <Button 
-                    variant="ghost" 
-                    className="group text-slate-400 hover:text-accent-600 font-bold gap-2 transition-smooth"
-                    onClick={() => navigate('/jobs')}
-                 >
-                    Explore all matched roles
-                    <ChevronRight size={18} className="group-hover:translate-x-1 transition-smooth" />
-                 </Button>
+                <Button
+                  variant="ghost"
+                  className="group text-slate-400 hover:text-accent-600 font-bold gap-2 transition-smooth"
+                  onClick={() => navigate('/jobs')}
+                >
+                  Explore all matched roles
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-smooth" />
+                </Button>
               </div>
             )}
           </div>

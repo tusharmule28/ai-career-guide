@@ -44,7 +44,7 @@ const Home = () => {
                 </Link>
                 <Link to="/login" className="w-full sm:w-auto">
                   <Button variant="ghost" size="lg" className="h-14 px-8 text-lg w-full border border-slate-200 hover:bg-slate-50">
-                    Live Demo
+                    Access Platform
                   </Button>
                 </Link>
               </>

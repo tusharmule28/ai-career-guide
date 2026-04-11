@@ -9,18 +9,20 @@ import ScoreBadge from './ui/ScoreBadge';
 const JobCard = ({ job, onSelect, highlight }) => {
   const [saved, setSaved] = useState(false);
 
-  const title = job.title || 'Untitled Role';
-  const company = job.company || 'Confidential Company';
-  const location = job.location || 'Remote';
-  const salary = job.salary_min && job.salary_max
-    ? `$${Number(job.salary_min).toLocaleString()} – $${Number(job.salary_max).toLocaleString()}`
-    : job.salary_min ? `From $${Number(job.salary_min).toLocaleString()}`
+  const targetJob = job.job || job;
+  const title = targetJob.title || 'Untitled Role';
+  const company = targetJob.company || 'Confidential Company';
+  const location = targetJob.location || 'Remote';
+  const salary = targetJob.salary_min && targetJob.salary_max
+    ? `$${Number(targetJob.salary_min).toLocaleString()} – $${Number(targetJob.salary_max).toLocaleString()}`
+    : targetJob.salary_min ? `From $${Number(targetJob.salary_min).toLocaleString()}`
     : 'Competitive';
-  const matchScore = job.score || job.matchScore || 0;
-  const source = job.source || null;
-  const applyUrl = job.apply_url || '#';
-  const jobId = job.id || job.job_id;
-  const matchReason = job.match_reason || null;
+    
+  const matchScore = job.score || targetJob.score || targetJob.matchScore || 0;
+  const source = targetJob.source || null;
+  const applyUrl = targetJob.apply_url || '#';
+  const jobId = targetJob.id || targetJob.job_id || job.id || job.job_id;
+  const matchReason = job.match_reason || targetJob.match_reason || null;
 
   const handleSave = async (e) => {
     e.stopPropagation();
@@ -67,8 +69,8 @@ const JobCard = ({ job, onSelect, highlight }) => {
             {title}
           </h3>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            {job.company_logo ? (
-              <img src={job.company_logo} alt={company} className="w-5 h-5 rounded object-contain" />
+            {targetJob.company_logo ? (
+              <img src={targetJob.company_logo} alt={company} className="w-5 h-5 rounded object-contain" />
             ) : (
               <Briefcase size={14} className="text-slate-400" />
             )}
@@ -121,7 +123,7 @@ const JobCard = ({ job, onSelect, highlight }) => {
         <Button 
           variant="accent"
           size="sm" 
-          onClick={() => onSelect(job)}
+          onClick={() => onSelect(targetJob)}
           className="h-8 px-4 text-[11px] font-bold shadow-sm hover:shadow-glow"
         >
           View Details
