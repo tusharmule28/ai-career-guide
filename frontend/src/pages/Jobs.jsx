@@ -291,8 +291,6 @@ const Jobs = ({ onlyMatched = false }) => {
           </>
         )}
       </div>
-
-      </div>
     </div>
   );
 };

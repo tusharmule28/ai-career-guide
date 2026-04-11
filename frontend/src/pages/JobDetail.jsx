@@ -380,8 +380,7 @@ const JobDetail = () => {
                  </div>
               </div>
            </div>
-        </div>
-      </div>
+         </div>
 
       <CoverLetterModal
         isOpen={isCoverLetterOpen}

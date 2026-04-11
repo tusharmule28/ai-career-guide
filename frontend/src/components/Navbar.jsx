@@ -74,7 +74,7 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 w-full glass border-b border-slate-200/50 shadow-sm backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-18">
+        <div className="flex justify-between h-18 py-3 items-center">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2.5 group">
@@ -158,30 +158,23 @@ const Navbar = () => {
                     )}
                   </div>
 
-                  {/* Profile Link */}
+                  <Link to="/profile" className="flex items-center gap-3 group">
                     <div className="w-9 h-9 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center text-accent-600 group-hover:bg-accent-50 transition-smooth relative">
                       <UserIcon size={18} />
-                      {user?.is_premium && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent-500 rounded-full border-2 border-white flex items-center justify-center">
-                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-                        </div>
-                      )}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-slate-700 transition-colors group-hover:text-accent-700 flex items-center gap-1.5">
-                        Hi, {userName}
-                        {user?.is_premium && (
-                          <span className="bg-accent-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded shadow-sm">PRO</span>
-                        )}
+                      <span className="text-sm font-bold text-slate-700 transition-colors group-hover:text-accent-700 flex items-center gap-1.5 leading-none">
+                        {userName}
+                        {user?.is_premium && <span className="text-[8px] text-accent-600 font-black">PRO</span>}
                       </span>
                     </div>
                   </Link>
 
                   <button 
                     onClick={logout}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 transition-smooth border border-transparent hover:border-red-100"
+                    className="w-9 h-9 border border-transparent hover:bg-red-50 hover:text-red-600 rounded-xl flex items-center justify-center text-slate-400 transition-smooth"
                   >
-                    <LogOut size={18} />
+                    <LogOut size={16} />
                   </button>
                 </div>
               ) : (
@@ -197,68 +190,17 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Right Controls (Visible on mobile only) */}
-          <div className="md:hidden flex items-center gap-2">
+          {/* Mobile UI (Cleaned Up as requested) */}
+          <div className="md:hidden flex items-center gap-3">
             {user && (
-              <>
-                {/* Mobile Notifications */}
-                <div className="relative">
-                  <button 
-                    onClick={() => setIsNotifOpen(!isNotifOpen)}
-                    className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 relative"
-                  >
-                    <Bell size={18} />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </span>
-                    )}
-                  </button>
-
-                  {isNotifOpen && (
-                    <div className="fixed inset-x-4 top-20 glass border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden animate-fade-in md:absolute md:inset-auto md:right-0 md:w-80">
-                      <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                        <h4 className="font-bold text-slate-800 text-sm">Notifications</h4>
-                        {unreadCount > 0 && (
-                          <button onClick={markAllRead} className="text-[10px] font-bold text-accent-600 hover:text-accent-700">Mark all read</button>
-                        )}
-                      </div>
-                      <div className="max-h-[60vh] overflow-y-auto">
-                        {notifications.length > 0 ? (
-                          notifications.map(n => (
-                            <div 
-                              key={n.id} 
-                              className={`p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer relative ${!n.is_read ? 'bg-accent-50/30' : ''}`}
-                              onClick={() => {
-                                markAsRead(n.id);
-                                if (n.link) window.location.href = n.link;
-                              }}
-                            >
-                              <p className="text-xs font-bold text-slate-900">{n.title}</p>
-                              <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-2">{n.message}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="p-8 text-center">
-                            <Bell size={24} className="mx-auto text-slate-200 mb-2" />
-                            <p className="text-[10px] text-slate-400 font-medium">All caught up!</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile Profile Link */}
-                <Link to="/profile" className="w-9 h-9 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center text-accent-600">
-                  <UserIcon size={18} />
-                </Link>
-              </>
+              <Link to="/profile" className="w-9 h-9 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center text-accent-600 shadow-sm">
+                <UserIcon size={18} />
+              </Link>
             )}
-
+            
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="w-9 h-9 rounded-xl text-slate-400 hover:bg-slate-100 flex items-center justify-center"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-600 border border-slate-100"
             >
               {isOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -267,37 +209,20 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Navigation */}
+      {/* Mobile Drawer */}
       {isOpen && (
-        <div className="md:hidden glass border-b border-gray-100 animate-slide-up">
-          <div className="px-4 pt-4 pb-6 space-y-2">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-accent-600 relative">
-                <UserIcon size={20} />
-                {user?.is_premium && (
-                  <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-accent-500 rounded-full border-2 border-white"></div>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900">{userName}</span>
-                  {user?.is_premium && (
-                    <span className="bg-accent-500 text-white text-[7px] font-black px-1 py-0.5 rounded">PRO</span>
-                  )}
-                </div>
-                <span className="text-[10px] text-slate-400 font-medium">Professional Profile</span>
-              </div>
-            </div>
-
+        <div className="md:hidden glass border-b border-slate-100 animate-slide-up">
+          <div className="px-4 pt-2 pb-6 space-y-1">
             {user && navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 onClick={() => setIsOpen(false)}
                 className={`
-                  flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold
+                  flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold
                   ${isActive(item.href) 
                     ? 'bg-accent-50 text-accent-700' 
-                    : 'text-slate-600 hover:bg-gray-50'}
+                    : 'text-slate-600 hover:bg-slate-50'}
                 `}
               >
                 <item.icon size={18} />
@@ -306,27 +231,27 @@ const Navbar = () => {
             ))}
 
             {user && (
-              <Link
-                to="/profile"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-gray-50`}
-              >
-                <UserIcon size={18} />
-                My Profile
-              </Link>
+              <>
+                <div className="h-px bg-slate-100 my-4 mx-4" />
+                <button
+                  onClick={() => { logout(); setIsOpen(false); }}
+                  className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50"
+                >
+                  <LogOut size={18} />
+                  Sign Out
+                </button>
+              </>
             )}
-
-            {user && (
-              <button
-                onClick={() => {
-                  logout();
-                  setIsOpen(false);
-                }}
-                className="flex w-full items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50"
-              >
-                <LogOut size={18} />
-                Sign Out
-              </button>
+            
+            {!user && (
+               <div className="flex flex-col gap-2 p-2">
+                 <Link to="/login" onClick={() => setIsOpen(false)}>
+                   <Button variant="ghost" className="w-full font-bold">Log In</Button>
+                 </Link>
+                 <Link to="/signup" onClick={() => setIsOpen(false)}>
+                   <Button className="w-full font-bold">Get Started</Button>
+                 </Link>
+               </div>
             )}
           </div>
         </div>
