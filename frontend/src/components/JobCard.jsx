@@ -20,6 +20,7 @@ const JobCard = ({ job, onSelect, highlight }) => {
   const source = job.source || null;
   const applyUrl = job.apply_url || '#';
   const jobId = job.id || job.job_id;
+  const matchReason = job.match_reason || null;
 
   const handleSave = async (e) => {
     e.stopPropagation();
@@ -76,6 +77,15 @@ const JobCard = ({ job, onSelect, highlight }) => {
         </div>
         <ScoreBadge score={matchScore} size="md" />
       </div>
+
+      {matchReason && (
+        <div className="flex items-start gap-2 mb-4 p-2 bg-accent-50/50 rounded-lg border border-accent-100/50 relative overflow-hidden group/reason">
+          <Sparkles size={12} className="text-accent-600 mt-0.5 shrink-0" />
+          <p className="text-[10px] font-bold text-accent-700 leading-tight">
+            Why this job? <span className="font-medium text-accent-600/80">{matchReason}</span>
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">

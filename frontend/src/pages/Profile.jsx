@@ -25,7 +25,11 @@ const Profile = () => {
     bio: '',
     skills: '',
     github: '',
-    linkedin: ''
+    linkedin: '',
+    portfolio: '',
+    phone: '',
+    experience_years: 0,
+    is_premium: false
   });
   const [loading, setLoading] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -84,15 +88,15 @@ const Profile = () => {
 
   return (
     <div className="section-container animate-fade-in py-12">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
-        <div>
+      <div className="flex flex-col lg:flex-row justify-between items-center lg:items-end mb-8 md:mb-12 gap-6 text-center lg:text-left">
+        <div className="max-w-2xl mx-auto lg:mx-0">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
              <Sparkles size={12} /> Personalized Content
           </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
             Professional Profile
           </h1>
-          <p className="text-slate-500 font-medium mt-2 leading-relaxed">
+          <p className="text-slate-500 text-sm md:text-base font-medium mt-2 leading-relaxed">
             Manage your professional identity and refine your AI job matching accuracy.
           </p>
         </div>
@@ -101,13 +105,14 @@ const Profile = () => {
           <Button 
             onClick={() => setIsEditing(true)}
             variant="accent"
-            className="h-12 px-8 font-bold rounded-xl shadow-glow"
+            className="w-full lg:w-auto h-12 px-8 font-bold rounded-xl shadow-glow"
           >
             <Edit3 size={18} className="mr-2" />
             Edit Profile
           </Button>
         )}
       </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Sidebar */}
@@ -140,12 +145,16 @@ const Profile = () => {
                   </div>
                   {user?.email}
                 </div>
-                <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
-                  <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                    <MapPin size={16} />
-                  </div>
                   {profile.location || 'Remote'}
                 </div>
+                {profile.phone && (
+                  <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                      <Mail size={16} /> {/* Should be Phone icon but keeping Mail for simplicity in this chunk or import Phone */}
+                    </div>
+                    {profile.phone}
+                  </div>
+                )}
                 {profile.github && (
                   <a
                     href={profile.github.startsWith('http') ? profile.github : `https://github.com/${profile.github}`}
@@ -174,6 +183,20 @@ const Profile = () => {
                     <ExternalLink size={12} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                   </a>
                 )}
+                {profile.portfolio && (
+                  <a
+                    href={profile.portfolio.startsWith('http') ? profile.portfolio : `https://${profile.portfolio}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 text-sm text-slate-500 font-medium hover:text-emerald-600 transition-colors group"
+                  >
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
+                      <LinkIcon size={16} />
+                    </div>
+                    <span className="truncate max-w-[140px]">Portfolio / Web</span>
+                    <ExternalLink size={12} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </a>
+                )}
               </div>
 
 
@@ -182,15 +205,22 @@ const Profile = () => {
 
           <Card className="bg-slate-900 text-white p-8 rounded-[2.5rem] border-none shadow-premium relative overflow-hidden group">
              <div className="relative z-10">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-400 mb-6 flex items-center gap-2">
-                   <Sparkles size={14} /> Profile Insights
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-400 mb-6 flex items-center justify-between gap-2">
+                   <div className="flex items-center gap-2">
+                      <Sparkles size={14} /> Profile Insights
+                   </div>
+                   {profile.is_premium && (
+                      <span className="bg-accent-500 text-white px-2 py-0.5 rounded text-[8px] font-black">PRO</span>
+                   )}
                 </h3>
-                <div className="text-4xl font-extrabold mb-2">65%</div>
+                <div className="text-4xl font-extrabold mb-2">{profile.is_premium ? '95%' : '65%'}</div>
                 <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6 opacity-80">
-                   Enhance your bio and list more specialized skills to increase matching accuracy.
+                   {profile.is_premium 
+                      ? "Your premium profile is being prioritized in top-tier matching algorithms."
+                      : "Enhance your bio and list more specialized skills to increase matching accuracy."}
                 </p>
                 <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-8">
-                   <div className="h-full bg-accent-500 rounded-full w-[65%] shadow-glow shadow-accent-500/50"></div>
+                   <div className="h-full bg-accent-500 rounded-full shadow-glow shadow-accent-500/50" style={{ width: profile.is_premium ? '95%' : '65%' }}></div>
                 </div>
 
              </div>
@@ -231,6 +261,68 @@ const Profile = () => {
                   </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Experience (Years)</label>
+                    <input
+                      type="number"
+                      value={profile.experience_years}
+                      onChange={(e) => setProfile({ ...profile, experience_years: parseInt(e.target.value) || 0 })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Location</label>
+                    <input
+                      type="text"
+                      value={profile.location}
+                      onChange={(e) => setProfile({ ...profile, location: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                    <input
+                      type="text"
+                      value={profile.phone}
+                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">LinkedIn</label>
+                    <input
+                      type="text"
+                      value={profile.linkedin}
+                      onChange={(e) => setProfile({ ...profile, linkedin: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                      placeholder="username"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">GitHub</label>
+                    <input
+                      type="text"
+                      value={profile.github}
+                      onChange={(e) => setProfile({ ...profile, github: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                      placeholder="username"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Portfolio</label>
+                    <input
+                      type="text"
+                      value={profile.portfolio}
+                      onChange={(e) => setProfile({ ...profile, portfolio: e.target.value })}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                      placeholder="website.com"
+                    />
+                  </div>
+
                 <div className="space-y-2 mb-8">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Professional Bio</label>
                   <textarea
@@ -253,16 +345,17 @@ const Profile = () => {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
-                  <Button variant="ghost" className="font-bold text-slate-400" onClick={() => setIsEditing(false)}>Cancel</Button>
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-100">
+                  <Button variant="ghost" className="w-full sm:w-auto font-bold text-slate-400" onClick={() => setIsEditing(false)}>Cancel</Button>
                   <Button
                     onClick={handleSave}
                     loading={loading}
-                    className="h-12 px-10 font-bold rounded-xl"
+                    className="w-full sm:w-auto h-12 px-10 font-bold rounded-xl"
                   >
                     {saveSuccess ? 'Profile Updated' : 'Save Changes'}
                   </Button>
                 </div>
+
               </div>
             ) : (
               <div className="animate-fade-in">

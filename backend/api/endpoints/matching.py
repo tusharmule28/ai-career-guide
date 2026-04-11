@@ -16,9 +16,10 @@ from pydantic import BaseModel
 class MatchRequest(BaseModel):
     resume_id: Optional[int] = None
     top_n: int = 10
-    sort_newest: bool = True
+    skip: int = 0
+    sort_newest: bool = False # Weighted scoring handles relevance now
     min_score: float = 0.0
-    recent_only: bool = False # Shows jobs < 24 hours
+    recent_only: bool = False
 
 @router.post("/match", response_model=List[dict])
 async def match_resume_to_jobs(
@@ -66,9 +67,14 @@ async def match_resume_to_jobs(
         )
         
     try:
-        # If filtering, we fetch more to ensure we have enough to show after filters
-        fetch_n = 50 if (sort_newest or min_score > 0 or recent_only) else top_n
-        matches = await matching_service.find_matches(db, combined_text, fetch_n)
+        # Fetch matches using the new weighted logic
+        matches = await matching_service.find_matches(
+            db, 
+            current_user, 
+            combined_text, 
+            top_n=request.top_n, 
+            skip=request.skip
+        )
         
         # Format for response
         response_data = []
@@ -79,6 +85,8 @@ async def match_resume_to_jobs(
                 "title": job.title,
                 "company": job.company,
                 "score": match["score"],
+                "match_reason": match.get("match_reason", "Candidate Profile Match"),
+                "all_reasons": match.get("all_reasons", []),
                 "found_skills": match.get("found_skills", []),
                 "missing_skills": match.get("missing_skills", []),
                 "description": job.description,
@@ -86,23 +94,19 @@ async def match_resume_to_jobs(
                 "required_skills": job.required_skills,
                 "apply_url": job.apply_url,
                 "source": job.source,
-                "posted_at": job.posted_at
+                "posted_at": job.posted_at,
+                "work_type": job.work_type
             })
         
-        # 3. Apply Filters
-        from datetime import datetime, timedelta, timezone
-        
+        # Apply strict filters if requested (though weighted scoring usually handles this)
         if min_score > 0:
             response_data = [m for m in response_data if m["score"] >= min_score]
             
         if recent_only:
+            from datetime import datetime, timedelta, timezone
             now = datetime.now(timezone.utc)
             twenty_four_hours_ago = now - timedelta(hours=24)
             response_data = [m for m in response_data if m["posted_at"] and m["posted_at"].replace(tzinfo=timezone.utc) >= twenty_four_hours_ago]
-        if sort_newest:
-            response_data.sort(key=lambda x: x["posted_at"] or "", reverse=True)
-            # Limit back to top_n
-            response_data = response_data[:top_n]
             
         return response_data
     except Exception as e:
@@ -121,7 +125,9 @@ async def match_text_to_jobs(
     Match raw resume text against all available jobs.
     """
     try:
-        matches = await matching_service.find_matches(db, resume_text, top_n)
+        # For anonymous text matching, we use a ghost user or just neutral profile
+        ghost_user = User(skills="", location="", experience_years=0)
+        matches = await matching_service.find_matches(db, ghost_user, resume_text, top_n)
         
         # Format for response
         response_data = []
@@ -132,6 +138,7 @@ async def match_text_to_jobs(
                 "title": job.title,
                 "company": job.company,
                 "score": match["score"],
+                "match_reason": match.get("match_reason", ""),
                 "description": job.description,
                 "location": job.location,
                 "required_skills": job.required_skills

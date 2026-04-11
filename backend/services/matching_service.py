@@ -2,8 +2,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 from models.job import Job
 from models.resume import Resume
+from models.user import User
 from services.embedding_service import embedding_service
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from core.config import settings
 import asyncio
 import json
@@ -49,75 +50,119 @@ class MatchingService:
         except Exception as e:
             logger.error(f"Groq API error for job {job.id}: {e}")
 
-    async def find_matches(self, db: Session, resume_text: str, top_n: int = 5, user_experience: int = 0) -> List[Dict[str, Any]]:
+    async def find_matches(
+        self, 
+        db: Session, 
+        user: User,
+        resume_text: str, 
+        top_n: int = 10, 
+        skip: int = 0
+    ) -> List[Dict[str, Any]]:
         """
-        Find the best job matches for a given resume text using pgvector.
-        Utilizes the cosine distance operator (<=>).
+        Find best job matches using weighted scoring:
+        - Skills (50%): Embedding similarity + keyword overlap
+        - Experience (30%): Flexible range matching
+        - Location (20%): Proximity (Same city > Same country > Remote > Other)
         """
-        # 1. Generate embedding for the input resume text
+        # 1. Base Embedding Search (to narrow down candidates)
         embeddings = await embedding_service.generate_embedding(resume_text)
         resume_embedding = embeddings.tolist()
         
-        # 2. Query jobs using Cosine Distance
-        # We want to minimize distance, so order by <=> and limit
-        # The score is relative to distance (1 - distance = similarity)
+        # We fetch more than top_n for re-ranking
+        fetch_limit = 100 
         query = (
             db.query(Job, Job.embedding.cosine_distance(resume_embedding).label("distance"))
             .filter(Job.embedding != None)
             .order_by("distance")
-            .limit(top_n)
+            .limit(fetch_limit)
         )
         
+        candidates = query.all()
         results = []
-        for job, distance in query.all():
-            # Enhanced similarity scoring for better "Experience"
-            # Cosine distance is 0 to 2 for vectors. 0 is exact same.
-            # We scale it so typical matches (0.1 - 0.4 distance) look like 70% - 95%
-            dist = float(distance)
-            match_score = max(0, (1.2 - dist) * 83.3) # Scaled boost for better UX
+        
+        user_skills = set(s.strip().lower() for s in (user.skills or "").split(",") if s.strip())
+        user_exp = user.experience_years or 0
+        user_loc = (user.location or "").lower()
+
+        for job, distance in candidates:
+            # --- A. Skill Score (50%) ---
+            semantic_sim = max(0, (1.2 - float(distance)) * 83.3) # 0-100 scale
             
-            # 2.1 Experience Penalty/Bonus
-            if job.experience_min and user_experience:
-                if user_experience < job.experience_min:
-                    # Penalty: Reduce score by 5% per missing year, max 20%
-                    penalty = min(20, (job.experience_min - user_experience) * 5)
-                    match_score -= penalty
-                elif user_experience > job.experience_max if job.experience_max else (job.experience_min + 5):
-                    # Slight overqualified penalty or neutral? Usually neutral/slight positive.
-                    pass
+            job_skills = [s.lower() for s in job.required_skills] if job.required_skills else []
+            if job_skills:
+                overlap = len(user_skills.intersection(set(job_skills)))
+                keyword_score = (overlap / len(job_skills)) * 100
+                skill_score = (semantic_sim * 0.4) + (keyword_score * 0.6)
+            else:
+                skill_score = semantic_sim
+
+            # --- B. Experience Score (30%) ---
+            # Logic: Fresher (0) -> 0-1, 1y -> 0-3, 2-3y -> 1-5, 5y+ -> (exp-2) to (exp+5)
+            exp_score = 100
+            j_min = job.experience_min or 0
+            j_max = job.experience_max or (j_min + 3)
             
-            if match_score > 100: match_score = 98.5 # Cap it but keep it high for good matches
+            if user_exp < j_min:
+                # Penalty for under-experience
+                diff = j_min - user_exp
+                exp_score = max(0, 100 - (diff * 20)) 
+            elif user_exp > j_max + 2:
+                # Slight penalty for over-experience
+                exp_score = 80 
             
-            # Simple skill-gap analysis
-            # We compare the job's required skills with the resume text (case-insensitive)
-            required_skills = job.required_skills if isinstance(job.required_skills, list) else []
-            found_skills = []
-            missing_skills = []
-            
-            resume_text_lower = resume_text.lower()
-            for skill in required_skills:
-                if skill.lower() in resume_text_lower:
-                    found_skills.append(skill)
+            # --- C. Location Score (20%) ---
+            loc_score = 0
+            job_loc = (job.location or "").lower()
+            work_type = (job.work_type or "On-site").lower()
+
+            if work_type == "remote":
+                loc_score = 100 # Remote is always a match
+            elif user_loc and job_loc:
+                if user_loc in job_loc or job_loc in user_loc:
+                    loc_score = 100
+                elif "," in user_loc and "," in job_loc:
+                    # Check countries (simple comma-split check)
+                    u_country = user_loc.split(",")[-1].strip()
+                    j_country = job_loc.split(",")[-1].strip()
+                    if u_country == j_country:
+                        loc_score = 70
                 else:
-                    missing_skills.append(skill)
+                    loc_score = 30
+            else:
+                loc_score = 50 # Unknown/Neutral
+
+            # --- Final Weighted Score ---
+            final_score = (skill_score * 0.5) + (exp_score * 0.3) + (loc_score * 0.2)
             
+            # --- Match Reason Generation ---
+            reasons = []
+            if skill_score > 80: reasons.append("Strong skill alignment")
+            if loc_score == 100: reasons.append("Located in your area" if work_type != "remote" else "Remote opportunity")
+            if exp_score == 100: reasons.append("Fits your experience level")
+            if not reasons: reasons.append("Matches your career profile")
+
             results.append({
                 "job": job,
-                "score": round(max(0, match_score), 2),
-                "found_skills": found_skills,
-                "missing_skills": missing_skills,
-                "apply_url": job.apply_url,
-                "source": job.source
+                "score": round(final_score, 1),
+                "match_reason": reasons[0],
+                "all_reasons": reasons,
+                "found_skills": list(user_skills.intersection(set(job_skills))),
+                "missing_skills": list(set(job_skills) - user_skills)
             })
-            
-        # Enhance top 3 results with Groq API concurrently
-        if self.groq_client and results:
-            tasks = []
-            for i, res in enumerate(results[:3]):
-                tasks.append(self._analyze_skill_gap_with_ai(resume_text, res["job"], res))
-            await asyncio.gather(*tasks)
-            
-        return results
+
+        # Sort and return with pagination
+        results.sort(key=lambda x: x["score"], reverse=True)
+        paginated_results = results[skip : skip + top_n]
+
+        # Enhance top results with AI if needed
+        # (Keeping Groq logic for top 3 but using new data)
+        if self.groq_client and paginated_results:
+            ai_tasks = []
+            for i, res in enumerate(paginated_results[:3]):
+                ai_tasks.append(self._analyze_skill_gap_with_ai(resume_text, res["job"], res))
+            await asyncio.gather(*ai_tasks)
+
+        return paginated_results
 
     async def update_job_embedding(self, db: Session, job: Job):
         """

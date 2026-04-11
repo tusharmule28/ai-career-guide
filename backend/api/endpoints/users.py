@@ -38,8 +38,12 @@ async def get_profile(
         "location": user.location,
         "job_title": user.job_title,
         "skills": user.skills,
+        "experience_years": user.experience_years,
         "github": socials.get("github", ""),
         "linkedin": socials.get("linkedin", ""),
+        "portfolio": socials.get("portfolio", ""),
+        "phone": socials.get("phone", ""),
+        "is_premium": user.is_premium,
         "profile_picture": user.profile_picture
     }
 
@@ -62,8 +66,8 @@ async def update_profile(
         user.location = profile_data.location
     if profile_data.job_title is not None:
         user.job_title = profile_data.job_title
-    if profile_data.skills is not None:
-        user.skills = profile_data.skills
+    if profile_data.experience_years is not None:
+        user.experience_years = profile_data.experience_years
     
     # Handle social links as JSON
     import json
@@ -78,6 +82,10 @@ async def update_profile(
         socials["github"] = profile_data.github
     if profile_data.linkedin is not None:
         socials["linkedin"] = profile_data.linkedin
+    if profile_data.portfolio is not None:
+        socials["portfolio"] = profile_data.portfolio
+    if profile_data.phone is not None:
+        socials["phone"] = profile_data.phone
         
     user.social_links = json.dumps(socials)
     

@@ -98,16 +98,19 @@ const Applications = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 md:mb-12 gap-6">
-        <div>
-          <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 tracking-tight flex items-center gap-4">
-            <Briefcase className="text-primary" size={40} />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 md:mb-12 gap-6 text-center lg:text-left">
+        <div className="max-w-2xl mx-auto lg:mx-0">
+          <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight flex flex-col lg:flex-row items-center gap-4">
+            <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+              <Briefcase size={32} />
+            </div>
             Application Hub
           </h1>
-          <p className="text-gray-500 mt-3 md:text-lg max-w-xl">
+          <p className="text-slate-500 mt-3 text-sm md:text-lg max-w-xl">
             Track your applications and recruitment status.
           </p>
         </div>
+
         
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
@@ -143,23 +146,13 @@ const Applications = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredApps.map((app) => (
-            <AppCard
-              key={app.id}
-              app={app}
-              statusOptions={statusOptions}
-              getStatusColor={getStatusColor}
-              onStatusChange={handleStatusChange}
-              onDelete={handleDelete}
-              onNotesSave={handleNotesSave}
-            />
-          ))}
-            <Card key={app.id} className="glass-card hover:translate-y-[-4px] group overflow-visible relative">
+            <Card key={app.id} className="glass-card hover:translate-y-[-4px] group overflow-visible relative flex flex-col h-full border-none shadow-sm hover:shadow-md transition-smooth">
               <div className="flex justify-between items-start mb-4">
                 <div className="relative group/select">
                   <select 
-                    value={app.status}
+                    value={app.status || 'Applied'}
                     onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                    className={`appearance-none cursor-pointer px-3 py-1 pr-8 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-smooth outline-none focus:ring-2 focus:ring-primary/20 ${getStatusColor(app.status)}`}
+                    className={`appearance-none cursor-pointer px-3 py-1 pr-8 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-smooth outline-none focus:ring-2 focus:ring-primary/20 ${getStatusColor(app.status || 'Applied')}`}
                   >
                     {statusOptions.map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
@@ -170,7 +163,7 @@ const Applications = () => {
                 
                 <div className="flex items-center gap-3">
                   <p className="text-[10px] text-gray-400 font-medium">
-                    {new Date(app.applied_at).toLocaleDateString()}
+                    {app.applied_at ? new Date(app.applied_at).toLocaleDateString() : 'Recent'}
                   </p>
                   <button 
                     onClick={() => handleDelete(app.id)}
@@ -182,23 +175,36 @@ const Applications = () => {
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors">
+              <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary transition-colors line-clamp-1">
                 {app.job_title}
               </h3>
-              <p className="text-primary font-bold text-sm mb-6 opacity-80 uppercase tracking-widest">{app.company}</p>
+              <p className="text-primary font-bold text-sm mb-4 opacity-80 uppercase tracking-widest">{app.company}</p>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+              {/* Notes Section */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+                   <StickyNote size={12} className="text-accent-500" /> Professional Notes
+                </div>
+                <textarea
+                  className="w-full bg-slate-50/50 border border-slate-100 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-accent-500/10 outline-none transition-smooth resize-none min-h-[60px]"
+                  placeholder="Record interview tips or follow-up dates..."
+                  defaultValue={app.notes || ''}
+                  onBlur={(e) => handleNotesSave(app.id, e.target.value)}
+                ></textarea>
+              </div>
+
+              <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-100">
                 <a 
-                  href={app.apply_url} 
+                  href={app.apply_url || '#'} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="flex items-center text-xs font-bold text-slate-500 hover:text-primary gap-1.5 transition-smooth bg-slate-50 px-3 py-1.5 rounded-lg border border-transparent hover:border-slate-200"
+                  className="flex items-center text-xs font-bold text-slate-500 hover:text-primary gap-1.5 transition-smooth bg-white px-3 py-1.5 rounded-lg border border-slate-100 hover:border-slate-200 shadow-sm"
                 >
-                  Verify Application <ExternalLink size={14} />
+                  Verify Link <ExternalLink size={14} />
                 </a>
                 
                 {app.status === 'Pending' && (
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-600 animate-pulse">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-600">
                     <AlertCircle size={12} />
                     Needs Update
                   </div>
@@ -207,25 +213,26 @@ const Applications = () => {
             </Card>
           ))}
         </div>
+
       )}
       
       {/* Productivity Insight Section */}
       <div className="mt-16 bg-primary/90 rounded-2xl p-10 text-white relative overflow-hidden shadow-md">
-        <div className="relative z-10 grid md:grid-cols-2 gap-10 items-center">
-          <div>
+        <div className="relative z-10 grid lg:grid-cols-2 gap-10 items-center">
+          <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">
               <Sparkles size={14} />
               AI Insight
             </div>
-            <h2 className="text-3xl font-bold mb-4">You're a strong match for {applications[0]?.job_title || 'Software Engineering'} roles.</h2>
-            <p className="text-primary-100 text-lg mb-8 opacity-90 leading-relaxed">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">You're a strong match for {applications[0]?.job_title || 'Software Engineering'} roles.</h2>
+            <p className="text-primary-100 text-base md:text-lg mb-8 opacity-90 leading-relaxed max-w-lg mx-auto lg:mx-0">
               Based on your recent applications, your profile aligns well with these positions.
             </p>
           </div>
-          <div className="flex justify-center md:justify-end">
-            <div className="w-48 h-48 rounded-full border-8 border-white/20 flex items-center justify-center relative">
+          <div className="flex justify-center lg:justify-end">
+            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full border-8 border-white/20 flex items-center justify-center relative">
               <div className="text-center">
-                <span className="text-5xl font-extrabold block">92</span>
+                <span className="text-4xl md:text-5xl font-extrabold block">92</span>
                 <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">Score</span>
               </div>
               {/* Spinning Ring */}
@@ -233,6 +240,7 @@ const Applications = () => {
             </div>
           </div>
         </div>
+
         
         {/* Abstract Background Shapes */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-20 -mr-32 -mt-32"></div>

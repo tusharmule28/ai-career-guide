@@ -11,6 +11,17 @@ import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Applications from './pages/Applications';
 import NotificationsPage from './pages/Notifications';
+import JobDetail from './pages/JobDetail';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -74,6 +85,18 @@ const AppContent = () => {
               <NotificationsPage />
             </ProtectedRoute>
           } />
+
+          <Route path="/job/:id" element={
+            <ProtectedRoute>
+              <JobDetail />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/jobs/matched" element={
+            <ProtectedRoute>
+              <Jobs onlyMatched={true} />
+            </ProtectedRoute>
+          } />
         </Routes>
       </main>
       
@@ -92,6 +115,7 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
+        <ScrollToTop />
         <Toaster 
           position="top-right"
           toastOptions={{

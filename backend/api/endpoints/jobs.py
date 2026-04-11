@@ -193,19 +193,56 @@ def debug_jobs_table(db: Session = Depends(get_db)):
     return info
 
 
-@router.get("/{job_id}", response_model=JobResponse)
-def get_job(job_id: int, db: Session = Depends(get_db)):
-    try:
-        _ensure_jobs_table(db)
-        job = db.query(Job).filter(Job.id == job_id).first()
-        if not job:
-            raise HTTPException(status_code=404, detail="Job not found")
-        return job
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error in get_job: {traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch job: {str(e)}"
-        )
+@router.get("/{job_id}/insights")
+async def get_job_insights(
+    job_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get deep AI insights for a specific job relative to the current user.
+    """
+    from services.explanation import get_match_explanation, get_improvement_suggestions
+    from models.resume import Resume
+    
+    _ensure_jobs_table(db)
+    job = db.query(Job).filter(Job.id == job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    # Get user context
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).order_by(Resume.uploaded_at.desc()).first()
+    resume_text = resume.extracted_text if resume else ""
+    profile_text = f"{current_user.job_title or ''} {current_user.bio or ''} {current_user.skills or ''}"
+    combined_text = f"{profile_text} {resume_text}".strip()
+    
+    # Calculate match
+    match_data = await matching_service.find_matches(db, current_user, combined_text, top_n=1)
+    
+    # Find specific match for this job
+    # Since find_matches might return other jobs, we check if our job is in there or calculate it explicitly
+    # For now, let's use the matching service to get specific score if possible or just rely on find_matches
+    # Simplified for insights:
+    specific_match = next((m for m in match_data if m["job"].id == job_id), None)
+    
+    if not specific_match:
+        # If not in top, calculate solo
+        score_info = await matching_service.calculate_score(combined_text, job, current_user)
+        specific_match = {
+            "score": score_info["score"],
+            "missing_skills": score_info["missing_skills"],
+            "match_reason": "Analysis complete"
+        }
+
+    # Get AI generated bits
+    explanation = await get_match_explanation(combined_text, job.description)
+    growth_path = await get_improvement_suggestions(specific_match.get("missing_skills", []))
+    
+    return {
+        "job_id": job_id,
+        "score": specific_match["score"],
+        "match_explanation": explanation,
+        "growth_path": growth_path,
+        "missing_skills": specific_match.get("missing_skills", []),
+        "found_skills": specific_match.get("found_skills", [])
+    }

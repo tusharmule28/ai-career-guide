@@ -11,6 +11,10 @@ class UserBase(BaseModel):
     skills: Optional[str] = None
     github: Optional[str] = None
     linkedin: Optional[str] = None
+    portfolio: Optional[str] = None
+    phone: Optional[str] = None
+    experience_years: Optional[int] = 0
+    is_premium: Optional[bool] = False
     profile_picture: Optional[str] = None
 
 class UserCreate(UserBase):
@@ -31,6 +35,9 @@ class ProfileUpdate(BaseModel):
     skills: Optional[str] = None
     github: Optional[str] = None
     linkedin: Optional[str] = None
+    portfolio: Optional[str] = None
+    phone: Optional[str] = None
+    experience_years: Optional[int] = None
 
 class Token(BaseModel):
     access_token: str
