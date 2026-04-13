@@ -100,9 +100,19 @@ const AppContent = () => {
         </Routes>
       </main>
       
-      <footer className="py-12 border-t border-gray-100 bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center text-sm text-gray-500">
-          © 2026 AI Career Guide. All rights reserved. Built with precision and care.
+      <footer className="py-16 bg-white/50 border-t border-slate-200/50 mt-auto">
+        <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col items-center justify-center gap-6">
+                <div className="flex items-center gap-2 group cursor-default">
+                    <div className="w-10 h-10 premium-gradient rounded-xl flex items-center justify-center text-white shadow-soft group-hover:rotate-3 transition-transform duration-500">
+                        <ShieldCheck size={20} />
+                    </div>
+                    <span className="text-xl font-black text-slate-900 tracking-tighter">CareerGuide<span className="text-primary-600">AI</span></span>
+                </div>
+                <div className="text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                    © 2026 AI Career Guide • Curating excellence for your future
+                </div>
+            </div>
         </div>
       </footer>
     </div>

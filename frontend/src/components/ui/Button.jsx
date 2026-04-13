@@ -9,16 +9,16 @@ const Button = ({
   icon: Icon,
   ...props 
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.97]';
+  const baseStyles = 'inline-flex items-center justify-center font-bold tracking-tight transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.96] hover:scale-[1.02] transform-gpu';
   
   const variants = {
-    primary: 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm hover:shadow-md',
-    accent: 'bg-accent-600 text-white hover:bg-accent-700 shadow-sm shadow-accent-500/10 hover:shadow-accent-500/20',
-    secondary: 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 shadow-sm',
-    outline: 'bg-transparent text-accent-700 border border-slate-200 hover:border-accent-200 hover:bg-accent-50',
+    primary: 'bg-primary-600 text-white hover:bg-primary-700 shadow-soft hover:shadow-glow',
+    accent: 'premium-gradient text-white shadow-soft hover:shadow-glow',
+    secondary: 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/50',
+    outline: 'bg-transparent text-slate-700 border-2 border-slate-200 hover:border-primary-500/30 hover:bg-primary-50/50',
     ghost: 'bg-transparent text-slate-500 hover:bg-slate-100 hover:text-slate-900',
-    danger: 'bg-rose-500 text-white hover:bg-rose-600 shadow-sm',
-    dark: 'bg-dark text-white hover:bg-black shadow-lg',
+    danger: 'bg-rose-500 text-white hover:bg-rose-600 shadow-soft',
+    dark: 'bg-slate-900 text-white hover:bg-slate-800 shadow-lg',
   };
 
   const sizes = {

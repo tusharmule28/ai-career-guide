@@ -8,21 +8,7 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#0F172A', // Deep Slate
-          50: '#F8FAFC',
-          100: '#F1F5F9',
-          200: '#E2E8F0',
-          300: '#CBD5E1',
-          400: '#94A3B8',
-          500: '#64748B',
-          600: '#475569',
-          700: '#334155',
-          800: '#1E293B',
-          900: '#0F172A',
-          950: '#020617',
-        },
-        accent: {
-          DEFAULT: '#6366F1', // Indigo (more Linear/Stripe style)
+          DEFAULT: '#6366F1', // Indigo
           50: '#EEF2FF',
           100: '#E0E7FF',
           200: '#C7D2FE',
@@ -34,10 +20,29 @@ export default {
           800: '#3730A3',
           900: '#312E81',
         },
-        background: '#FFFFFF',
-        surface: '#F8FAFC',
-        text: '#0F172A',
-        dark: '#020617',
+        accent: {
+          DEFAULT: '#8B5CF6', // Violet/Purple
+          50: '#F5F3FF',
+          100: '#EDE9FE',
+          200: '#DDD6FE',
+          300: '#C4B5FD',
+          400: '#A78BFA',
+          500: '#8B5CF6',
+          600: '#7C3AED',
+          700: '#6D28D9',
+          800: '#5B21B6',
+          900: '#4C1D95',
+        },
+        background: '#F8FAFC', // Slate 50
+        surface: '#FFFFFF',
+        text: {
+          DEFAULT: '#1E293B', // Slate 800
+          secondary: '#64748B', // Slate 500
+          muted: '#94A3B8', // Slate 400
+        },
+        success: '#10B981',
+        warning: '#F59E0B',
+        danger: '#EF4444',
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -55,10 +60,11 @@ export default {
         '4xl': '2rem',
       },
       boxShadow: {
-        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
-        'premium': '0 10px 30px -10px rgba(99, 102, 241, 0.15), 0 4px 10px -5px rgba(0, 0, 0, 0.04)',
-        'glow': '0 0 20px -5px rgba(139, 92, 246, 0.2)',
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'card': '0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03)',
+        'premium': '0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02)',
+        'glow': '0 0 20px -5px rgba(99, 102, 241, 0.3)',
+        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+        'hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
       transitionProperty: {
         'smooth': 'all',

@@ -15,7 +15,7 @@ const Skeleton = ({ className = '', variant = 'rectangular' }) => {
 };
 
 export const JobCardSkeleton = () => (
-    <div className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm overflow-hidden">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6 shadow-soft overflow-hidden">
       <div className="flex justify-between items-start mb-5">
         <div className="space-y-3 flex-1">
           <Skeleton className="h-6 w-3/4" />

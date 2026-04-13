@@ -55,14 +55,14 @@ const Login = () => {
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6 bg-slate-50/50">
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-900 rounded-[1.5rem] text-white mb-6 shadow-2xl shadow-slate-900/20">
-            <Sparkles size={32} />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-3xl text-white mb-8 shadow-2xl shadow-primary-500/20 transform hover:rotate-6 transition-all duration-500">
+            <Sparkles size={40} />
           </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">Identity Access</h1>
-          <p className="text-slate-500 mt-3 font-medium">Continue your professional journey with AI.</p>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">Access Guide</h1>
+          <p className="text-slate-500 mt-4 text-base font-medium">Continue your professional journey with AI.</p>
         </div>
 
-        <Card className="p-10 glass-card border-none shadow-premium">
+        <Card className="p-10 md:p-12 bg-white/90 border-slate-200/50 shadow-premium">
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
@@ -92,19 +92,19 @@ const Login = () => {
 
             <Button 
               type="submit" 
-              variant="accent"
-              className="w-full h-14 text-base font-black shadow-glow" 
+              variant="primary"
+              className="w-full h-14 text-base font-black shadow-soft hover:shadow-glow" 
               loading={loading}
               icon={LogIn}
             >
-              Sign In to Guide
+              Sign In to Portfolio
             </Button>
           </form>
 
           <div className="mt-10 text-center text-sm font-medium">
             <span className="text-slate-400">New explorer? </span>
-            <Link to="/signup" className="text-accent-600 font-bold hover:text-accent-700 transition-smooth ml-1">
-              Create Free Account
+            <Link to="/signup" className="text-primary-600 font-black hover:text-primary-700 transition-all ml-1 underline decoration-primary-200 underline-offset-4">
+              Create Account
             </Link>
           </div>
         </Card>

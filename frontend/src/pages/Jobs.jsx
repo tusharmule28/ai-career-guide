@@ -116,54 +116,54 @@ const Jobs = ({ onlyMatched = false }) => {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-8 md:mb-12 gap-6 text-center lg:text-left">
         <div className="max-w-2xl mx-auto lg:mx-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
-             <Sparkles size={12} /> Personalized Opportunities
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-700 mb-6 border border-primary-100/50 shadow-sm">
+             <Sparkles size={12} /> Curated for You
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            {onlyMatched ? 'Curated Opportunities' : 'Job Market Explorer'}
+          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+            {onlyMatched ? 'Curated Opportunities' : 'Global Market'}
           </h1>
-          <p className="text-slate-500 text-sm md:text-base font-medium mt-2 leading-relaxed">
+          <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed">
             {onlyMatched 
               ? 'Our AI has selected these roles specifically for your career trajectory.' 
-              : 'AI-curated matches followed by the latest global remote opportunities.'}
+              : 'Discover the latest remote opportunities across the globe.'}
           </p>
         </div>
 
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-          <div className="relative w-full sm:min-w-[320px]">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <div className="relative w-full sm:min-w-[400px] group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
             <input 
               type="text"
-              placeholder="Search roles, companies..."
-              className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth shadow-sm"
+              placeholder="Search roles, companies or skills..."
+              className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-soft group-hover:border-slate-300"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Button 
-            variant="ghost" 
+            variant="secondary" 
             disabled={isSyncing}
             onClick={handleSync}
-            className="w-full sm:w-auto h-11 px-6 border-slate-200 text-slate-600 bg-white shadow-sm font-bold rounded-xl whitespace-nowrap"
+            className="w-full sm:w-auto h-14 px-8 font-black rounded-2xl whitespace-nowrap shadow-soft group"
           >
-            {isSyncing ? <Loader2 size={18} className="animate-spin mr-2" /> : <RefreshCw size={18} className="mr-2" />}
-            Sync
+            {isSyncing ? <Loader2 size={20} className="animate-spin mr-2" /> : <RefreshCw size={20} className="mr-2 group-hover:rotate-180 transition-transform duration-700" />}
+            Refresh
           </Button>
         </div>
 
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-2">
-            <Filter size={14} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-12 p-2 bg-slate-100/50 rounded-2xl border border-slate-200/50">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="px-4 py-2 flex items-center gap-2 text-[11px] font-black text-slate-500 uppercase tracking-widest bg-white rounded-xl shadow-soft border border-slate-100">
+            <Filter size={14} className="text-primary-500" />
             Filters
           </div>
           
           <select 
-            className="bg-slate-50 border-none text-[10px] font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer transition-all hover:bg-slate-100"
+            className="bg-white border border-slate-200 text-xs font-bold rounded-xl px-4 py-2 outline-none focus:ring-4 focus:ring-primary-500/10 text-slate-600 cursor-pointer transition-all hover:border-primary-400 shadow-soft"
             value={filters.location}
             onChange={(e) => setFilters({...filters, location: e.target.value})}
           >
@@ -175,7 +175,7 @@ const Jobs = ({ onlyMatched = false }) => {
           </select>
 
           <select 
-            className="bg-slate-50 border-none text-[10px] font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer transition-all hover:bg-slate-100"
+            className="bg-white border border-slate-200 text-xs font-bold rounded-xl px-4 py-2 outline-none focus:ring-4 focus:ring-primary-500/10 text-slate-600 cursor-pointer transition-all hover:border-primary-400 shadow-soft"
             value={filters.experience}
             onChange={(e) => setFilters({...filters, experience: e.target.value})}
           >
@@ -187,7 +187,7 @@ const Jobs = ({ onlyMatched = false }) => {
           </select>
 
           <select 
-            className="bg-slate-50 border-none text-[10px] font-bold rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-accent-500/20 text-slate-600 cursor-pointer transition-all hover:bg-slate-100"
+            className="bg-white border border-slate-200 text-xs font-bold rounded-xl px-4 py-2 outline-none focus:ring-4 focus:ring-primary-500/10 text-slate-600 cursor-pointer transition-all hover:border-primary-400 shadow-soft"
             value={filters.jobType}
             onChange={(e) => setFilters({...filters, jobType: e.target.value})}
           >
@@ -202,13 +202,13 @@ const Jobs = ({ onlyMatched = false }) => {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-[10px] font-bold text-slate-400 hover:text-accent-600 self-end sm:self-auto"
+          className="text-xs font-black text-slate-400 hover:text-primary-600"
           onClick={() => {
             setSearchTerm('');
             setFilters({ location: 'All', experience: 'All', jobType: 'All' });
           }}
         >
-          Reset All
+          Reset Filters
         </Button>
       </div>
 
@@ -224,15 +224,15 @@ const Jobs = ({ onlyMatched = false }) => {
             {/* Recommended Section */}
             {filteredMatches.length > 0 ? (
               <section className="animate-slide-up">
-                <div className="flex items-center gap-3 mb-8">
-                  <div className="p-2 bg-accent-100 text-accent-600 rounded-lg">
-                    <Sparkles size={20} />
+                <div className="flex items-center gap-4 mb-10">
+                  <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center shadow-soft">
+                    <Sparkles size={24} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">
-                      {onlyMatched ? 'Your Strategy-Aligned Matches' : 'AI Recommended for You'}
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                      {onlyMatched ? 'Recommended Roles' : 'Perfect Matches'}
                     </h2>
-                    <p className="text-sm text-slate-500">Highest matching score based on your profile.</p>
+                    <p className="text-sm font-medium text-slate-500">Curated based on your expertise and preferences.</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

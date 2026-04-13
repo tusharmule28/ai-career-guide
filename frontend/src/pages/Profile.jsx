@@ -90,13 +90,13 @@ const Profile = () => {
     <div className="section-container animate-fade-in py-12">
       <div className="flex flex-col lg:flex-row justify-between items-center lg:items-end mb-8 md:mb-12 gap-6 text-center lg:text-left">
         <div className="max-w-2xl mx-auto lg:mx-0">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-50 rounded-full text-[10px] font-bold uppercase tracking-widest text-accent-700 mb-4 border border-accent-100">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 rounded-full text-[10px] font-black uppercase tracking-widest text-primary-700 mb-6 border border-primary-100/50 shadow-sm">
             <Sparkles size={12} /> Personalized Content
           </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+          <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight mb-4">
             Professional Profile
           </h1>
-          <p className="text-slate-500 text-sm md:text-base font-medium mt-2 leading-relaxed">
+          <p className="text-slate-500 text-base md:text-lg font-medium leading-relaxed">
             Manage your professional identity and refine your AI job matching accuracy.
           </p>
         </div>
@@ -104,8 +104,8 @@ const Profile = () => {
         {!isEditing && (
           <Button
             onClick={() => setIsEditing(true)}
-            variant="accent"
-            className="w-full lg:w-auto h-12 px-8 font-bold rounded-xl shadow-glow"
+            variant="primary"
+            className="w-full lg:w-auto h-14 px-10 font-black rounded-2xl shadow-soft hover:shadow-glow"
           >
             <Edit3 size={18} className="mr-2" />
             Edit Profile
@@ -116,8 +116,8 @@ const Profile = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Sidebar */}
         <div className="space-y-8">
-          <Card className="p-8 text-center glass-card border-none relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-accent-500/10 via-indigo-500/5 to-transparent"></div>
+          <Card className="p-8 text-center bg-white/90 border-slate-200/50 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-primary-500/10 via-primary-500/5 to-transparent"></div>
 
             <div className="relative z-10">
               <div className="relative inline-block mx-auto mb-6">
@@ -130,10 +130,10 @@ const Profile = () => {
                 </div>
               </div>
 
-              <h2 className="text-2xl font-extrabold text-slate-900 leading-tight">
+              <h2 className="text-2xl font-black text-slate-900 leading-tight">
                 {profile.full_name || user?.name || 'Professional'}
               </h2>
-              <p className="text-sm font-bold text-accent-600 uppercase tracking-widest mt-2">
+              <p className="text-[11px] font-black text-primary-600 uppercase tracking-widest mt-2 px-3 py-1 bg-primary-50 inline-block rounded-lg shadow-sm border border-primary-100/50">
                 {profile.job_title || 'Career Explorer'}
               </p>
 
@@ -193,7 +193,7 @@ const Profile = () => {
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 text-sm text-slate-500 font-medium hover:text-emerald-600 transition-colors group"
                   >
-                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors">
+                    <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary-50 group-hover:text-primary-500 transition-colors">
                       <LinkIcon size={16} />
                     </div>
                     <span className="truncate max-w-[140px]">Portfolio / Web</span>
@@ -204,27 +204,27 @@ const Profile = () => {
             </div>
           </Card>
 
-          <Card className="bg-slate-900 text-white p-8 rounded-[2.5rem] border-none shadow-premium relative overflow-hidden group">
+          <Card className="bg-primary-950 text-white p-8 rounded-3xl border-none shadow-premium relative overflow-hidden group">
             <div className="relative z-10">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent-400 mb-6 flex items-center justify-between gap-2">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-200 mb-6 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles size={14} /> Profile Insights
+                  <Sparkles size={14} /> Profile Scoring
                 </div>
                 {profile.is_premium && (
-                  <span className="bg-accent-500 text-white px-2 py-0.5 rounded text-[8px] font-black">PRO</span>
+                  <span className="bg-primary-600 text-white px-2 py-0.5 rounded text-[8px] font-black shadow-lg">PRO</span>
                 )}
               </h3>
-              <div className="text-4xl font-extrabold mb-2">{profile.is_premium ? '95%' : '65%'}</div>
-              <p className="text-xs text-slate-400 font-medium leading-relaxed mb-6 opacity-80">
+              <div className="text-5xl font-black mb-3 text-white tracking-tighter">{profile.is_premium ? '95%' : '65%'}</div>
+              <p className="text-xs text-primary-100/70 font-medium leading-relaxed mb-8">
                 {profile.is_premium
-                  ? "Your premium profile is being prioritized in top-tier matching algorithms."
-                  : "Enhance your bio and list more specialized skills to increase matching accuracy."}
+                  ? "Your premium profile is currently at peak matching potential."
+                  : "Complete your bio and add more specialized skills to reach top tier results."}
               </p>
-              <div className="h-2 bg-white/10 rounded-full overflow-hidden mb-8">
-                <div className="h-full bg-accent-500 rounded-full shadow-glow shadow-accent-500/50" style={{ width: profile.is_premium ? '95%' : '65%' }}></div>
+              <div className="h-2.5 bg-white/10 rounded-full overflow-hidden mb-8 shadow-inner">
+                <div className="h-full bg-primary-500 rounded-full shadow-glow shadow-primary-500/50" style={{ width: profile.is_premium ? '95%' : '65%' }}></div>
               </div>
             </div>
-            <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-accent-500/10 rounded-full blur-[80px]"></div>
+            <div className="absolute -right-16 -bottom-16 w-64 h-64 bg-primary-500/20 rounded-full blur-[80px]"></div>
           </Card>
         </div>
 
@@ -242,21 +242,21 @@ const Profile = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                     <input
                       type="text"
                       value={profile.full_name}
                       onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                      className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-soft"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Job Title</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Job Title</label>
                     <input
                       type="text"
                       value={profile.job_title}
                       onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold focus:ring-4 focus:ring-accent-500/10 focus:border-accent-500 outline-none transition-smooth"
+                      className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all shadow-soft"
                     />
                   </div>
                 </div>
@@ -346,28 +346,28 @@ const Profile = () => {
                   />
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-slate-100">
-                  <Button variant="ghost" className="w-full sm:w-auto font-bold text-slate-400" onClick={() => setIsEditing(false)}>Cancel</Button>
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-8 border-t border-slate-100">
+                  <Button variant="ghost" className="w-full sm:w-auto font-black text-slate-400" onClick={() => setIsEditing(false)}>Dismiss</Button>
                   <Button
                     onClick={handleSave}
                     loading={loading}
-                    className="w-full sm:w-auto h-12 px-10 font-bold rounded-xl"
+                    className="w-full sm:w-auto h-14 px-12 font-black rounded-2xl shadow-soft"
                   >
-                    {saveSuccess ? 'Profile Updated' : 'Save Changes'}
+                    {saveSuccess ? 'Profile Synced' : 'Ready to Save'}
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="animate-fade-in">
                 <div className="flex justify-between items-center mb-10">
-                  <h3 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-accent-50 text-accent-600 flex items-center justify-center">
-                      <Briefcase size={16} />
+                  <h3 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center shadow-soft">
+                      <Briefcase size={20} />
                     </div>
                     Professional Dossier
                   </h3>
-                  <button onClick={() => setIsEditing(true)} className="p-2 hover:bg-slate-50 rounded-xl text-slate-300 hover:text-accent-600 transition-smooth">
-                    <Edit3 size={18} />
+                  <button onClick={() => setIsEditing(true)} className="p-3 hover:bg-slate-50 rounded-2xl text-slate-300 hover:text-primary-600 transition-all duration-300">
+                    <Edit3 size={20} />
                   </button>
                 </div>
 
@@ -398,17 +398,17 @@ const Profile = () => {
 
           {/* Matches Section */}
           <div className="space-y-8">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200/50">
-              <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">AI Curated Roles</h3>
+            <div className="flex items-center justify-between pb-4 border-b border-slate-200/50">
+              <h3 className="text-3xl font-black text-slate-900 tracking-tight">AI Insights</h3>
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="sm"
                 onClick={fetchMatchingJobs}
                 loading={matchingLoading}
-                className="text-slate-400 hover:text-accent-600 font-bold gap-2 px-3 py-2 bg-slate-50 hover:bg-accent-50 rounded-xl"
+                className="text-slate-500 hover:text-primary-600 font-black gap-2 px-4 py-2 bg-slate-100/50 rounded-xl h-11 border-none"
               >
-                {!matchingLoading && <RefreshCw size={14} />}
-                {matchingLoading ? 'Analyzing...' : 'Refresh'}
+                {!matchingLoading && <RefreshCw size={16} />}
+                {matchingLoading ? 'Analyzing Path...' : 'Refresh'}
               </Button>
             </div>
 
