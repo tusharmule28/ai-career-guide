@@ -23,6 +23,9 @@ pytest-asyncio
 pytest-mock
 beautifulsoup4
 python-jobspy
-playwright
 slowapi>=0.1.9
 groq>=0.4.2
+supabase
+langgraph>=0.2.0
+langchain-groq>=0.2.0
+langchain-core>=0.3.0

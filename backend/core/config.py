@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     HUGGING_FACE_API_TOKEN: str = ""
     GROQ_API_KEY: str = ""
 
+    # Supabase (Storage)
+    SUPABASE_URL: str = ""
+    SUPABASE_KEY: str = ""
+
     # Constants limits/Auth for jobs
     CRON_SECRET: str = "default_cron_secret_replace_in_prod"
 

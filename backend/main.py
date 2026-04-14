@@ -10,7 +10,8 @@ from slowapi.errors import RateLimitExceeded
 
 logger = logging.getLogger(__name__)
 
-limiter = Limiter(key_func=get_remote_address)
+redis_uri = settings.REDIS_URL or f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
+limiter = Limiter(key_func=get_remote_address, default_limits=["1000/minute"], storage_uri=redis_uri)
 
 def create_application() -> FastAPI:
     app = FastAPI(
@@ -96,10 +97,15 @@ def create_application() -> FastAPI:
     @app.on_event("startup")
     async def on_startup():
         import traceback
+        import time
+        from sqlalchemy import text
         from db.database import SessionLocal, Base, engine
         from services.user_service import UserService
         from schemas.user import UserCreate
         
+        print(f"[*] Starting application initialization...")
+        start_time = time.time()
+
         # Force-import ALL models so Base.metadata knows about every table
         import models.job      # noqa: F401
         import models.resume   # noqa: F401
@@ -109,51 +115,25 @@ def create_application() -> FastAPI:
         
         # Ensure all tables exist before seeding
         try:
-            # Create extension if it doesn't exist (required for pgvector)
-            from sqlalchemy import text
+            # Check connection first
             with engine.connect() as conn:
+                print(f"[+] Database connection successful.")
+                
+                # Create extension if it doesn't exist (required for pgvector)
+                print(f"[*] Ensuring pgvector extension exists...")
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
                 conn.commit()
             
-            # Manual schema patches for Render compatibility (Alembic falls out of sync because of create_all)
-            try:
-                from sqlalchemy import text
-                with engine.connect() as conn:
-                    # Comprehensive manual patch for ALL missing User model columns
-                    missing_user_columns = [
-                        'is_active BOOLEAN DEFAULT true',
-                        'is_superuser BOOLEAN DEFAULT false',
-                        'bio VARCHAR',
-                        'job_title VARCHAR',
-                        'profile_picture VARCHAR',
-                        'social_links VARCHAR',
-                        'location VARCHAR',
-                        'skills VARCHAR',
-                        'experience_years INTEGER DEFAULT 0',
-                        'is_premium BOOLEAN DEFAULT false',
-                        'premium_until TIMESTAMP',
-                        'razorpay_customer_id VARCHAR'
-                    ]
-                    for col in missing_user_columns:
-                        conn.execute(text(f'ALTER TABLE users ADD COLUMN IF NOT EXISTS {col};'))
-                        
-                    conn.commit()
-                print("Manual schema migrations applied successfully.")
-            except Exception as e:
-                print(f"Warning: Manual schema migration failed: {e}")
-                
-            Base.metadata.create_all(bind=engine)
-            print("Database tables initialized.")
+            # Note: We no longer run Base.metadata.create_all(bind=engine) here.
+            # Schema migrations are handled via Alembic explicitly.
+            print("[+] Database connection and extension verified. Schema is managed by Alembic.")
             
-            # Verify jobs table was created
-            from sqlalchemy import inspect as sa_inspect
-            inspector = sa_inspect(engine)
-            tables = inspector.get_table_names()
-            print(f"Tables in database: {tables}")
         except Exception as e:
-            print(f"Error initializing database: {e}")
+            print(f"[!] CRITICAL: Error initializing database: {e}")
             print(traceback.format_exc())
+            # We don't exit here, but the app might fail later if DB is unreachable
 
+        # Seeding
         db = SessionLocal()
         try:
             user_service = UserService(db)
@@ -163,20 +143,23 @@ def create_application() -> FastAPI:
             # Check if the specific admin exists
             admin_user = user_service.get_user_by_email(admin_email)
             if not admin_user:
-                print(f"Admin {admin_email} not found. Seeding now...")
+                print(f"[*] Admin {admin_email} not found. Seeding now...")
                 user_in = UserCreate(
                     email=admin_email,
                     password=admin_password,
                     name="System Admin"
                 )
                 user_service.create_user(user_in)
-                print(f"Default admin created successfully.")
+                print(f"[+] Default admin created successfully.")
             else:
-                print(f"Admin {admin_email} already exists.")
+                print(f"[+] Admin {admin_email} already exists.")
         except Exception as e:
-            print(f"Error seeding admin: {e}")
+            print(f"[!] Error seeding admin: {e}")
         finally:
             db.close()
+            
+        end_time = time.time()
+        print(f"[+] Initialization completed in {end_time - start_time:.2f} seconds.")
 
     return app
 

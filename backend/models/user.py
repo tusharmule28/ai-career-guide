@@ -24,6 +24,7 @@ class User(Base):
     is_premium = Column(Boolean, default=False)
     premium_until = Column(DateTime, nullable=True)
     razorpay_customer_id = Column(String, nullable=True)
+    ai_credits = Column(Integer, default=3)  # Free tier: 3 Apply-with-AI uses
     
     hashed_password = Column(String, nullable=False)
     
