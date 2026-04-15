@@ -49,3 +49,6 @@ uploads/
 backend/uploads/
 *.log
 huggingfacetoken.txt
+
+# Local Netlify folder
+.netlify
