@@ -27,7 +27,7 @@ async def get_dashboard_summary(
     
     if resume and resume.embedding:
         # Find matches with >50% similarity
-        matches = await matching_service.find_matches(db, resume.extracted_text, top_n=50)
+        matches = await matching_service.find_matches(db, current_user, resume.extracted_text, top_n=50)
         high_matches = [m for m in matches if m["score"] >= 50]
         match_count = len(high_matches)
         

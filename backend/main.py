@@ -46,11 +46,14 @@ def create_application() -> FastAPI:
     from fastapi import Request
     
     async def global_exception_handler(request: Request, exc: Exception):
-        print(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
-        print(traceback.format_exc())
+        logger.error(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
+        logger.error(traceback.format_exc())
         return JSONResponse(
             status_code=500,
-            content={"detail": "Internal Server Error"}
+            content={
+                "detail": "Internal Server Error",
+                "message": str(exc) if settings.ENVIRONMENT == "development" else "An unexpected error occurred"
+            }
         )
 
     # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec
@@ -77,8 +80,8 @@ def create_application() -> FastAPI:
         CORSMiddleware,
         allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-        allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
+        allow_methods=["*"],
+        allow_headers=["*"],
         expose_headers=["*"],
         max_age=600,
     )

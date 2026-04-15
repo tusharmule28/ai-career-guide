@@ -47,10 +47,18 @@ async function request(endpoint: string, options: any = {}) {
       return null;
     }
 
-    const data = await response.json().catch(() => ({}));
+    // Try to parse JSON but handle empty/non-JSON responses
+    const contentType = response.headers.get('content-type');
+    let data;
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json().catch(() => ({}));
+    } else {
+      await response.text(); // Consume body
+      data = {};
+    }
 
     if (!response.ok) {
-      const errorMsg = data.detail || `Server error: ${response.status}`;
+      const errorMsg = data.detail || data.message || `Server error: ${response.status} ${response.statusText}`;
       console.error(`[API ERROR] ${response.status} ${response.statusText}`, {
         url: `${BASE_URL}${endpoint}`,
         data,
@@ -62,9 +70,21 @@ async function request(endpoint: string, options: any = {}) {
   } catch (error: any) {
     console.error(`[API Network/Parse Error] ${endpoint}:`, error);
     
-    if (typeof window !== 'undefined' && error instanceof TypeError && error.message === 'Failed to fetch') {
-      toast.error('Network Error: Cannot connect to the server.', {
+    // Distinguish between actual "Failed to fetch" (network) and other errors
+    const isNetworkError = error instanceof TypeError && (
+      error.message === 'Failed to fetch' || 
+      error.message.includes('network error') ||
+      error.message.includes('Load failed')
+    );
+
+    if (typeof window !== 'undefined' && isNetworkError) {
+      toast.error('Connection Lost: The server is unreachable. Check your internet or backend status.', {
         id: 'network-error',
+        duration: 5000,
+      });
+    } else if (typeof window !== 'undefined') {
+      toast.error(error.message || 'An unexpected error occurred.', {
+        id: 'generic-error',
       });
     }
     

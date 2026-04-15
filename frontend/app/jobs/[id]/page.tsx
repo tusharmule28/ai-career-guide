@@ -41,24 +41,24 @@ const InsightPanel: React.FC<{ jobId: string }> = ({ jobId }) => {
     fetch();
   }, [jobId]);
 
-  if (loading) return <div className="h-32 bg-surface/30 animate-pulse rounded-3xl" />;
+  if (loading) return <div className="h-32 bg-indigo-500/5 animate-pulse rounded-[2.5rem] border border-indigo-500/10" />;
   if (error || !data) return null;
 
   return (
-    <Card className="border-none bg-primary-500/5 rounded-[2.5rem] p-8 relative overflow-hidden group">
+    <Card className="border-none bg-indigo-500/5 rounded-[2.5rem] p-8 relative overflow-hidden group">
       <div className="flex items-center gap-3 mb-6 relative z-10">
-        <div className="bg-primary-500 text-white p-2 rounded-xl shadow-glow">
+        <div className="bg-indigo-600 text-white p-2.5 rounded-xl shadow-glow-indigo">
           <Sparkles size={18} />
         </div>
-        <h3 className="font-black text-white tracking-tight uppercase tracking-widest text-xs">AI Synergy Insight</h3>
+        <h3 className="font-black text-white uppercase tracking-[0.2em] text-[10px]">AI Strategic Insight</h3>
       </div>
       <div className="relative z-10">
-        <Quote className="absolute -left-2 -top-2 text-primary-500/10" size={40} />
+        <Quote className="absolute -left-2 -top-2 text-indigo-500/10" size={40} />
         <p className="text-sm leading-relaxed text-text-secondary italic font-medium pl-6">
           {data.explanation}
         </p>
       </div>
-      <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl group-hover:bg-primary-500/10 transition-colors" />
+      <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all duration-1000" />
     </Card>
   );
 };
@@ -79,13 +79,13 @@ const SkillGapPanel: React.FC<{ jobId: string }> = ({ jobId }) => {
     fetch();
   }, [jobId]);
 
-  if (loading) return <div className="h-48 bg-surface/30 animate-pulse rounded-3xl" />;
+  if (loading) return <div className="h-64 bg-surface/30 animate-pulse rounded-[2.5rem] border border-border/50" />;
   if (!analysis) return null;
 
   return (
-    <Card className="p-8 bg-surface/30 border-border/50 rounded-[2.5rem]">
+    <Card className="p-8 bg-surface/30 border-border/50 rounded-[2.5rem] shadow-inner">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-accent-500/10 text-accent-400 rounded-xl flex items-center justify-center">
+        <div className="w-10 h-10 bg-violet-500/10 text-violet-400 rounded-xl flex items-center justify-center border border-violet-500/20 shadow-sm">
             <TrendingUp size={20} />
         </div>
         <h3 className="font-black text-white tracking-tight text-lg">Skill Gap Analysis</h3>
@@ -98,7 +98,7 @@ const SkillGapPanel: React.FC<{ jobId: string }> = ({ jobId }) => {
           </h4>
           <div className="flex flex-wrap gap-2">
             {analysis.matched_skills?.map((skill: string, i: number) => (
-              <span key={i} className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-lg border border-emerald-500/20">
+              <span key={i} className="px-3 py-1.5 bg-emerald-500/5 text-emerald-400 text-[10px] font-black uppercase tracking-wider rounded-lg border border-emerald-500/20">
                 {skill}
               </span>
             ))}
@@ -106,20 +106,20 @@ const SkillGapPanel: React.FC<{ jobId: string }> = ({ jobId }) => {
         </div>
 
         <div>
-          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-4 flex items-center gap-2">
+          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-4 flex items-center gap-2">
             <AlertCircle size={14} /> Development Targets
           </h4>
           <div className="flex flex-wrap gap-2">
             {analysis.missing_skills?.map((skill: string, i: number) => (
-              <span key={i} className="px-3 py-1.5 bg-primary-500/10 text-primary-400 text-[10px] font-black uppercase tracking-wider rounded-lg border border-primary-500/20">
+              <span key={i} className="px-3 py-1.5 bg-indigo-500/5 text-indigo-400 text-[10px] font-black uppercase tracking-wider rounded-lg border border-indigo-500/20">
                 {skill}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="p-5 bg-background/50 rounded-2xl border border-white/5 flex items-start gap-3">
-          <Lightbulb size={18} className="text-amber-400 shrink-0 mt-0.5" />
+        <div className="p-5 bg-background/50 rounded-2xl border border-white/5 flex items-start gap-3 group shadow-inner">
+          <Lightbulb size={18} className="text-amber-400 shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
           <p className="text-xs font-bold text-text-secondary leading-relaxed italic">
             "{analysis.recommendation || `Bridging the gap in ${analysis.missing_skills?.[0] || 'core sector skills'} could improve your match percentile by up to 15%`}"
           </p>
@@ -191,7 +191,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
 
   if (loading) return (
     <div className="section-container flex flex-col items-center justify-center py-40">
-       <Loader2 className="animate-spin text-primary-500 mb-6" size={64} />
+       <Loader2 className="animate-spin text-indigo-500 mb-6" size={64} />
        <p className="text-white font-black text-xl tracking-tighter uppercase animate-pulse">Syncing Mission Details...</p>
     </div>
   );
@@ -206,7 +206,7 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
     <div className="section-container pb-32">
        {/* Breadcrumbs */}
        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-12">
-          <button onClick={() => router.back()} className="group flex items-center gap-3 text-[10px] font-black text-text-muted hover:text-white uppercase tracking-[0.2em] transition-all">
+          <button onClick={() => router.back()} className="group flex items-center gap-3 text-[10px] font-black text-text-muted hover:text-white uppercase tracking-[0.25em] transition-all">
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             Back to Command Center
           </button>
@@ -216,10 +216,10 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
           <div className="lg:col-span-2 space-y-16">
              {/* Header Header */}
              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-12 p-10 md:p-14 bg-surface/30 rounded-[3.5rem] border border-border/50 shadow-premium isolate overflow-hidden">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-12 p-10 md:p-14 bg-slate-950 rounded-[3rem] border border-white/5 shadow-22xl isolate overflow-hidden">
                     <div className="relative z-10 flex-1">
                         <div className="flex items-center gap-4 mb-8">
-                            <span className="px-3 py-1 bg-primary-500/10 text-primary-400 text-[10px] font-black uppercase tracking-[0.15em] rounded-md border border-primary-500/20 shadow-glow">
+                            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.15em] rounded-md border border-indigo-500/20 shadow-glow-indigo">
                                 {job.work_type || 'Full-time'}
                             </span>
                             <div className="flex items-center gap-1.5 text-[10px] font-black text-text-muted uppercase tracking-widest">
@@ -233,28 +233,28 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                         </h1>
 
                         <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-background rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden p-1">
+                            <div className="w-14 h-14 bg-surface rounded-2xl flex items-center justify-center border border-white/5 overflow-hidden p-1 shadow-inner">
                                 {job.company_logo ? (
                                     <img src={job.company_logo} alt={job.company} className="w-full h-full object-contain" />
                                 ) : <Briefcase size={28} className="text-text-muted" />}
                             </div>
                             <div>
-                                <p className="text-2xl font-black text-white tracking-tight">{job.company}</p>
-                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{job.location}</p>
+                                <p className="text-2xl font-black text-white tracking-tight leading-none mb-1">{job.company}</p>
+                                <p className="text-xs font-bold text-text-muted uppercase tracking-widest leading-none">{job.location}</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="shrink-0 flex flex-col items-center gap-3 bg-background/50 backdrop-blur-xl p-10 rounded-[3rem] border border-white/10 shadow-glow group">
+                    <div className="shrink-0 flex flex-col items-center gap-3 bg-indigo-600/5 backdrop-blur-xl p-10 rounded-[3rem] border border-indigo-500/10 shadow-glow-indigo group">
                         <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] leading-none mb-2">Synergy Level</p>
                         <ScoreBadge score={job.score || 85} size="lg" />
-                        <div className="mt-4 px-4 py-2 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase rounded-xl border border-emerald-500/20">
+                        <div className="mt-4 px-4 py-2 bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase rounded-xl border border-emerald-500/20 shadow-sm animate-pulse">
                             High Potency
                         </div>
                     </div>
 
                     {/* Background decoration */}
-                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-primary-500/10 rounded-full blur-[100px] -z-10" />
+                    <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] -z-10" />
                 </div>
              </motion.div>
 
