@@ -80,8 +80,9 @@ async def sync_jobs(current_user: User = Depends(get_current_user)):
     """
     Manually trigger a background job synchronization from all sources via Celery.
     Only authenticated users can trigger sync.
+    Targeted based on user location to save memory and increase relevance.
     """
-    task = sync_all_jobs.delay()
+    task = sync_all_jobs.delay(user_location=current_user.location)
     return {
         "message": "Job synchronization started in the background.",
         "task_id": task.id

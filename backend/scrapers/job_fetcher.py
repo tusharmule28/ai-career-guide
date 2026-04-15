@@ -70,28 +70,54 @@ class JobFetcher:
             logger.error(f"Error fetching from JobSpy for '{search_term}': {e}")
             return []
 
-    async def sync_jobs(self, db: Session) -> List[Job]:
+    async def sync_jobs(self, db: Session, user_location: Optional[str] = None) -> List[Job]:
         """
         Fetch jobs from all sources and save new ones to the database.
         Optimized for memory-constrained environments (Render).
+        Targeted scanning based on user_location to prioritize local hubs.
         """
-        logger.info("Starting Job Sync: Optimizing for memory constraints...")
+        logger.info(f"Starting Job Sync: Targeting {user_location or 'Global'} Intel...")
         
         # 1. IndianJobsScraper (Playwright) - Close aggressively
         try:
             await indian_jobs_scraper.run_sync(db)
-            gc.collect() # Cleanup after Playwright
+            gc.collect() 
         except Exception as e:
             logger.error(f"IndianJobsScraper failed: {e}")
 
-        # 2. Reduced search breadth for JobSpy to prevent growth of memory footprint
-        search_terms = ["Software Engineer", "Frontend Developer", "Backend Developer"]
-        # Prioritize major hubs only
-        indian_hubs = ["Bangalore", "Hyderabad", "Remote, India"]
+        # 2. Dynamic Targeted Scanning
+        base_search_terms = ["Software Engineer", "Frontend Developer", "Backend Developer"]
+        
+        # Determine target cities based on user location
+        target_hubs = []
+        is_india_user = False
+        
+        if user_location:
+            loc_lower = user_location.lower()
+            if "india" in loc_lower:
+                is_india_user = True
+                # Extract city if possible
+                city = user_location.split(",")[0].strip()
+                if city and len(city) > 2:
+                    target_hubs.append(city)
+                # Always include major hubs for India users
+                target_hubs.extend(["Bangalore", "Hyderabad", "Remote, India"])
+            else:
+                # Global/US user
+                city = user_location.split(",")[0].strip()
+                if city: target_hubs.append(city)
+                target_hubs.extend(["Remote", "London", "San Francisco"])
+        else:
+            # Default fallback
+            target_hubs = ["Bangalore", "Remote, India", "Remote"]
+
+        # Deduplicate and limit hubs to save memory
+        target_hubs = list(dict.fromkeys(target_hubs))[:4] 
         
         new_jobs = []
-        for city in indian_hubs:
-            for term in search_terms:
+        for city in target_hubs:
+            for term in base_search_terms:
+                # Logic: Fetch fewer results per combination but more relevant
                 jobs_data = await self.fetch_india_jobs(search_term=f"{term} {city}", limit=5)
                 
                 if not jobs_data:
@@ -124,7 +150,7 @@ class JobFetcher:
                         apply_url=job_data["apply_url"],
                         source=job_data["source"],
                         required_skills=job_data["required_skills"],
-                        work_type="On-site",
+                        work_type="Remote" if "remote" in city.lower() else "On-site",
                         company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
                     )
                     
@@ -140,23 +166,21 @@ class JobFetcher:
                         logger.error(f"Failed to generate embedding for job {new_job.external_id}: {e}")
                         continue
                 
-                # Commit in smaller chunks to free up DB session memory
+                # Proactive cleanup
                 if len(new_jobs) >= 5:
                     db.commit()
-                    logger.info(f"Committed {len(new_jobs)} jobs. Cleaning memory...")
                     new_jobs = [] 
                     gc.collect()
 
-                # Politeness delay & and extra breathing room for GC
-                await asyncio.sleep(8)
+                # Optimized delay for free tier
+                await asyncio.sleep(10)
                 gc.collect()
         
-        # Final commit for remaining
+        # Final cleanup
         if len(new_jobs) > 0:
             db.commit()
-            logger.info(f"Final commit of {len(new_jobs)} jobs.")
             gc.collect()
         
-        return [] # We return an empty list or just use the DB directly
+        return []
 
 job_fetcher = JobFetcher()

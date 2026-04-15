@@ -12,6 +12,8 @@ import { JobCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { SyncStatusOverlay } from '@/components/SyncStatusOverlay';
+
 type TabType = 'recommended' | 'all' | 'saved';
 
 export default function JobsPage() {
@@ -49,12 +51,13 @@ export default function JobsPage() {
     try {
       await api.post('/jobs/sync');
       toast.success('Analyzing new sectors... Match engine re-initializing.');
+      // Keep overlay visible for long enough for the simulation stages to complete
       setTimeout(() => {
         loadAllData();
-      }, 3000);
+        setIsSyncing(false);
+      }, 18000); 
     } catch (err: any) {
       toast.error('Sync failed: ' + (err.message || 'Server unreachable'));
-    } finally {
       setIsSyncing(false);
     }
   };
@@ -75,20 +78,18 @@ export default function JobsPage() {
     });
   };
 
-  const filteredRecommended = useMemo(() => applyFilters(matchedJobs), [matchedJobs, searchTerm, filters]);
+  // Limit matched recommendations to top 20
+  const filteredRecommended = useMemo(() => applyFilters(matchedJobs).slice(0, 20), [matchedJobs, searchTerm, filters]);
   
-  const otherJobs = useMemo(() => {
-    const matchedIds = new Set(matchedJobs.map(m => m.job?.id));
-    return jobs.filter(j => !matchedIds.has(j.id));
-  }, [jobs, matchedJobs]);
-  
-  const filteredAll = useMemo(() => applyFilters(otherJobs), [otherJobs, searchTerm, filters]);
+  // "Global Feed" should show jobs even if they were in recommended, 
+  // but sorted by date as a raw feed.
+  const filteredAll = useMemo(() => applyFilters(jobs), [jobs, searchTerm, filters]);
   const filteredSaved = useMemo(() => applyFilters(savedJobs), [savedJobs, searchTerm, filters]);
 
   const tabs = [
-    { id: 'recommended', label: 'AI Strategy', icon: Sparkles, count: matchedJobs.length },
-    { id: 'all', label: 'Global Feed', icon: LayoutGrid, count: otherJobs.length },
-    { id: 'saved', label: 'Bookmarks', icon: Bookmark, count: savedJobs.length }
+    { id: 'recommended', label: 'AI Strategy', icon: Sparkles, count: filteredRecommended.length },
+    { id: 'all', label: 'Global Feed', icon: LayoutGrid, count: filteredAll.length },
+    { id: 'saved', label: 'Bookmarks', icon: Bookmark, count: filteredSaved.length }
   ];
 
   if (error && matchedJobs.length === 0 && jobs.length === 0 && !loading) {
@@ -107,6 +108,8 @@ export default function JobsPage() {
 
   return (
     <div className="section-container pb-24">
+      <SyncStatusOverlay isVisible={isSyncing} />
+      
       {/* Header Area */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-8">
         <div className="max-w-2xl">

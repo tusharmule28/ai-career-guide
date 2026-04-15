@@ -119,13 +119,15 @@ class MatchingService:
                 loc_score = 100 # Remote is always a match
             elif user_loc and job_loc:
                 if user_loc in job_loc or job_loc in user_loc:
-                    loc_score = 100
+                    loc_score = 100 # Direct city/hub match
                 elif "," in user_loc and "," in job_loc:
                     # Check countries (simple comma-split check)
-                    u_country = user_loc.split(",")[-1].strip()
-                    j_country = job_loc.split(",")[-1].strip()
+                    u_country = user_loc.split(",")[-1].strip().lower()
+                    j_country = job_loc.split(",")[-1].strip().lower()
                     if u_country == j_country:
-                        loc_score = 70
+                        loc_score = 80 # Country match
+                    else:
+                        loc_score = 20
                 else:
                     loc_score = 30
             else:
@@ -150,12 +152,11 @@ class MatchingService:
                 "missing_skills": list(set(job_skills) - user_skills)
             })
 
-        # Sort and return with pagination
+        # Sort and return with hard limit of 20
         results.sort(key=lambda x: x["score"], reverse=True)
-        paginated_results = results[skip : skip + top_n]
+        paginated_results = results[skip : skip + min(top_n, 20)]
 
         # Enhance top results with AI if needed
-        # (Keeping Groq logic for top 3 but using new data)
         if self.groq_client and paginated_results:
             ai_tasks = []
             for i, res in enumerate(paginated_results[:3]):

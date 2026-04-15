@@ -19,21 +19,20 @@ def get_db():
         db.close()
 
 @celery_app.task(name="tasks.sync_all_jobs")
-def sync_all_jobs():
+def sync_all_jobs(user_location: Optional[str] = None):
     """
     Background task to sync jobs from all sources.
     This replaces the async synchronized loop in main.py.
     """
-    logger.info("Starting background job sync task...")
+    logger.info(f"Starting background job sync task for location: {user_location or 'Global'}...")
     db = SessionLocal()
     try:
         # Since scrapers are async, we need a way to run them in the synchronous Celery worker
-        # We use a new event loop for this task
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
-        # Run sync
-        loop.run_until_complete(job_fetcher.sync_jobs(db))
+        # Run sync with targeting
+        loop.run_until_complete(job_fetcher.sync_jobs(db, user_location=user_location))
         
         logger.info("Background job sync completed successfully.")
     except Exception as e:
