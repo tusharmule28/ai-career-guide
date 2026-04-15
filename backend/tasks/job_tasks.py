@@ -1,6 +1,6 @@
 import logging
 import asyncio
-from typing import List
+from typing import List, Optional
 from celery import shared_task
 from db.database import SessionLocal
 from scrapers.job_fetcher import job_fetcher
