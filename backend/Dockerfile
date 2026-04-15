@@ -21,8 +21,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+# Install system dependencies for PostgreSQL and Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    curl \
+    && pip install --no-cache-dir playwright \
+    && playwright install --with-deps chromium \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
