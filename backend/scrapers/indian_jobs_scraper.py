@@ -2,6 +2,7 @@ import asyncio
 import logging
 import json
 import hashlib
+import gc
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from playwright.async_api import async_playwright
@@ -158,5 +159,8 @@ class IndianJobsScraper:
                 logger.info(f"Successfully synced {new_jobs_count} new jobs.")
             else:
                 logger.info("No new jobs found.")
+            
+            # Explicit cleanup
+            gc.collect()
 
 indian_jobs_scraper = IndianJobsScraper()

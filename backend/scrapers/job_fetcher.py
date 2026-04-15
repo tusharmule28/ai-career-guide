@@ -2,6 +2,7 @@ import httpx
 import logging
 import asyncio
 import pandas as pd
+import gc
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
@@ -18,20 +19,21 @@ class JobFetcher:
         self.remotive_url = "https://remotive.com/api/remote-jobs?limit=20"
         self.wwr_rss_url = "https://weworkremotely.com/remote-jobs.rss"
 
-    async def fetch_india_jobs(self, search_term: str = "Software Engineer", limit: int = 20) -> List[Dict[str, Any]]:
+    async def fetch_india_jobs(self, search_term: str = "Software Engineer", limit: int = 10) -> List[Dict[str, Any]]:
         """
-        Fetch jobs from LinkedIn, Indeed, Glassdoor, and Google for India using JobSpy.
+        Fetch jobs from LinkedIn and Indeed for India using JobSpy.
+        Optimized to reduce memory overhead.
         """
         try:
             logger.info(f"Scraping '{search_term}' jobs in India...")
-            # JobSpy is synchronous, run in executor to avoid blocking event loop
+            
             def do_scrape():
                 return scrape_jobs(
-                    site_name=["linkedin", "indeed"], # Removed Google (429 rate-limit) and Glassdoor (403)
+                    site_name=["linkedin", "indeed"], 
                     search_term=search_term,
                     location="India",
                     results_wanted=limit,
-                    hours_old=72, # Last 3 days
+                    hours_old=72,
                     country_indeed='india',
                 )
 
@@ -39,13 +41,14 @@ class JobFetcher:
             df = await loop.run_in_executor(None, do_scrape)
             
             if df is None or df.empty:
-                logger.warning(f"No jobs found for '{search_term}' in India.")
+                logger.warning(f"No jobs found for '{search_term}'.")
                 return []
 
             formatted_jobs = []
             for _, row in df.iterrows():
-                # Ensure description is a string and not NaN
-                description = str(row['description']) if pd.notna(row['description']) else ""
+                # Truncate description immediately to save memory
+                raw_desc = str(row['description']) if pd.notna(row['description']) else ""
+                description = raw_desc[:5000] # Safe truncation early
                 
                 formatted_jobs.append({
                     "external_id": f"jobspy_{row['id']}",
@@ -55,149 +58,105 @@ class JobFetcher:
                     "location": row['location'] if pd.notna(row['location']) else "India",
                     "apply_url": row['job_url'],
                     "source": row['site'],
-                    "required_skills": [] # JobSpy doesn't provide structured tags easily
+                    "required_skills": []
                 })
+            
+            # Proactive cleanup of the dataframe
+            del df
+            gc.collect()
+            
             return formatted_jobs
         except Exception as e:
             logger.error(f"Error fetching from JobSpy for '{search_term}': {e}")
             return []
 
-    async def fetch_remotive_jobs(self) -> List[Dict[str, Any]]:
-        """
-        Fetch jobs from Remotive.io API.
-        """
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(self.remotive_url)
-                response.raise_for_status()
-                data = response.json()
-                jobs = data.get("jobs", [])
-                
-                formatted_jobs = []
-                for job in jobs:
-                    formatted_jobs.append({
-                        "external_id": f"remotive_{job.get('id')}",
-                        "title": job.get("title"),
-                        "company": job.get("company_name"),
-                        "description": job.get("description"),
-                        "location": job.get("candidate_required_location"),
-                        "apply_url": job.get("url"),
-                        "source": "Remotive",
-                        "required_skills": job.get("tags", [])
-                    })
-                return formatted_jobs
-        except Exception as e:
-            logger.error(f"Error fetching from Remotive: {e}")
-            return []
-
-    async def fetch_wwr_jobs(self) -> List[Dict[str, Any]]:
-        """
-        Fetch jobs from We Work Remotely RSS feed.
-        """
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(self.wwr_rss_url)
-                response.raise_for_status()
-                soup = BeautifulSoup(response.text, "xml")
-                items = soup.find_all("item")
-                
-                formatted_jobs = []
-                for item in items[:20]: # Limit reach
-                    formatted_jobs.append({
-                        "external_id": f"wwr_{item.find('guid').text if item.find('guid') else item.find('link').text}",
-                        "title": item.find("title").text,
-                        "company": item.find("dc:creator").text if item.find("dc:creator") else "Remote Company",
-                        "description": item.find("description").text,
-                        "location": "Remote",
-                        "apply_url": item.find("link").text,
-                        "source": "WWR",
-                        "required_skills": [] # RSS doesn't give tags easily
-                    })
-                return formatted_jobs
-        except Exception as e:
-            logger.error(f"Error fetching from WWR: {e}")
-            return []
-
     async def sync_jobs(self, db: Session) -> List[Job]:
         """
         Fetch jobs from all sources and save new ones to the database.
-        Returns a list of newly created Job objects.
+        Optimized for memory-constrained environments (Render).
         """
-        logger.info("Starting Job Sync: Targeting Indian Tech Hubs & Major Platforms...")
+        logger.info("Starting Job Sync: Optimizing for memory constraints...")
         
-        # 1. Run the specialized Playwright scraper for Indeed India first (High quality)
+        # 1. IndianJobsScraper (Playwright) - Close aggressively
         try:
             await indian_jobs_scraper.run_sync(db)
+            gc.collect() # Cleanup after Playwright
         except Exception as e:
             logger.error(f"IndianJobsScraper failed: {e}")
 
-        # 2. Use JobSpy for broader coverage of LinkedIn & Indeed across regions
-        search_terms = ["Software Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer", "Data Scientist", "DevOps Engineer"]
-        indian_hubs = ["Bangalore", "Pune", "Hyderabad", "Mumbai", "Delhi NCR", "Chennai", "Remote, India"]
+        # 2. Reduced search breadth for JobSpy to prevent growth of memory footprint
+        search_terms = ["Software Engineer", "Frontend Developer", "Backend Developer"]
+        # Prioritize major hubs only
+        indian_hubs = ["Bangalore", "Hyderabad", "Remote, India"]
         
-        all_fetched_jobs = []
-        for city in indian_hubs:
-            for term in search_terms[:3]: # Limit combinations for faster sync
-                jobs = await self.fetch_india_jobs(search_term=f"{term} {city}", limit=10)
-                all_fetched_jobs.extend(jobs)
-                # Politeness delay to avoid rate-limits
-                await asyncio.sleep(5)
-        
-        logger.info(f"Fetched total of {len(all_fetched_jobs)} jobs from JobSpy.")
-
         new_jobs = []
-        for job_data in all_fetched_jobs:
-            # 1. Check for existing job by external_id (Fast)
-            existing_id = db.query(Job).filter(Job.external_id == job_data["external_id"]).first()
-            if existing_id:
-                continue
-            
-            # 2. Check for duplicate content (Robust)
-            content_hash = deduplication_service.generate_content_hash(
-                job_data["title"], 
-                job_data["description"], 
-                job_data["company"]
-            )
-            existing_hash = db.query(Job).filter(Job.content_hash == content_hash).first()
-            if existing_hash:
-                logger.info(f"Duplicate content found for {job_data['title']} at {job_data['company']}. Skipping.")
-                continue
-
-            # Create new job
-            new_job = Job(
-                external_id=job_data["external_id"],
-                content_hash=content_hash,
-                title=job_data["title"],
-                company=job_data["company"],
-                description=job_data["description"][:10000],
-                location=job_data["location"],
-                apply_url=job_data["apply_url"],
-                source=job_data["source"],
-                required_skills=job_data["required_skills"],
-                salary_min=None,
-                salary_max=None,
-                work_type="On-site",
-                company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
-            )
-            
-            # Generate embedding
-            content_to_embed = f"{new_job.title} {new_job.description[:2000]}" 
-            try:
-                embedding = await embedding_service.generate_embedding(content_to_embed)
-                new_job.embedding = embedding.tolist()
+        for city in indian_hubs:
+            for term in search_terms:
+                jobs_data = await self.fetch_india_jobs(search_term=f"{term} {city}", limit=5)
                 
-                db.add(new_job)
-                new_jobs.append(new_job)
-            except Exception as e:
-                logger.error(f"Failed to generate embedding for job {new_job.external_id}: {e}")
-                continue
+                if not jobs_data:
+                    continue
+                
+                for job_data in jobs_data:
+                    # Check for existing job by external_id (Fast)
+                    existing_id = db.query(Job).filter(Job.external_id == job_data["external_id"]).first()
+                    if existing_id:
+                        continue
+                    
+                    # Check for duplicate content (Robust)
+                    content_hash = deduplication_service.generate_content_hash(
+                        job_data["title"], 
+                        job_data["description"], 
+                        job_data["company"]
+                    )
+                    existing_hash = db.query(Job).filter(Job.content_hash == content_hash).first()
+                    if existing_hash:
+                        continue
 
+                    # Create new job
+                    new_job = Job(
+                        external_id=job_data["external_id"],
+                        content_hash=content_hash,
+                        title=job_data["title"],
+                        company=job_data["company"],
+                        description=job_data["description"],
+                        location=job_data["location"],
+                        apply_url=job_data["apply_url"],
+                        source=job_data["source"],
+                        required_skills=job_data["required_skills"],
+                        work_type="On-site",
+                        company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
+                    )
+                    
+                    # Generate embedding
+                    content_to_embed = f"{new_job.title} {new_job.description[:1500]}" 
+                    try:
+                        embedding = await embedding_service.generate_embedding(content_to_embed)
+                        new_job.embedding = embedding.tolist()
+                        
+                        db.add(new_job)
+                        new_jobs.append(new_job)
+                    except Exception as e:
+                        logger.error(f"Failed to generate embedding for job {new_job.external_id}: {e}")
+                        continue
+                
+                # Commit in smaller chunks to free up DB session memory
+                if len(new_jobs) >= 5:
+                    db.commit()
+                    logger.info(f"Committed {len(new_jobs)} jobs. Cleaning memory...")
+                    new_jobs = [] 
+                    gc.collect()
+
+                # Politeness delay & and extra breathing room for GC
+                await asyncio.sleep(8)
+                gc.collect()
+        
+        # Final commit for remaining
         if len(new_jobs) > 0:
             db.commit()
-            logger.info(f"Successfully synced {len(new_jobs)} new jobs via JobSpy.")
-        else:
-            logger.info("No new JobSpy jobs to sync.")
+            logger.info(f"Final commit of {len(new_jobs)} jobs.")
+            gc.collect()
         
-        return new_jobs
+        return [] # We return an empty list or just use the DB directly
 
 job_fetcher = JobFetcher()
