@@ -73,6 +73,7 @@ class MatchingService:
                 Job.id, Job.title, Job.company, Job.location, 
                 Job.required_skills, Job.experience_min, Job.experience_max, 
                 Job.work_type, Job.company_logo, Job.apply_url,
+                Job.description, Job.source, Job.posted_at,
                 Job.embedding.cosine_distance(resume_embedding).label("distance")
             )
             .filter(Job.embedding != None)
@@ -159,10 +160,8 @@ class MatchingService:
         if self.groq_client and paginated_results:
             ai_tasks = []
             for res in paginated_results[:3]:
-                # We need the description for AI analysis, so fetch it lazily
-                full_job = db.query(Job).filter(Job.id == res["job"].id).first()
-                if full_job:
-                    ai_tasks.append(self._analyze_skill_gap_with_ai(resume_text, full_job, res))
+                # We already have the metadata in the tuple
+                ai_tasks.append(self._analyze_skill_gap_with_ai(resume_text, res["job"], res))
             if ai_tasks:
                 await asyncio.gather(*ai_tasks)
 
