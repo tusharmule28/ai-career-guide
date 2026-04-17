@@ -31,3 +31,4 @@ langchain-groq>=0.2.0
 langchain-core>=0.3.0
 playwright>=1.40.0
 psutil
+upstash-redis
