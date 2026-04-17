@@ -65,7 +65,7 @@ def create_application() -> FastAPI:
     # Traceback exception handler for production debugging — logs 500 errors to the console
     import traceback
     from fastapi.responses import JSONResponse
-    from fastapi import Request
+    # Removed redundant local import of Request to fix UnboundLocalError
     
     async def global_exception_handler(request: Request, exc: Exception):
         logger.error(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
