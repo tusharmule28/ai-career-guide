@@ -70,12 +70,24 @@ def create_application() -> FastAPI:
     async def global_exception_handler(request: Request, exc: Exception):
         logger.error(f"CRITICAL: 500 Internal Server Error in {request.url.path}")
         logger.error(traceback.format_exc())
+        
+        # Manually add CORS headers to ensure the browser doesn't block the error
+        origin = request.headers.get("origin")
+        response_content = {
+            "detail": "Internal Server Error",
+            "message": str(exc) if settings.ENVIRONMENT == "development" else "An unexpected error occurred"
+        }
+        
+        # If the origin is in our allowed list, we should echo it back
+        headers = {}
+        if origin in allowed_origins or "*" in allowed_origins:
+            headers["Access-Control-Allow-Origin"] = origin
+            headers["Access-Control-Allow-Credentials"] = "true"
+
         return JSONResponse(
             status_code=500,
-            content={
-                "detail": "Internal Server Error",
-                "message": str(exc) if settings.ENVIRONMENT == "development" else "An unexpected error occurred"
-            }
+            content=response_content,
+            headers=headers
         )
 
     # Safety guard: strip wildcards — "*" + allow_credentials=True is illegal per HTTP spec

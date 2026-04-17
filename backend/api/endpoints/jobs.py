@@ -78,17 +78,34 @@ def _ensure_jobs_table(db: Session):
 
 
 @router.post("/sync", status_code=status.HTTP_202_ACCEPTED)
-async def sync_jobs(current_user: User = Depends(get_current_user)):
+async def sync_jobs(
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user)
+):
     """
-    Manually trigger a background job synchronization from all sources via Celery.
-    Only authenticated users can trigger sync.
-    Targeted based on user location to save memory and increase relevance.
+    Manually trigger job synchronization.
+    Features 'Hybrid Sync': Attempts Celery first, falls back to BackgroundTasks if Redis is down.
     """
-    task = sync_all_jobs.delay(user_location=current_user.location)
-    return {
-        "message": "Job synchronization started in the background.",
-        "task_id": task.id
-    }
+    try:
+        # Try Celery (preferred for production)
+        task = sync_all_jobs.delay(user_location=current_user.location)
+        return {
+            "message": "Job synchronization started via Celery.",
+            "task_id": task.id,
+            "mode": "celery"
+        }
+    except Exception as e:
+        logger.warning(f"Celery sync failed or broker not available: {e}. Falling back to BackgroundTasks.")
+        
+        # Fallback to FastAPI BackgroundTasks (runs in web process)
+        # Note: We need to call the function directly, but Celery tasks are wrapped.
+        # sync_all_jobs is the function itself (decorated).
+        background_tasks.add_task(sync_all_jobs, user_location=current_user.location)
+        
+        return {
+            "message": "Job synchronization started via BackgroundTasks (Resilience Mode).",
+            "mode": "background"
+        }
 
 
 @router.get("", response_model=List[JobResponse])
