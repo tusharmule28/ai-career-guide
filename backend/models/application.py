@@ -4,13 +4,13 @@ from sqlalchemy.sql import func
 from db.database import Base
 
 class ApplicationStatus(enum.Enum):
-    PENDING = "Pending"
-    APPLIED = "Applied"
-    SCREENED = "Screened"
-    INTERVIEW = "Interviewing"
-    OFFERED = "Offered"
-    REJECTED = "Rejected"
-    DEMO = "Demo"
+    PENDING = "PENDING"
+    APPLIED = "APPLIED"
+    SCREENED = "SCREENED"
+    INTERVIEW = "INTERVIEW"
+    OFFERED = "OFFERED"
+    REJECTED = "REJECTED"
+    DEMO = "DEMO"
 
 class Application(Base):
     __tablename__ = "applications"

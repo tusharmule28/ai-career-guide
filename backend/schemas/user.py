@@ -15,8 +15,8 @@ class UserBase(BaseModel):
     phone: Optional[str] = None
     experience_years: Optional[int] = 0
     is_premium: Optional[bool] = False
-    trial_used: Optional[bool] = False
-    trial_remaining: Optional[int] = 5
+    trial_used: bool | None = False
+    trial_remaining: int | None = 5
     profile_picture: Optional[str] = None
 
 class UserCreate(UserBase):
