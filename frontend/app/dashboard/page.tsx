@@ -22,6 +22,7 @@ import GapAnalysisModal from '@/components/GapAnalysisModal';
 import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import AutoApplyAgent from '@/components/AutoApplyAgent';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -288,28 +289,7 @@ export default function DashboardPage() {
 
         {/* Sidebar */}
         <div className="space-y-8">
-          <Card className="p-10 border-none bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-900 text-white rounded-[3rem] shadow-2xl relative overflow-hidden group isolate">
-            <div className="relative z-10 flex flex-col h-full">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner border border-white/20 hover:scale-110 transition-transform">
-                  <Sparkles size={24} className="text-white" />
-                </div>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-white/80">Elite Strategy</span>
-              </div>
-              <h3 className="text-3xl font-black mb-6 leading-tight tracking-tight">Maximize Your Career ROI</h3>
-              <p className="text-white/80 text-sm font-bold mb-12 leading-relaxed">
-                Elite members get priority access to ghost-writing AI and direct recruiter referrals.
-              </p>
-              <Link href="/premium">
-                <Button className="w-full bg-white text-indigo-950 hover:bg-slate-100 font-black h-16 rounded-2xl transition-all shadow-2xl">
-                  GO ELITE NOW
-                </Button>
-              </Link>
-            </div>
-            {/* Shapes */}
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-white/10 rounded-full blur-[80px] -z-10" />
-            <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-black/20 rounded-full blur-[80px] -z-10" />
-          </Card>
+          <AutoApplyAgent />
 
           <Card className="p-8 bg-surface border-border/50 rounded-[2.5rem] group relative overflow-hidden">
             <div className="relative z-10">

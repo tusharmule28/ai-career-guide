@@ -13,6 +13,10 @@ from models.job import Job
 from models.resume import Resume
 from services.agents.workflow import run_apply_with_ai
 
+from models.application import Application, ApplicationStatus
+from services.matching_service import matching_service
+import asyncio
+
 router = APIRouter()
 
 
@@ -29,6 +33,13 @@ class ApplyWithAIResponse(BaseModel):
     top_skills_to_highlight: list[str]
     pre_fill_data: dict
     credits_remaining: int
+
+
+class AutoApplyResponse(BaseModel):
+    jobs_found: int
+    jobs_applied: int
+    trial_remaining: int
+    message: str
 
 
 @router.post("/apply-with-ai", response_model=ApplyWithAIResponse)
@@ -100,4 +111,97 @@ async def apply_with_ai(
         top_skills_to_highlight=result.get("top_skills_to_highlight") or [],
         pre_fill_data=result.get("pre_fill_data") or {},
         credits_remaining=credits_remaining,
+    )
+
+
+@router.post("/auto-apply", response_model=AutoApplyResponse)
+async def auto_apply_agent(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Simulated AI Auto-Apply Agent.
+    Validates user interest by simulating a premium workflow.
+    """
+    # 1. Premium / Trial Gate
+    if not current_user.is_premium and (current_user.trial_remaining or 0) <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "message": "Premium access required for Auto-Apply Agent.",
+                "upgrade_prompt": "Your free trial has ended. Upgrade to Premium for unlimted applications.",
+            },
+        )
+
+    # 2. Fetch latest resume
+    resume = (
+        db.query(Resume)
+        .filter(Resume.user_id == current_user.id)
+        .order_by(Resume.uploaded_at.desc())
+        .first()
+    )
+    if not resume or not resume.extracted_text:
+        raise HTTPException(
+            status_code=400,
+            detail="Neural trajectory tracking requires a synchronized resume.",
+        )
+
+    # 3. Simulated Workflow (For Realism)
+    # Each step adds a small delay to make it feel like "real" AI work
+    await asyncio.sleep(1.5) # Analyzing resume...
+    
+    # 4. Find matches
+    matches = await matching_service.find_matches(
+        db=db,
+        user=current_user,
+        resume_text=resume.extracted_text,
+        top_n=5
+    )
+    
+    await asyncio.sleep(1.0) # Matching jobs...
+
+    if not matches:
+        return AutoApplyResponse(
+            jobs_found=0,
+            jobs_applied=0,
+            trial_remaining=current_user.trial_remaining or 0,
+            message="No high-synergy roles found at this time. Try updating your profile."
+        )
+
+    # 5. Simulated Applying
+    applied_count = 0
+    for match in matches:
+        if applied_count >= 3: # Limit to 3 applications per agent run for the demo
+            break
+            
+        job_id = match['job'].id
+        
+        # Check if already applied
+        existing = db.query(Application).filter(
+            Application.user_id == current_user.id,
+            Application.job_id == job_id
+        ).first()
+        
+        if not existing:
+            new_app = Application(
+                user_id=current_user.id,
+                job_id=job_id,
+                status=ApplicationStatus.DEMO
+            )
+            db.add(new_app)
+            applied_count += 1
+            await asyncio.sleep(0.8) # Applying...
+
+    # 6. Update User Trial Status
+    if not current_user.is_premium:
+        current_user.trial_remaining = max(0, (current_user.trial_remaining or 5) - 1)
+        current_user.trial_used = True
+    
+    db.commit()
+
+    return AutoApplyResponse(
+        jobs_found=len(matches),
+        jobs_applied=applied_count,
+        trial_remaining=-1 if current_user.is_premium else (current_user.trial_remaining or 0),
+        message=f"Successfully applied to {applied_count} roles. Your trajectory is now being monitored."
     )

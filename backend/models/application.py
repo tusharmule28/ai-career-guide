@@ -10,6 +10,7 @@ class ApplicationStatus(enum.Enum):
     INTERVIEW = "Interviewing"
     OFFERED = "Offered"
     REJECTED = "Rejected"
+    DEMO = "Demo"
 
 class Application(Base):
     __tablename__ = "applications"

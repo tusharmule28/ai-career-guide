@@ -20,11 +20,13 @@ class User(Base):
     skills = Column(String, nullable=True) # Manually overrideable skills
     experience_years = Column(Integer, default=0)
     
-    # Premium Fields
+    # Premium & Trial Fields
     is_premium = Column(Boolean, default=False)
     premium_until = Column(DateTime, nullable=True)
     razorpay_customer_id = Column(String, nullable=True)
     ai_credits = Column(Integer, default=3)  # Free tier: 3 Apply-with-AI uses
+    trial_used = Column(Boolean, default=False)
+    trial_remaining = Column(Integer, default=5)
     
     hashed_password = Column(String, nullable=False)
     
