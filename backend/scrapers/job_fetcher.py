@@ -1,7 +1,6 @@
 import httpx
 import logging
 import asyncio
-import pandas as pd
 import gc
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any, Optional
@@ -40,30 +39,31 @@ class JobFetcher:
             loop = asyncio.get_event_loop()
             df = await loop.run_in_executor(None, do_scrape)
             
-            if df is None or df.empty:
+            if df is None or len(df) == 0:
                 logger.warning(f"No jobs found for '{search_term}'.")
                 return []
 
-            formatted_jobs = []
-            for _, row in df.iterrows():
-                # Truncate description immediately to save memory
-                raw_desc = str(row['description']) if pd.notna(row['description']) else ""
-                description = raw_desc[:5000] # Safe truncation early
-                
-                formatted_jobs.append({
-                    "external_id": f"jobspy_{row['id']}",
-                    "title": row['title'],
-                    "company": row['company'],
-                    "description": description,
-                    "location": row['location'] if pd.notna(row['location']) else "India",
-                    "apply_url": row['job_url'],
-                    "source": row['site'],
-                    "required_skills": []
-                })
-            
-            # Proactive cleanup of the dataframe
+            # Convert to list of dicts immediately and dump the DF
+            jobs_list = df.to_dict('records')
             del df
             gc.collect()
+
+            formatted_jobs = []
+            for row in jobs_list:
+                # Truncate description immediately to save memory
+                raw_desc = str(row.get('description', ''))
+                description = raw_desc[:5000] if raw_desc else ""
+                
+                formatted_jobs.append({
+                    "external_id": f"jobspy_{row.get('id', '')}",
+                    "title": row.get('title', 'Unknown'),
+                    "company": row.get('company', 'Unknown'),
+                    "description": description,
+                    "location": row.get('location', 'India') if row.get('location') else "India",
+                    "apply_url": row.get('job_url', ''),
+                    "source": row.get('site', 'JobSpy'),
+                    "required_skills": []
+                })
             
             return formatted_jobs
         except Exception as e:

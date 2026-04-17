@@ -1,4 +1,5 @@
 import os
+import gc
 import fitz  # PyMuPDF
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
@@ -41,5 +42,10 @@ async def process_resume_upload(db: Session, upload_file: UploadFile, user_id: i
     
     # 5. Dispatch Celery event for embeddings recalculation
     recalculate_user_matches.delay(db_resume.id)
+    
+    # Cleanup
+    del content
+    del extracted_text
+    gc.collect()
     
     return db_resume

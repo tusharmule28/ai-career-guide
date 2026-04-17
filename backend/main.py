@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+import psutil
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from api.router import api_router
@@ -24,6 +26,26 @@ def create_application() -> FastAPI:
 
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # Memory Monitoring Middleware
+    @app.middleware("http")
+    async def log_memory_usage(request: Request, call_next):
+        process = psutil.Process(os.getpid())
+        mem_before = process.memory_info().rss / (1024 * 1024)
+        
+        response = await call_next(request)
+        
+        mem_after = process.memory_info().rss / (1024 * 1024)
+        diff = mem_after - mem_before
+        
+        # Only log significant allocations or high usage
+        if diff > 1.0 or mem_after > 450:
+            logger.info(
+                f"MEMORY: {request.url.path} | "
+                f"Before: {mem_before:.1f}MB | After: {mem_after:.1f}MB | "
+                f"Delta: {diff:+.1f}MB"
+            )
+        return response
 
     # Configure CORS
     
@@ -127,9 +149,12 @@ def create_application() -> FastAPI:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
                 conn.commit()
             
-            # Note: We no longer run Base.metadata.create_all(bind=engine) here.
-            # Schema migrations are handled via Alembic explicitly.
-            print("[+] Database connection and extension verified. Schema is managed by Alembic.")
+            # Note: We run Base.metadata.create_all(bind=engine) only as a fallback.
+            # Usually schema migrations are handled via Alembic explicitly.
+            # But ensures the 'jobs' table exists for the first run if migrations weren't run.
+            print("[*] Verifying tables...")
+            Base.metadata.create_all(bind=engine)
+            print("[+] Database connection and extension verified.")
             
         except Exception as e:
             print(f"[!] CRITICAL: Error initializing database: {e}")

@@ -111,6 +111,12 @@ class IndianJobsScraper:
             context = await browser.new_context(user_agent=self.user_agent)
             page = await context.new_page()
 
+            # Memory Optimization: Block heavy/unnecessary resources
+            await page.route("**/*.{png,jpg,jpeg,gif,svg,css,woff,woff2,ttf,otf,ico}", lambda route: route.abort())
+            # Block tracking and ads to save bandwidth and memory
+            await page.route("**/google-analytics.com/**", lambda route: route.abort())
+            await page.route("**/doubleclick.net/**", lambda route: route.abort())
+
             fetched_jobs = await self.scrape_indeed_india(page)
             
             await browser.close()

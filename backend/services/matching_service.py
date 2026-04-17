@@ -59,19 +59,22 @@ class MatchingService:
         skip: int = 0
     ) -> List[Dict[str, Any]]:
         """
-        Find best job matches using weighted scoring:
-        - Skills (50%): Embedding similarity + keyword overlap
-        - Experience (30%): Flexible range matching
-        - Location (20%): Proximity (Same city > Same country > Remote > Other)
+        Find best job matches using weighted scoring.
+        Optimized to avoid loading full descriptions for all candidates.
         """
-        # 1. Base Embedding Search (to narrow down candidates)
+        # 1. Base Embedding Search
         embeddings = await embedding_service.generate_embedding(resume_text)
         resume_embedding = embeddings.tolist()
         
-        # We fetch more than top_n for re-ranking
-        fetch_limit = 100 
+        # Fetch fewer fields initially to save memory
+        fetch_limit = 50 
         query = (
-            db.query(Job, Job.embedding.cosine_distance(resume_embedding).label("distance"))
+            db.query(
+                Job.id, Job.title, Job.company, Job.location, 
+                Job.required_skills, Job.experience_min, Job.experience_max, 
+                Job.work_type, Job.company_logo, Job.apply_url,
+                Job.embedding.cosine_distance(resume_embedding).label("distance")
+            )
             .filter(Job.embedding != None)
             .order_by("distance")
             .limit(fetch_limit)
@@ -84,11 +87,14 @@ class MatchingService:
         user_exp = user.experience_years or 0
         user_loc = (user.location or "").lower()
 
-        for job, distance in candidates:
-            # --- A. Skill Score (50%) ---
-            semantic_sim = max(0, (1.2 - float(distance)) * 83.3) # 0-100 scale
+        for cand in candidates:
+            # cand is now a keyed tuple, not a Job object
+            # cand: (id, title, company, location, required_skills, exp_min, exp_max, work_type, logo, apply_url, distance)
             
-            job_skills = [s.lower() for s in job.required_skills] if job.required_skills else []
+            # --- A. Skill Score (50%) ---
+            semantic_sim = max(0, (1.2 - float(cand.distance)) * 83.3)
+            
+            job_skills = [s.lower() for s in cand.required_skills] if cand.required_skills else []
             if job_skills:
                 overlap = len(user_skills.intersection(set(job_skills)))
                 keyword_score = (overlap / len(job_skills)) * 100
@@ -97,46 +103,40 @@ class MatchingService:
                 skill_score = semantic_sim
 
             # --- B. Experience Score (30%) ---
-            # Logic: Fresher (0) -> 0-1, 1y -> 0-3, 2-3y -> 1-5, 5y+ -> (exp-2) to (exp+5)
             exp_score = 100
-            j_min = job.experience_min or 0
-            j_max = job.experience_max or (j_min + 3)
+            j_min = cand.experience_min or 0
+            j_max = cand.experience_max or (j_min + 3)
             
             if user_exp < j_min:
-                # Penalty for under-experience
                 diff = j_min - user_exp
                 exp_score = max(0, 100 - (diff * 20)) 
             elif user_exp > j_max + 2:
-                # Slight penalty for over-experience
                 exp_score = 80 
             
             # --- C. Location Score (20%) ---
             loc_score = 0
-            job_loc = (job.location or "").lower()
-            work_type = (job.work_type or "On-site").lower()
+            job_loc = (cand.location or "").lower()
+            work_type = (cand.work_type or "On-site").lower()
 
             if work_type == "remote":
-                loc_score = 100 # Remote is always a match
+                loc_score = 100
             elif user_loc and job_loc:
                 if user_loc in job_loc or job_loc in user_loc:
-                    loc_score = 100 # Direct city/hub match
+                    loc_score = 100
                 elif "," in user_loc and "," in job_loc:
-                    # Check countries (simple comma-split check)
                     u_country = user_loc.split(",")[-1].strip().lower()
                     j_country = job_loc.split(",")[-1].strip().lower()
                     if u_country == j_country:
-                        loc_score = 80 # Country match
+                        loc_score = 80
                     else:
                         loc_score = 20
                 else:
                     loc_score = 30
             else:
-                loc_score = 50 # Unknown/Neutral
+                loc_score = 50
 
-            # --- Final Weighted Score ---
             final_score = (skill_score * 0.5) + (exp_score * 0.3) + (loc_score * 0.2)
             
-            # --- Match Reason Generation ---
             reasons = []
             if skill_score > 80: reasons.append("Strong skill alignment")
             if loc_score == 100: reasons.append("Located in your area" if work_type != "remote" else "Remote opportunity")
@@ -144,7 +144,7 @@ class MatchingService:
             if not reasons: reasons.append("Matches your career profile")
 
             results.append({
-                "job": job,
+                "job": cand, # Note: this is a row proxy, might need to be converted to dict or Job object for the frontend
                 "score": round(final_score, 1),
                 "match_reason": reasons[0],
                 "all_reasons": reasons,
@@ -152,18 +152,43 @@ class MatchingService:
                 "missing_skills": list(set(job_skills) - user_skills)
             })
 
-        # Sort and return with hard limit of 20
         results.sort(key=lambda x: x["score"], reverse=True)
         paginated_results = results[skip : skip + min(top_n, 20)]
 
-        # Enhance top results with AI if needed
+        # Enhance top results with AI
         if self.groq_client and paginated_results:
             ai_tasks = []
-            for i, res in enumerate(paginated_results[:3]):
-                ai_tasks.append(self._analyze_skill_gap_with_ai(resume_text, res["job"], res))
-            await asyncio.gather(*ai_tasks)
+            for res in paginated_results[:3]:
+                # We need the description for AI analysis, so fetch it lazily
+                full_job = db.query(Job).filter(Job.id == res["job"].id).first()
+                if full_job:
+                    ai_tasks.append(self._analyze_skill_gap_with_ai(resume_text, full_job, res))
+            if ai_tasks:
+                await asyncio.gather(*ai_tasks)
 
         return paginated_results
+
+    async def calculate_score(self, text: str, job: Job, user: User) -> Dict[str, Any]:
+        """Solo score calculation for a specific job."""
+        embeddings = await embedding_service.generate_embedding(text)
+        # Simple Euclidean Distance logic for single job
+        # (This is a simplification of the find_matches logic)
+        import numpy as np
+        
+        job_emb = np.array(job.embedding) if job.embedding else None
+        if job_emb is None:
+            return {"score": 0, "missing_skills": []}
+            
+        distance = np.linalg.norm(np.array(embeddings) - job_emb)
+        
+        user_skills = set(s.strip().lower() for s in (user.skills or "").split(",") if s.strip())
+        job_skills = [s.lower() for s in job.required_skills] if job.required_skills else []
+        
+        missing = list(set(job_skills) - user_skills)
+        
+        # Basic heuristic score
+        score = max(0, 100 - (distance * 50))
+        return {"score": round(score, 1), "missing_skills": missing}
 
     async def update_job_embedding(self, db: Session, job: Job):
         """

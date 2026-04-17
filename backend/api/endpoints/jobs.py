@@ -47,13 +47,15 @@ def save_job(
 
 @router.get("/saved", response_model=List[JobResponse])
 def get_saved_jobs(
+    skip: int = 0,
+    limit: int = 20,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Fetch all jobs saved by the current user."""
+    """Fetch all jobs saved by the current user with pagination."""
     saved_jobs = db.query(Job).join(
         SavedJob, Job.id == SavedJob.job_id
-    ).filter(SavedJob.user_id == current_user.id).all()
+    ).filter(SavedJob.user_id == current_user.id).offset(skip).limit(limit).all()
     
     return saved_jobs
 
@@ -99,9 +101,6 @@ async def get_jobs(
     db: Session = Depends(get_db)
 ):
     try:
-        # Ensure table exists before querying
-        _ensure_jobs_table(db)
-
         query = db.query(Job)
         
         # Apply filters
@@ -159,7 +158,8 @@ async def get_jobs(
                     except Exception as e:
                         logger.error(f"Failed to update job embedding during seed: {e}")
 
-                jobs = db.query(Job).all()
+                # Return seed jobs
+                jobs = db.query(Job).limit(limit).all()
             except Exception as e:
                 db.rollback()
                 logger.error(f"Failed to seed jobs: {e}")
@@ -206,7 +206,6 @@ async def get_job_insights(
     from services.explanation import get_match_explanation, get_improvement_suggestions
     from models.resume import Resume
     
-    _ensure_jobs_table(db)
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -252,7 +251,6 @@ async def get_job_insights(
 @router.get("/{job_id}", response_model=JobResponse)
 def get_job(job_id: int, db: Session = Depends(get_db)):
     try:
-        _ensure_jobs_table(db)
         job = db.query(Job).filter(Job.id == job_id).first()
         if not job:
             raise HTTPException(status_code=404, detail="Job not found")
