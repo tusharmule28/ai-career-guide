@@ -26,7 +26,8 @@ export default function FirebaseTokenManager() {
 
       try {
         // 2. Get FCM token
-        // Replace with your actual VAPID key from Firebase Console
+        if (!messaging) return;
+        
         const token = await getToken(messaging, {
           vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
         });
