@@ -19,7 +19,10 @@ import JobCard from '@/components/JobCard';
 import EmptyState from '@/components/ui/EmptyState';
 import { JobCardSkeleton } from '@/components/ui/Skeleton';
 
+import ResumeUpload from '@/components/ResumeUpload';
+
 export default function ProfilePage() {
+
   const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState<any>({
     full_name: '',
@@ -217,7 +220,10 @@ export default function ProfilePage() {
 
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-12">
+          <ResumeUpload onUploadSuccess={() => fetchProfile()} />
+          
           <Card className="p-10 md:p-14 bg-surface/30 border-white/10 rounded-[3.5rem] shadow-premium">
+
             <AnimatePresence mode="wait">
               {isEditing ? (
                 <motion.div 

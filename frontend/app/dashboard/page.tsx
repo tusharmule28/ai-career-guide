@@ -231,11 +231,13 @@ export default function DashboardPage() {
                 <div className="w-20 h-20 bg-surface shadow-2xl text-text-muted rounded-full flex items-center justify-center mb-8 border border-white/5">
                   <Rocket size={40} />
                 </div>
-                <h3 className="text-xl font-black text-white mb-3 tracking-tight">No active matches found</h3>
-                <p className="max-w-xs text-text-secondary font-bold text-sm leading-relaxed mb-10">Sync your latest professional experience to re-initialize the matching engine.</p>
-                <Button variant="secondary" onClick={() => fetchMatchedJobs()} className="rounded-2xl px-10 h-14 font-black text-xs uppercase tracking-widest bg-indigo-600/10 text-indigo-400 border-indigo-500/20 hover:bg-indigo-600/20">
-                  Sync Infrastructure
-                </Button>
+                <h3 className="text-xl font-black text-white mb-3 tracking-tight">No active matching protocols</h3>
+                <p className="max-w-xs text-text-secondary font-bold text-sm leading-relaxed mb-10">Upload your latest professional footprint to unlock premium AI matching and strategic trajectory analysis.</p>
+                <Link href="/profile" className="w-full sm:w-auto flex justify-center">
+                  <Button variant="accent" className="rounded-2xl px-12 h-16 font-black text-xs uppercase tracking-widest shadow-glow">
+                    Upload Resume <ChevronRight size={16} className="ml-2" />
+                  </Button>
+                </Link>
               </Card>
             )}
           </section>
