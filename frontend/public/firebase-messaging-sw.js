@@ -2,17 +2,14 @@
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
+// Import the generated configuration file (not committed to git)
+importScripts('/firebase-messaging-config.js');
+
 // Initialize the Firebase app in the service worker by passing in
-// your app's Firebase config object.
-// Use placeholders or inject these during build if possible.
-firebase.initializeApp({
-  apiKey: "AIzaSyDcrhK0c5j4aqwid81P5VzeM5Om75li1Rw",
-  authDomain: "job-ai-platform-c5816.firebaseapp.com",
-  projectId: "job-ai-platform-c5816",
-  storageBucket: "job-ai-platform-c5816.firebasestorage.app",
-  messagingSenderId: "29672691392",
-  appId: "1:29672691392:web:cce4dcd61f1ab8d9bebf25",
-});
+// the config initialized in the external script.
+if (self.firebaseConfig) {
+  firebase.initializeApp(self.firebaseConfig);
+}
 
 // Retrieve an instance of Firebase Messaging so that it can handle background
 // messages.

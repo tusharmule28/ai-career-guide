@@ -69,10 +69,48 @@ async def get_dashboard_summary(
             "text": "The market is currently listing several roles in your field. Upload a resume to see matching scores."
         })
         
+@router.get("/skill-gap", response_model=Dict[str, Any])
+async def get_skill_gap(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Detailed skill gap analysis comparing user profile against top matches.
+    """
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).order_by(Resume.uploaded_at.desc()).first()
+    
+    if not resume or not resume.embedding:
+        return {
+            "top_skills": [],
+            "missing_skills": [],
+            "match_score": 0,
+            "message": "Upload a resume to initialize skill gap analysis."
+        }
+    
+    # 1. Get matches
+    matches = await matching_service.find_matches(db, current_user, resume.extracted_text, top_n=3)
+    
+    if not matches:
+        return {
+            "top_skills": [],
+            "missing_skills": [],
+            "match_score": 0,
+            "message": "No matches found yet. Try narrowing your career profile."
+        }
+
+    # 2. Extract found and missing skills across top 3
+    found_all = []
+    missing_all = []
+    scores = []
+    
+    for m in matches:
+        found_all.extend(m.get("found_skills", []))
+        missing_all.extend(m.get("missing_skills", []))
+        scores.append(m.get("score", 0))
+    
+    # Deduplicate and count frequency if possible, but for now just list
     return {
-        "match_count": match_count,
-        "skill_score": round(avg_score, 1),
-        "application_count": application_count,
-        "activities": activities,
-        "recommendations": recommendations[:3]
+        "top_skills": list(set(found_all))[:10],
+        "missing_skills": list(set(missing_all))[:10],
+        "match_score": round(sum(scores) / len(scores), 1) if scores else 0,
     }

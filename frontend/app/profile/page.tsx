@@ -98,15 +98,15 @@ export default function ProfilePage() {
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-6 border border-primary-500/20 shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 rounded-full text-[10px] font-bold uppercase tracking-[0.05em] text-primary-400 mb-6 border border-primary-500/20 shadow-sm"
           >
-            <Sparkles size={12} className="animate-pulse" /> Identity Management
+            <Sparkles size={12} className="animate-pulse" /> Settings
           </motion.div>
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none mb-4">
-            Professional <span className="premium-gradient bg-clip-text text-transparent">Dossier</span>
+          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight leading-tight mb-4">
+            Professional <span className="premium-gradient bg-clip-text text-transparent">Profile</span>
           </h1>
-          <p className="text-text-secondary text-lg font-medium leading-relaxed max-w-xl">
-            Fine-tune your professional narrative and refine the neural matching accuracy of your trajectory.
+          <p className="text-text-secondary text-base font-medium leading-relaxed max-w-xl">
+            Update your professional details and refine your career goals to improve the accuracy of our AI matching system.
           </p>
         </div>
 
@@ -143,10 +143,10 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <h2 className="text-3xl font-black text-white leading-tight tracking-tighter">
-                {profile.full_name || user?.name || 'Pioneer'}
+              <h2 className="text-2xl font-bold text-white leading-tight tracking-tight">
+                {profile.full_name || user?.name || 'New Member'}
               </h2>
-              <div className="inline-flex mt-4 px-4 py-1.5 bg-primary-500/10 text-primary-400 text-[10px] font-black uppercase tracking-widest rounded-xl border border-primary-500/20 shadow-sm">
+              <div className="inline-flex mt-4 px-4 py-1.5 bg-primary-500/10 text-primary-400 text-[10px] font-bold uppercase tracking-wider rounded-xl border border-primary-500/20 shadow-sm">
                 {profile.job_title || 'Career Explorer'}
               </div>
 
@@ -193,14 +193,14 @@ export default function ProfilePage() {
 
           <Card className="bg-slate-950 p-10 rounded-[3rem] border border-white/10 shadow-glow relative overflow-hidden group isolate">
             <div className="relative z-10">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-8 flex items-center gap-3">
-                  <Sparkles size={16} /> Potency Index
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-primary-400 mb-8 flex items-center gap-3">
+                  <Sparkles size={16} /> Market Readiness
               </h3>
-              <div className="text-6xl font-black mb-4 text-white tracking-tighter leading-none">{profile.is_premium ? '98' : '65'}<span className="text-2xl text-primary-500">%</span></div>
-              <p className="text-sm text-text-muted font-bold leading-relaxed mb-10 italic">
+              <div className="text-5xl font-bold mb-4 text-white tracking-tight leading-tight">{profile.is_premium ? '98' : '65'}<span className="text-2xl text-primary-500">%</span></div>
+              <p className="text-sm text-text-muted font-medium leading-relaxed mb-10">
                 {profile.is_premium
-                  ? "Neural synchronization active. You are competing at peak market effectiveness."
-                  : "Initialize premium protocols to unlock elite sector matching and priority AI analysis."}
+                  ? "Your profile is fully optimized for top-tier matching."
+                  : "Upgrade to Premium to unlock full AI analysis and priority job recommendations."}
               </p>
               <div className="h-2.5 bg-background rounded-full overflow-hidden shadow-inner border border-white/5">
                 <motion.div 
@@ -318,7 +318,7 @@ export default function ProfilePage() {
                       className="h-16 px-12 font-black rounded-2xl shadow-glow"
                     >
                       <Save size={20} className="mr-2" />
-                      Commit Changes
+                      Save Changes
                     </Button>
                   </div>
                 </motion.div>
@@ -331,11 +331,11 @@ export default function ProfilePage() {
                     className="space-y-16"
                 >
                   <div className="flex justify-between items-center">
-                    <h3 className="text-3xl font-black text-white tracking-tight flex items-center gap-4">
+                    <h3 className="text-2xl font-bold text-white tracking-tight flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-primary-500/10 text-primary-400 flex items-center justify-center border border-primary-500/20 shadow-sm">
                         <Briefcase size={24} />
                       </div>
-                      Professional Dossier
+                      Personal Summary
                     </h3>
                     <button onClick={() => setIsEditing(true)} className="w-14 h-14 bg-surface border border-white/5 rounded-2xl flex items-center justify-center text-text-muted hover:text-primary-400 hover:border-primary-400 transition-all duration-300 transform active:scale-90">
                       <Edit3 size={24} />
@@ -344,21 +344,21 @@ export default function ProfilePage() {
 
                   <div className="space-y-12">
                     <section>
-                      <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-6">Briefing Narrative</h4>
-                      <p className="text-text-secondary leading-relaxed font-bold text-xl italic opacity-90">
-                        "{profile.bio || "Neural brief signature not found. Initialize profile description to enable AI semantic matching."}"
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-6">About Me</h4>
+                      <p className="text-text-secondary leading-relaxed font-medium text-lg opacity-90">
+                        {profile.bio || "No summary provided yet. Add a short bio to improve matching."}
                       </p>
                     </section>
 
                     <section>
-                      <h4 className="text-[10px] font-black text-text-muted uppercase tracking-[0.3em] mb-8">Expertise Signatures</h4>
-                      <div className="flex flex-wrap gap-3">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-8">Professional Skills</h4>
+                      <div className="flex flex-wrap gap-2">
                         {skillsList.length > 0 ? skillsList.map((skill: string, i: number) => (
-                          <span key={skill+i} className="px-6 py-3 bg-background border border-white/5 text-text-secondary rounded-2xl text-xs font-black uppercase tracking-widest hover:border-primary-500 hover:text-white transition-all transform-gpu hover:scale-105 cursor-default">
+                          <span key={skill+i} className="px-5 py-2.5 bg-background border border-white/5 text-text-secondary rounded-2xl text-[11px] font-bold uppercase tracking-wider hover:border-primary-500 hover:text-white transition-all transform-gpu hover:scale-105 cursor-default">
                             {skill}
                           </span>
                         )) : (
-                          <p className="text-text-muted italic text-sm font-bold">No expertise signatures detected.</p>
+                          <p className="text-text-muted italic text-sm font-medium">No skills listed yet.</p>
                         )}
                       </div>
                     </section>
@@ -369,9 +369,9 @@ export default function ProfilePage() {
           </Card>
 
           {/* AI Insights / Recommended Jobs */}
-          <section className="space-y-10">
+          <section className="space-y-8">
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <h3 className="text-3xl font-black text-white tracking-tight">Target Trajectories</h3>
+              <h3 className="text-2xl font-bold text-white tracking-tight">Recommended Jobs</h3>
               <Button
                 variant="ghost"
                 size="sm"
@@ -380,7 +380,7 @@ export default function ProfilePage() {
                 className="text-[10px] font-black text-text-muted hover:text-primary-400 uppercase tracking-widest gap-2"
               >
                 {!matchingLoading && <RefreshCw size={14} className="group-hover:rotate-180 transition-transform" />}
-                Sync Field
+                Refresh Matches
               </Button>
             </div>
 

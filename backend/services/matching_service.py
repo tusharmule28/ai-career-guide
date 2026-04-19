@@ -92,37 +92,49 @@ class MatchingService:
         candidates = query.all()
         results = []
         
-        user_skills = set(s.strip().lower() for s in (user.skills or "").split(",") if s.strip())
+        def normalize_skill(s: str) -> str:
+            return s.lower().replace(".", "").replace("-", "").strip()
+
+        user_skills_raw = (user.skills or "").split(",")
+        user_skills = set(normalize_skill(s) for s in user_skills_raw if s.strip())
         user_exp = user.experience_years or 0
         user_loc = (user.location or "").lower()
 
         for cand in candidates:
-            # cand is now a keyed tuple, not a Job object
-            # cand: (id, title, company, location, required_skills, exp_min, exp_max, work_type, logo, apply_url, distance)
+            # --- A. Skill Score (60%) ---
+            # Semantic similarity starts at 0.0 - 1.0 (clamped distance)
+            semantic_sim = max(0, min(100, (1.2 - float(cand.distance)) * 83.3))
             
-            # --- A. Skill Score (50%) ---
-            semantic_sim = max(0, (1.2 - float(cand.distance)) * 83.3)
-            
-            job_skills = [s.lower() for s in cand.required_skills] if cand.required_skills else []
+            job_skills = [normalize_skill(s) for s in cand.required_skills] if cand.required_skills else []
             if job_skills:
                 overlap = len(user_skills.intersection(set(job_skills)))
                 keyword_score = (overlap / len(job_skills)) * 100
-                skill_score = (semantic_sim * 0.4) + (keyword_score * 0.6)
+                
+                # If we have literal keyword matches, they should dominate the skill score
+                if overlap > 0:
+                    skill_score = (semantic_sim * 0.3) + (keyword_score * 0.7)
+                else:
+                    skill_score = semantic_sim * 0.8 # Slightly penalize if no keywords match at all
             else:
                 skill_score = semantic_sim
 
             # --- B. Experience Score (30%) ---
+            # 100% match if within range or just slightly above
             exp_score = 100
             j_min = cand.experience_min or 0
             j_max = cand.experience_max or (j_min + 3)
             
             if user_exp < j_min:
+                # Underqualified
                 diff = j_min - user_exp
-                exp_score = max(0, 100 - (diff * 20)) 
-            elif user_exp > j_max + 2:
-                exp_score = 80 
+                exp_score = max(0, 100 - (diff * 25)) 
+            elif user_exp > j_max:
+                # Overqualified - give a 15% penalty per year over j_max + 2
+                over_years = user_exp - j_max
+                if over_years > 2:
+                    exp_score = max(40, 100 - ((over_years - 2) * 15))
             
-            # --- C. Location Score (20%) ---
+            # --- C. Location Score (10%) ---
             loc_score = 0
             job_loc = (cand.location or "").lower()
             work_type = (cand.work_type or "On-site").lower()
@@ -132,40 +144,36 @@ class MatchingService:
             elif user_loc and job_loc:
                 if user_loc in job_loc or job_loc in user_loc:
                     loc_score = 100
-                elif "," in user_loc and "," in job_loc:
-                    u_country = user_loc.split(",")[-1].strip().lower()
-                    j_country = job_loc.split(",")[-1].strip().lower()
-                    if u_country == j_country:
-                        loc_score = 80
-                    else:
-                        loc_score = 20
                 else:
-                    loc_score = 30
+                    loc_score = 40
             else:
-                loc_score = 50
+                loc_score = 70 # Neutral if data missing
 
-            # --- D. Recency Boost (Extra) ---
-            recency_boost = 0
+            # --- Final Score Calculation ---
+            final_score = (skill_score * 0.6) + (exp_score * 0.3) + (loc_score * 0.1)
+            
+            # Recency Boost (Extra 5 pts)
             if cand.posted_at:
                 from datetime import datetime, timezone, timedelta
                 age = datetime.now(timezone.utc) - cand.posted_at.replace(tzinfo=timezone.utc)
-                if age < timedelta(hours=24):
-                    recency_boost = 10 # +10 points for fresh jobs
-                elif age > timedelta(days=7):
-                    recency_boost = -5 # -5 points for old jobs
-
-            final_score = (skill_score * 0.5) + (exp_score * 0.3) + (loc_score * 0.2) + recency_boost
-            final_score = max(0, min(100, final_score)) # Clamp to [0, 100]
+                if age < timedelta(hours=48):
+                    final_score += 5
+            
+            final_score = max(0, min(100, final_score))
             
             reasons = []
-            if recency_boost > 0: reasons.append("Freshly posted job")
-            if skill_score > 80: reasons.append("Strong skill alignment")
-            if loc_score == 100: reasons.append("Located in your area" if work_type != "remote" else "Remote opportunity")
-            if exp_score == 100: reasons.append("Fits your experience level")
-            if not reasons: reasons.append("Matches your career profile")
+            if skill_score > 85: reasons.append("Excellent skill alignment")
+            elif skill_score > 70: reasons.append("Strong technical fit")
+            
+            if exp_score >= 90: reasons.append("Perfect experience level")
+            elif exp_score < 60: reasons.append("Slightly outside typical exp range")
+            
+            if loc_score == 100: reasons.append("Flexible location")
+            
+            if not reasons: reasons.append("Relevant opportunity")
 
             results.append({
-                "job": cand, # Note: this is a row proxy, might need to be converted to dict or Job object for the frontend
+                "job": cand,
                 "score": round(final_score, 1),
                 "match_reason": reasons[0],
                 "all_reasons": reasons,

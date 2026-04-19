@@ -11,12 +11,20 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const isConfigValid = !!firebaseConfig.apiKey && !!firebaseConfig.projectId;
+
+const app = (!getApps().length && isConfigValid) 
+  ? initializeApp(firebaseConfig) 
+  : (getApps().length ? getApp() : null);
+
+if (!isConfigValid && typeof window !== "undefined") {
+  console.warn("Firebase configuration is missing. Notifications will be disabled. Check your environment variables.");
+}
 
 let messaging: Messaging | undefined;
 
 // Messaging only works in the browser
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && app) {
   try {
     messaging = getMessaging(app);
   } catch (err) {
