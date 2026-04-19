@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 import psutil
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -130,6 +131,11 @@ def create_application() -> FastAPI:
 
     # Include API router
     app.include_router(api_router, prefix="/api/v1")
+
+    # Serve static files from uploads directory
+    if not os.path.exists("uploads"):
+        os.makedirs("uploads", exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
     @app.on_event("startup")
     async def on_startup():

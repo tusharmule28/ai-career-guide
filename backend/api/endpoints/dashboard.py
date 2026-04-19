@@ -77,6 +77,7 @@ async def get_dashboard_summary(
         "recommendations": recommendations
     }
 
+@router.get("/skill-gap")
 async def get_skill_gap(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
