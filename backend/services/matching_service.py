@@ -66,8 +66,15 @@ class MatchingService:
         embeddings = await embedding_service.generate_embedding(resume_text)
         resume_embedding = embeddings.tolist()
         
+        from models.application import Application
+
         # Fetch fewer fields initially to save memory
-        fetch_limit = 50 
+        # We increase fetch_limit slightly to ensure we have enough after filtering
+        fetch_limit = top_n + skip + 50 
+        
+        # Subquery for applied jobs
+        applied_job_ids = db.query(Application.job_id).filter(Application.user_id == user.id).subquery()
+
         query = (
             db.query(
                 Job.id, Job.title, Job.company, Job.location, 
@@ -77,6 +84,7 @@ class MatchingService:
                 Job.embedding.cosine_distance(resume_embedding).label("distance")
             )
             .filter(Job.embedding != None)
+            .filter(~Job.id.in_(applied_job_ids))
             .order_by("distance")
             .limit(fetch_limit)
         )
@@ -136,9 +144,21 @@ class MatchingService:
             else:
                 loc_score = 50
 
-            final_score = (skill_score * 0.5) + (exp_score * 0.3) + (loc_score * 0.2)
+            # --- D. Recency Boost (Extra) ---
+            recency_boost = 0
+            if cand.posted_at:
+                from datetime import datetime, timezone, timedelta
+                age = datetime.now(timezone.utc) - cand.posted_at.replace(tzinfo=timezone.utc)
+                if age < timedelta(hours=24):
+                    recency_boost = 10 # +10 points for fresh jobs
+                elif age > timedelta(days=7):
+                    recency_boost = -5 # -5 points for old jobs
+
+            final_score = (skill_score * 0.5) + (exp_score * 0.3) + (loc_score * 0.2) + recency_boost
+            final_score = max(0, min(100, final_score)) # Clamp to [0, 100]
             
             reasons = []
+            if recency_boost > 0: reasons.append("Freshly posted job")
             if skill_score > 80: reasons.append("Strong skill alignment")
             if loc_score == 100: reasons.append("Located in your area" if work_type != "remote" else "Remote opportunity")
             if exp_score == 100: reasons.append("Fits your experience level")

@@ -105,6 +105,16 @@ const JobCard: React.FC<JobCardProps> = ({
             )}>
               {highlight ? "Elite Match" : (targetJob.work_type || "Full-time")}
             </span>
+            {source && (
+              <span className={cn(
+                  "px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.15em] rounded-md border flex items-center gap-1",
+                  source.toLowerCase().includes('linkedin') 
+                      ? "bg-[#0077b5]/10 text-[#0077b5] border-[#0077b5]/20" 
+                      : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+              )}>
+                {source}
+              </span>
+            )}
             {targetJob.posted_at && (
                 <span className="flex items-center gap-1 text-[9px] text-text-muted font-bold uppercase tracking-wider">
                     <Clock size={10} />

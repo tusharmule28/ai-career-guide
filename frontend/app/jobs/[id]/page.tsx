@@ -329,7 +329,11 @@ export default function JobDetailPage({ params }: { params: Promise<{ id: string
                       <Button 
                          variant="accent"
                          className="w-full h-16 rounded-2xl font-black text-base shadow-glow uppercase tracking-[0.1em]"
-                         onClick={() => window.open(job.apply_url, '_blank')}
+                         onClick={async () => {
+                            const store = (await import('@/lib/store/jobStore')).useJobStore.getState();
+                            await store.applyToJob(job.id);
+                            window.open(job.apply_url, '_blank');
+                         }}
                       >
                          Launch Application <ExternalLink size={20} className="ml-2" />
                       </Button>

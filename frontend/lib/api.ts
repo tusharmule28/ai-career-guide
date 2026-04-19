@@ -98,6 +98,8 @@ export const api = {
     request(endpoint, { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   put: (endpoint: string, body?: any, options?: any) =>
     request(endpoint, { ...options, method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+  patch: (endpoint: string, body?: any, options?: any) =>
+    request(endpoint, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   delete: (endpoint: string, options?: any) => request(endpoint, { ...options, method: 'DELETE' }),
 
   login: async (username: string, password: string) => {

@@ -28,11 +28,18 @@ class IndianJobsScraper:
         jobs = []
         try:
             logger.info("Navigating to Indeed India...")
-            await page.goto(self.targets[0]["url"], wait_until="networkidle", timeout=60000)
+            # Reduced timeout and added more robust wait
+            await page.goto(self.targets[0]["url"], wait_until="domcontentloaded", timeout=30000)
             
-            # Scroll to load more if needed
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await asyncio.sleep(2)
+            # Wait for specific element instead of generic networkidle
+            try:
+                await page.wait_for_selector(".job_seen_beacon", timeout=10000)
+            except Exception:
+                logger.warning("Timeout waiting for job cards. Page might be restricted or slow.")
+
+            # Scroll to load more with a small limit
+            await page.evaluate("window.scrollTo(0, 1000)")
+            await asyncio.sleep(1)
 
             content = await page.content()
             soup = BeautifulSoup(content, "html.parser")

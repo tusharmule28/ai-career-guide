@@ -18,21 +18,21 @@ class JobFetcher:
         self.remotive_url = "https://remotive.com/api/remote-jobs?limit=20"
         self.wwr_rss_url = "https://weworkremotely.com/remote-jobs.rss"
 
-    async def fetch_india_jobs(self, search_term: str = "Software Engineer", limit: int = 10) -> List[Dict[str, Any]]:
+    async def fetch_india_jobs(self, search_term: str = "Software Engineer", limit: int = 15, hours_old: int = 24) -> List[Dict[str, Any]]:
         """
         Fetch jobs from LinkedIn and Indeed for India using JobSpy.
-        Optimized to reduce memory overhead.
+        Optimized to reduce memory overhead and prioritize fresh results.
         """
         try:
-            logger.info(f"Scraping '{search_term}' jobs in India...")
+            logger.info(f"Scraping '{search_term}' jobs in India (last {hours_old}h)...")
             
             def do_scrape():
                 return scrape_jobs(
-                    site_name=["linkedin", "indeed"], 
+                    site_name=["linkedin", "indeed", "google"], 
                     search_term=search_term,
                     location="India",
-                    results_wanted=limit,
-                    hours_old=72,
+                    results_wanted=limit + 5,
+                    hours_old=hours_old,
                     country_indeed='india',
                 )
 
@@ -70,18 +70,35 @@ class JobFetcher:
             logger.error(f"Error fetching from JobSpy for '{search_term}': {e}")
             return []
 
-    async def sync_jobs(self, db: Session, user_location: Optional[str] = None) -> List[Job]:
+    async def sync_jobs(self, db: Session, user_location: Optional[str] = None, force_sync: bool = False) -> List[Job]:
         """
         Fetch jobs from all sources and save new ones to the database.
         Optimized for memory-constrained environments (Render).
-        Targeted scanning based on user_location to prioritize local hubs.
+        Adds a 4-hour cooldown unless force_sync is True.
         """
+        from datetime import datetime, timedelta, timezone
+        
+        # 0. Cooldown logic (default 4 hours)
+        if not force_sync:
+            latest_job = db.query(Job).order_by(Job.posted_at.desc()).first()
+            if latest_job and latest_job.posted_at:
+                # Ensure posted_at has timezone info if needed, or assume UTC
+                last_update = latest_job.posted_at
+                if last_update.tzinfo is None:
+                    last_update = last_update.replace(tzinfo=timezone.utc)
+                
+                if datetime.now(timezone.utc) - last_update < timedelta(hours=4):
+                    logger.info("Skipping sync: Last update was less than 4 hours ago.")
+                    return []
+
         logger.info(f"Starting Job Sync: Targeting {user_location or 'Global'} Intel...")
         
-        # 1. IndianJobsScraper (Playwright) - Close aggressively
+        # 1. IndianJobsScraper (Playwright) - Optional/Fallback
         try:
-            await indian_jobs_scraper.run_sync(db)
-            gc.collect() 
+            # We only run the heavy playwright scraper if force_sync is true or as a secondary
+            if force_sync:
+                await indian_jobs_scraper.run_sync(db)
+                gc.collect() 
         except Exception as e:
             logger.error(f"IndianJobsScraper failed: {e}")
 
@@ -90,46 +107,38 @@ class JobFetcher:
         
         # Determine target cities based on user location
         target_hubs = []
-        is_india_user = False
         
         if user_location:
             loc_lower = user_location.lower()
             if "india" in loc_lower:
-                is_india_user = True
-                # Extract city if possible
                 city = user_location.split(",")[0].strip()
                 if city and len(city) > 2:
                     target_hubs.append(city)
-                # Always include major hubs for India users
                 target_hubs.extend(["Bangalore", "Hyderabad", "Remote, India"])
             else:
-                # Global/US user
                 city = user_location.split(",")[0].strip()
                 if city: target_hubs.append(city)
                 target_hubs.extend(["Remote", "London", "San Francisco"])
         else:
-            # Default fallback
             target_hubs = ["Bangalore", "Remote, India", "Remote"]
 
-        # Deduplicate and limit hubs to save memory
+        # Deduplicate and limit hubs
         target_hubs = list(dict.fromkeys(target_hubs))[:4] 
         
-        new_jobs = []
+        synced_jobs = []
         for city in target_hubs:
             for term in base_search_terms:
-                # Logic: Fetch fewer results per combination but more relevant
-                jobs_data = await self.fetch_india_jobs(search_term=f"{term} {city}", limit=5)
+                # Fetch fresh jobs (last 24h)
+                jobs_data = await self.fetch_india_jobs(search_term=f"{term} {city}", limit=10, hours_old=24)
                 
                 if not jobs_data:
                     continue
                 
                 for job_data in jobs_data:
-                    # Check for existing job by external_id (Fast)
                     existing_id = db.query(Job).filter(Job.external_id == job_data["external_id"]).first()
                     if existing_id:
                         continue
                     
-                    # Check for duplicate content (Robust)
                     content_hash = deduplication_service.generate_content_hash(
                         job_data["title"], 
                         job_data["description"], 
@@ -139,7 +148,6 @@ class JobFetcher:
                     if existing_hash:
                         continue
 
-                    # Create new job
                     new_job = Job(
                         external_id=job_data["external_id"],
                         content_hash=content_hash,
@@ -154,33 +162,31 @@ class JobFetcher:
                         company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
                     )
                     
-                    # Generate embedding
-                    content_to_embed = f"{new_job.title} {new_job.description[:1500]}" 
                     try:
+                        content_to_embed = f"{new_job.title} {new_job.description[:1500]}" 
                         embedding = await embedding_service.generate_embedding(content_to_embed)
                         new_job.embedding = embedding.tolist()
                         
                         db.add(new_job)
-                        new_jobs.append(new_job)
+                        synced_jobs.append(new_job)
                     except Exception as e:
                         logger.error(f"Failed to generate embedding for job {new_job.external_id}: {e}")
                         continue
                 
-                # Proactive cleanup
-                if len(new_jobs) >= 5:
+                if len(synced_jobs) >= 5:
                     db.commit()
-                    new_jobs = [] 
+                    synced_jobs = [] 
                     gc.collect()
 
-                # Optimized delay for free tier
-                await asyncio.sleep(10)
+                # Reduced delay for better performance, still respecting rate limits
+                await asyncio.sleep(5)
                 gc.collect()
         
-        # Final cleanup
-        if len(new_jobs) > 0:
+        if len(synced_jobs) > 0:
             db.commit()
             gc.collect()
         
         return []
+
 
 job_fetcher = JobFetcher()

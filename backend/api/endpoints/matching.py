@@ -17,9 +17,10 @@ class MatchRequest(BaseModel):
     resume_id: Optional[int] = None
     top_n: int = 10
     skip: int = 0
-    sort_newest: bool = False # Weighted scoring handles relevance now
+    sort_newest: bool = False # Weighted scoring handles relevance, but this can be a tie-breaker
     min_score: float = 0.0
     recent_only: bool = False
+    force_sync: bool = False # Explicitly trigger a fresh scrape
 
 @router.post("/match", response_model=List[dict])
 async def match_resume_to_jobs(
@@ -32,8 +33,8 @@ async def match_resume_to_jobs(
     Match a resume + profile against all available jobs.
     If resume_id is not provided, uses the current user's latest resume.
     """
-    # Trigger background job fetch to ensure fresh data for NEXT time or later
-    background_tasks.add_task(job_fetcher.sync_jobs, db)
+    # Trigger background job fetch to ensure fresh data
+    background_tasks.add_task(job_fetcher.sync_jobs, db, force_sync=request.force_sync)
 
     resume_id = request.resume_id
     top_n = request.top_n

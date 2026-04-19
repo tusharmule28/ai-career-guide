@@ -13,7 +13,8 @@ import {
   X, 
   User as UserIcon,
   ShieldCheck,
-  Bell
+  Bell,
+  ClipboardList
 } from 'lucide-react';
 import Button, { cn } from './ui/Button';
 import { api } from '@/lib/api';
@@ -69,6 +70,7 @@ const Navbar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Jobs', href: '/jobs', icon: Briefcase },
+    { name: 'Applied Jobs', href: '/dashboard/history', icon: ClipboardList },
   ];
 
   const isActive = (path: string) => pathname === path;

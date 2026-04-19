@@ -208,7 +208,14 @@ const ApplyWithAIModal: React.FC<{
           </div>
           <Button
             className="w-full sm:w-auto px-8 rounded-2xl font-black bg-white text-black hover:bg-slate-200"
-            onClick={() => window.open(job.apply_url, '_blank')}
+            onClick={async () => {
+              // Trigger tracking in our system first
+              const store = (await import('@/lib/store/jobStore')).useJobStore.getState();
+              await store.applyToJob(job.id || (job as any).job_id);
+              // Then open external link
+              window.open(job.apply_url, '_blank');
+              onClose();
+            }}
           >
             Submit Application →
           </Button>
