@@ -63,7 +63,7 @@ const JobCard: React.FC<JobCardProps> = ({
 
   const matchScore: number = job.score || targetJob.score || 0;
   const source = targetJob.source || null;
-  const jobId = targetJob.id;
+  const jobId = targetJob.id || (targetJob as any).job_id;
   const matchReason = job.match_reason || targetJob.match_reason || null;
   
   const skills = Array.isArray(targetJob.required_skills) 

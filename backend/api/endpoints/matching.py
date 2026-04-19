@@ -81,7 +81,7 @@ async def match_resume_to_jobs(
         for match in matches:
             job = match["job"]
             response_data.append({
-                "job_id": job.id,
+                "id": job.id,
                 "title": job.title,
                 "company": job.company,
                 "score": match["score"],
@@ -134,7 +134,7 @@ async def match_text_to_jobs(
         for match in matches:
             job = match["job"]
             response_data.append({
-                "job_id": job.id,
+                "id": job.id,
                 "title": job.title,
                 "company": job.company,
                 "score": match["score"],

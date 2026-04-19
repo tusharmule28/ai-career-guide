@@ -237,7 +237,8 @@ const ApplyWithAIBtn: React.FC<ApplyWithAIBtnProps> = ({
     }
     setModalState('loading');
     try {
-      const data = await api.post('/agent/apply-with-ai', { job_id: job.id }) as ApplyWithAIResult;
+      const targetJobId = job.id || (job as any).job_id;
+      const data = await api.post('/agent/apply-with-ai', { job_id: targetJobId }) as ApplyWithAIResult;
       setResult(data);
       setModalState('success');
       if (onCreditsUsed && data.credits_remaining !== -1) {
