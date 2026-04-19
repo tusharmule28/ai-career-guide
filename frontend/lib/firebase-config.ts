@@ -18,7 +18,11 @@ const app = (!getApps().length && isConfigValid)
   : (getApps().length ? getApp() : null);
 
 if (!isConfigValid && typeof window !== "undefined") {
-  console.warn("Firebase configuration is missing. Notifications will be disabled. Check your environment variables.");
+  const missingKeys = [];
+  if (!firebaseConfig.apiKey) missingKeys.push("NEXT_PUBLIC_FIREBASE_API_KEY");
+  if (!firebaseConfig.projectId) missingKeys.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+  
+  console.warn(`Firebase configuration is missing for: ${missingKeys.join(", ")}. Notifications will be disabled. Check your environment variables.`);
 }
 
 let messaging: Messaging | undefined;

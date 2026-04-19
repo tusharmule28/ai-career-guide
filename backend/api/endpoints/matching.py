@@ -62,10 +62,8 @@ async def match_resume_to_jobs(
     combined_text = f"{profile_context} {resume_text}".strip()
 
     if not combined_text:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No resume or profile info found to match. Please update your profile or upload a resume."
-        )
+        # Return empty list instead of 400 for better UX on new accounts
+        return []
         
     try:
         # Fetch matches using the new weighted logic

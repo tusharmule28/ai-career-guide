@@ -68,8 +68,15 @@ async def get_dashboard_summary(
             "category": "Market Insight",
             "text": "The market is currently listing several roles in your field. Upload a resume to see matching scores."
         })
-        
-@router.get("/skill-gap", response_model=Dict[str, Any])
+    
+    return {
+        "match_count": match_count,
+        "avg_score": round(avg_score, 1),
+        "application_count": application_count,
+        "activities": activities,
+        "recommendations": recommendations
+    }
+
 async def get_skill_gap(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
