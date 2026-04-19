@@ -45,18 +45,19 @@ export default function ProfilePage() {
   const [matchingLoading, setMatchingLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await api.get('/users/profile');
-        if (data) {
-          setProfile(data);
-          fetchMatchingJobs();
-        }
-      } catch (err) {
-        console.error('Failed to fetch profile:', err);
+  const fetchProfile = async () => {
+    try {
+      const data = await api.get('/users/profile');
+      if (data) {
+        setProfile(data);
+        fetchMatchingJobs();
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
   }, []);
 
