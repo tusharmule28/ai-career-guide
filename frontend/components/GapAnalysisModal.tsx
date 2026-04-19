@@ -70,8 +70,8 @@ const GapAnalysisModal: React.FC<GapAnalysisModalProps> = ({ isOpen, onClose }) 
                   <Sparkles size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-white tracking-tight">Career Architecture Gap</h3>
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Market Readiness Sync</p>
+                  <h3 className="text-2xl font-black text-white tracking-tight">Resume Analysis</h3>
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-widest">Market Readiness Review</p>
                 </div>
               </div>
               <button 
@@ -107,7 +107,7 @@ const GapAnalysisModal: React.FC<GapAnalysisModalProps> = ({ isOpen, onClose }) 
                   {/* Score Card */}
                   <div className="flex items-center justify-between p-8 bg-surface rounded-[2rem] border border-white/5 relative overflow-hidden group">
                     <div className="relative z-10">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-2">Market Potency Index</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted mb-2">Match Readiness</p>
                       <p className="text-5xl font-black text-white tracking-tighter">{analysis.readiness_score}%</p>
                     </div>
                     <div className="relative z-10 flex flex-col items-end">
@@ -129,7 +129,7 @@ const GapAnalysisModal: React.FC<GapAnalysisModalProps> = ({ isOpen, onClose }) 
                   <div>
                     <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                       <div className="w-8 h-8 bg-primary-500/10 text-primary-400 rounded-xl flex items-center justify-center text-xs">01</div>
-                      Elite Recommendations
+                      Key Suggestions
                     </h4>
                     <div className="space-y-3">
                       {analysis.improvement_suggestions?.map((item, i) => (
@@ -159,7 +159,7 @@ const GapAnalysisModal: React.FC<GapAnalysisModalProps> = ({ isOpen, onClose }) 
                   {/* Structural Feedback */}
                   <div className="p-8 bg-primary-500/5 rounded-[2.5rem] border border-primary-500/10 relative overflow-hidden">
                     <h4 className="text-xs font-black text-primary-400 uppercase tracking-[0.2em] flex items-center gap-3 mb-4">
-                       <CheckCircle2 size={18} /> Structural Narrative
+                       <CheckCircle2 size={18} /> Analysis Summary
                     </h4>
                     <p className="text-text-secondary text-sm font-medium leading-relaxed italic">
                         "{analysis.structural_feedback}"

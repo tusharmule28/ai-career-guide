@@ -215,7 +215,7 @@ export default function ApplyWithAIBtn({ job, isPremium, creditsRemaining = 3, o
                         className="w-full h-12 rounded-2xl bg-gradient-to-r from-primary-500 to-accent-500 text-white font-black text-sm tracking-wide flex items-center justify-center gap-2 hover:opacity-90 active:scale-98 transition-all shadow-glow disabled:opacity-60"
                       >
                         {loadingPreview ? (
-                          <><Loader2 size={16} className="animate-spin" /> Generating Preview…</>
+                          <><Loader2 size={16} className="animate-spin" /> Preparing Preview…</>
                         ) : (
                           <><Eye size={16} /> Preview Cover Letter <ChevronRight size={15} /></>
                         )}
@@ -276,7 +276,7 @@ export default function ApplyWithAIBtn({ job, isPremium, creditsRemaining = 3, o
                       </div>
                       <div>
                         <p className="text-sm font-black text-white mb-1">Submitting Your Application</p>
-                        <p className="text-[11px] text-text-muted font-bold">AI is personalizing your pitch…</p>
+                        <p className="text-[11px] text-text-muted font-bold">AI is drafting your letter…</p>
                       </div>
                       {/* Progress stages */}
                       <div className="w-full space-y-2 mt-2">

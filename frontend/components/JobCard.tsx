@@ -77,9 +77,9 @@ const JobCard: React.FC<JobCardProps> = ({
     try {
       await api.post(`/jobs/${jobId}/save`);
       setSaved(true);
-      toast.success('Strategy bookmarked!');
+      toast.success('Job saved!');
     } catch {
-      toast.error('Sync failed.');
+      toast.error('Could not save.');
     }
   };
 
@@ -104,7 +104,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 ? "bg-primary-500/10 text-primary-400 border-primary-500/20"
                 : "bg-background text-text-muted border-border/50"
             )}>
-              {highlight ? "Elite Match" : (targetJob.work_type || "Full-time")}
+              {highlight ? "Top Match" : (targetJob.work_type || "Full-time")}
             </span>
             {source && (
               <span className={cn(
@@ -119,7 +119,7 @@ const JobCard: React.FC<JobCardProps> = ({
             {targetJob.posted_at && (
               <span className="flex items-center gap-1 text-[9px] text-text-muted font-bold uppercase tracking-wider">
                 <Clock size={9} />
-                {new Date(targetJob.posted_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                {new Date(targetJob.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
           </div>

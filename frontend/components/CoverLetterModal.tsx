@@ -74,7 +74,7 @@ const CoverLetterModal: React.FC<CoverLetterModalProps> = ({ isOpen, onClose, jo
                   <FileText size={24} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-white tracking-tight">AI Bespoke Narrative</h3>
+                  <h3 className="text-2xl font-black text-white tracking-tight">AI Cover Letter</h3>
                   <p className="text-xs font-bold text-text-muted uppercase tracking-widest">{job.title} at {job.company}</p>
                 </div>
               </div>
@@ -103,7 +103,7 @@ const CoverLetterModal: React.FC<CoverLetterModalProps> = ({ isOpen, onClose, jo
                   </p>
                   <Button onClick={generate} size="lg" className="h-16 px-12 rounded-2xl font-black shadow-glow transform transition-transform hover:scale-105 active:scale-95">
                     <Sparkles size={20} className="mr-2" />
-                    Initialize Synthesis
+                    Generate Letter
                   </Button>
                 </div>
               )}
@@ -136,7 +136,7 @@ const CoverLetterModal: React.FC<CoverLetterModalProps> = ({ isOpen, onClose, jo
                   <div>
                     <div className="flex items-center justify-between mb-6">
                       <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
-                        <FileText size={16} className="text-primary-400" /> Professional Narrative
+                        <FileText size={16} className="text-primary-400" /> Professional Letter
                       </h4>
                       <button
                         onClick={handleCopy}
@@ -178,7 +178,7 @@ const CoverLetterModal: React.FC<CoverLetterModalProps> = ({ isOpen, onClose, jo
                   {result.pre_fill_data && (
                     <div className="pt-6 border-t border-border/50">
                       <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                        <User2 size={16} className="text-primary-400" /> Deployment Payload
+                        <User2 size={16} className="text-primary-400" /> Application Data
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {Object.entries(result.pre_fill_data).map(([key, value]) => value ? (

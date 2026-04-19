@@ -51,9 +51,9 @@ self.addEventListener('fetch', (event) => {
   if (url.protocol === 'chrome-extension:') return;
   if (url.pathname.startsWith('/_next/webpack-hmr')) return;
 
-  // ── API requests → Network First, fall back to cache (5s timeout) ──
+  // ── API requests → Network First, fall back to cache (15s timeout) ──
   if (url.pathname.startsWith('/api/') || url.hostname !== location.hostname) {
-    event.respondWith(networkFirstWithTimeout(request, API_CACHE, 5000));
+    event.respondWith(networkFirstWithTimeout(request, API_CACHE, 15000));
     return;
   }
 
@@ -92,22 +92,39 @@ async function cacheFirst(request, cacheName) {
   }
 }
 
-async function networkFirstWithTimeout(request, cacheName, timeout) {
+async function networkFirstWithTimeout(request, cacheName, timeout = 15000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
   try {
-    const response = await fetch(request, { signal: controller.signal });
+    const response = await fetch(request, { 
+      signal: controller.signal,
+      cache: 'no-store' // Avoid browser caching for API calls
+    });
+    
     clearTimeout(timer);
+    
     if (response.ok) {
       const cache = await caches.open(cacheName);
       cache.put(request, response.clone());
     }
     return response;
-  } catch {
+  } catch (error) {
     clearTimeout(timer);
+    
+    // Check if we have a cached version
     const cached = await caches.match(request);
     if (cached) return cached;
-    return new Response(JSON.stringify({ error: 'Offline', cached: false }), {
+
+    // Return a more descriptive error JSON
+    const errorData = {
+      error: 'Backend Unreachable',
+      message: error.name === 'AbortError' 
+        ? 'Request timed out. The server might be waking up.' 
+        : 'Could not connect to the backend.',
+      retryHint: 'Please check your connection or wait a moment.'
+    };
+
+    return new Response(JSON.stringify(errorData), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
     });
