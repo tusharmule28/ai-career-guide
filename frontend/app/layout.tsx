@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import InstallPrompt from "@/components/InstallPrompt";
+import FirebaseTokenManager from "@/components/FirebaseTokenManager";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
@@ -64,6 +65,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-background text-text">
         <AuthProvider>
+          <FirebaseTokenManager />
           <ServiceWorkerRegistration />
           <Navbar />
           <main className="flex-1 pb-20 md:pb-0">

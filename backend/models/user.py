@@ -10,6 +10,7 @@ class User(Base):
     name = Column(String, nullable=True)
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
+    fcm_token = Column(String, nullable=True) # FCM Device Token
     
     # Profile Enhancements
     bio = Column(String, nullable=True)

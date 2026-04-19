@@ -49,7 +49,7 @@ const Navbar = () => {
 
   const markAsRead = async (id: number) => {
     try {
-      await api.post(`/notifications/${id}/read`);
+      await api.patch(`/notifications/${id}/read`);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (err) {
@@ -59,7 +59,7 @@ const Navbar = () => {
 
   const markAllRead = async () => {
     try {
-      await api.post('/notifications/read-all');
+      await api.patch('/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
     } catch (err) {
