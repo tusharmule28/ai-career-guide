@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { toast } from 'react-hot-toast';
-import { Search, Filter, Sparkles, Loader2, RefreshCw, Bookmark, LayoutGrid, Zap } from 'lucide-react';
+import { Search, Sparkles, RefreshCw, Bookmark, LayoutGrid, Zap } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useJobStore } from '@/lib/store/jobStore';
 import { useAuth } from '@/lib/auth-context';
@@ -12,7 +13,10 @@ import { JobCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { SyncStatusOverlay } from '@/components/SyncStatusOverlay';
+const SyncStatusOverlay = dynamic(
+  () => import('@/components/SyncStatusOverlay').then(m => ({ default: m.SyncStatusOverlay })),
+  { ssr: false }
+);
 
 type TabType = 'recommended' | 'all' | 'saved';
 
@@ -107,7 +111,7 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="section-container pb-24">
+    <div className="section-container safe-bottom">
       <SyncStatusOverlay isVisible={isSyncing} />
       
       {/* Header Area */}
@@ -152,7 +156,7 @@ export default function JobsPage() {
       </div>
 
       {/* Tabs System */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 p-2 bg-surface/30 rounded-3xl border border-border/50 backdrop-blur-sm sticky top-24 z-30 shadow-xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 p-2 bg-surface/30 rounded-3xl border border-border/50 backdrop-blur-sm sticky top-16 md:top-20 z-30 shadow-xl">
         <div className="flex p-1 bg-background/50 rounded-2xl border border-white/5 shadow-inner grow md:grow-0">
           {tabs.map((tab) => (
             <button

@@ -1,7 +1,5 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
-
 @theme {
   --color-primary-50: #EEF2FF;
   --color-primary-100: #E0E7FF;
@@ -29,7 +27,7 @@
 
   --color-background: #0F172A;
   --color-surface: #1E293B;
-  
+
   --color-text: #F8FAFC;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
@@ -76,13 +74,30 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-text antialiased selection:bg-primary-500/30 selection:text-white;
     font-family: var(--font-sans);
+    /* Prevent overscroll bounce on PWA */
+    overscroll-behavior-y: contain;
+    /* Smooth font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight text-white;
+  }
+
+  /* Touch fast-tap everywhere */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   :focus-visible {
@@ -103,8 +118,14 @@
     @apply bg-gradient-to-br from-primary-400 to-accent-500;
   }
 
+  /* Responsive section container - tighter on mobile */
   .section-container {
-    @apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 sm:py-12 lg:py-16;
+  }
+
+  /* Mobile-safe bottom padding (bottom nav clearance) */
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
   }
 }
 
@@ -113,32 +134,47 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-slate-700 rounded-full hover:bg-slate-600 transition-colors; }
 
-::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded-full hover:bg-slate-600 transition-colors;
-}
-
-/* Loading skeleton animation */
+/* ── Loading skeleton animation ── */
 .skeleton-pulse {
   background: linear-gradient(
     90deg,
     rgba(30, 41, 59, 0.4) 25%,
-    rgba(30, 41, 59, 0.7) 50%,
+    rgba(51, 65, 85, 0.6) 50%,
     rgba(30, 41, 59, 0.4) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer 1.8s infinite;
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* ── PWA standalone mode: hide address bar space ── */
+@media (display-mode: standalone) {
+  html {
+    /* Avoid content under iOS notch */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  body {
+    /* Prevent rubber-band scroll which looks bad in standalone */
+    overscroll-behavior: none;
+  }
+}
+
+/* ── Mobile viewport height fix (avoids 100vh iOS bug) ── */
+.min-h-screen-safe {
+  min-height: 100dvh;
+}
+
+/* ── Improved input/select on mobile ── */
+input, select, textarea {
+  font-size: 16px; /* prevents iOS zoom on focus */
 }

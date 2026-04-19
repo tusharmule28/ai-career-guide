@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/lib/auth-context';
 import { useJobStore } from '@/lib/store/jobStore';
 import {
@@ -17,12 +18,15 @@ import {
 import Card from '@/components/ui/Card';
 import Button, { cn } from '@/components/ui/Button';
 import JobCard from '@/components/JobCard';
-import { JobCardSkeleton } from '@/components/ui/Skeleton';
-import GapAnalysisModal from '@/components/GapAnalysisModal';
+import { JobCardSkeleton, StatCardSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import AutoApplyAgent from '@/components/AutoApplyAgent';
+
+// Dynamic imports for heavy components
+const GapAnalysisModal = dynamic(() => import('@/components/GapAnalysisModal'), { ssr: false });
+const AutoApplyAgent   = dynamic(() => import('@/components/AutoApplyAgent'),   { ssr: false });
+const SkillGapInsights = dynamic(() => import('@/components/SkillGapInsights'), { ssr: false });
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -100,7 +104,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="section-container pb-24">
+    <div className="section-container safe-bottom">
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -171,8 +175,10 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-        {stats.map((stat, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-10 sm:mb-20">
+        {summaryLoading
+          ? [...Array(3)].map((_, i) => <StatCardSkeleton key={i} />)
+          : stats.map((stat, i) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,14 +186,14 @@ export default function DashboardPage() {
             key={i}
             className="h-full"
           >
-            <Card className="p-8 flex items-center gap-6 border border-border/50 bg-surface/30 hover:bg-surface/50 transition-all duration-300 group h-full rounded-[2rem]">
-              <div className={cn("w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg border border-white/5 transition-transform group-hover:scale-110", stat.bg, stat.color)}>
-                  <stat.icon size={28} strokeWidth={2.5} />
+            <Card className="p-6 sm:p-8 flex items-center gap-4 sm:gap-6 border border-border/50 bg-surface/30 hover:bg-surface/50 transition-all duration-300 group h-full rounded-[2rem]">
+              <div className={cn("w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg border border-white/5 transition-transform group-hover:scale-110", stat.bg, stat.color)}>
+                  <stat.icon size={22} strokeWidth={2.5} />
               </div>
               <div>
                 <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-                <p className="text-3xl font-black text-white tracking-tighter">
-                  {summaryLoading ? "..." : stat.value}
+                <p className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
+                  {stat.value}
                 </p>
               </div>
             </Card>
@@ -288,8 +294,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           <AutoApplyAgent />
+
+          {/* Skill Gap Insights */}
+          <SkillGapInsights />
 
           <Card className="p-8 bg-surface border-border/50 rounded-[2.5rem] group relative overflow-hidden">
             <div className="relative z-10">

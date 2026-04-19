@@ -20,7 +20,7 @@ import UpgradeModal from './UpgradeModal';
 import { useAuth } from '@/lib/auth-context';
 
 export default function AutoApplyAgent() {
-  const { user, refreshUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const [status, setStatus] = useState<'idle' | 'analyzing' | 'matching' | 'applying' | 'completed'>('idle');
   const [results, setResults] = useState<{ jobs_applied: number, message: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +53,10 @@ export default function AutoApplyAgent() {
       setTimeout(() => {
         setResults(res);
         setStatus('completed');
-        refreshUser(); // Update trial credits in UI
+        // Re-sync user to reflect updated trial credits
+        if (res?.trial_remaining !== undefined) {
+          updateUser({ trial_remaining: res.trial_remaining });
+        }
       }, 4000);
 
     } catch (err: any) {
