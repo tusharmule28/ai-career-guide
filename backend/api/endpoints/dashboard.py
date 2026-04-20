@@ -72,9 +72,12 @@ async def get_dashboard_summary(
     return {
         "match_count": match_count,
         "avg_score": round(avg_score, 1),
+        "skill_score": round(avg_score, 1), # Alias for synergy score
         "application_count": application_count,
         "activities": activities,
-        "recommendations": recommendations
+        "recommendations": recommendations,
+        "has_resume": resume is not None,
+        "resume_name": resume.filename if resume else None
     }
 
 @router.get("/skill-gap")

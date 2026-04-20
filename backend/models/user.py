@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from db.database import Base
 
@@ -11,6 +11,9 @@ class User(Base):
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
     fcm_token = Column(String, nullable=True) # FCM Device Token
+    
+    # Resume Reference
+    resume_id = Column(Integer, ForeignKey("resumes.id"), nullable=True)
     
     # Profile Enhancements
     bio = Column(String, nullable=True)

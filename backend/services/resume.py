@@ -18,18 +18,23 @@ def extract_text_from_pdf_bytes(file_bytes: bytes) -> str:
         print(f"Error extracting text from PDF: {e}")
     return text
 
+from models.user import User
+
 async def process_resume_upload(db: Session, upload_file: UploadFile, user_id: int = None) -> Resume:
-    # 1. Read file bytes
+    # 1. Read file bytes once
     content = await upload_file.read()
     
     # 2. Extract Text in-memory
     extracted_text = extract_text_from_pdf_bytes(content)
     
-    # 3. Upload to Cloud Storage
+    # 3. Upload to Storage (Cloud or Local Fallback)
+    # Reset seek so storage_service can read it if needed, 
+    # though it's better if storage_service takes bytes.
+    # For now, keeping UploadFile interface but seeking to 0.
     await upload_file.seek(0)
-    file_url = await storage_service.upload_file(upload_file, generate_uuid=True)
+    file_url = await storage_service.upload_file(upload_file, generate_uuid=True, content=content)
     
-    # 4. Save to Database
+    # 4. Save Resume to Database
     db_resume = Resume(
         filename=upload_file.filename,
         file_url=file_url,
@@ -37,10 +42,16 @@ async def process_resume_upload(db: Session, upload_file: UploadFile, user_id: i
         user_id=user_id
     )
     db.add(db_resume)
+    db.flush() # Get ID without committing yet
+    
+    # 5. Update User's active resume_id
+    if user_id:
+        db.query(User).filter(User.id == user_id).update({"resume_id": db_resume.id})
+    
     db.commit()
     db.refresh(db_resume)
     
-    # 5. Dispatch Celery event for embeddings recalculation
+    # 6. Dispatch Celery event for embeddings recalculation
     recalculate_user_matches.delay(db_resume.id)
     
     # Cleanup

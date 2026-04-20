@@ -17,12 +17,13 @@ class StorageService:
                 logger.error(f"Failed to initialize Supabase client: {e}")
         self.bucket_name = "resumes" 
 
-    async def upload_file(self, file: UploadFile, generate_uuid: bool = True) -> str:
+    async def upload_file(self, file: UploadFile, generate_uuid: bool = True, content: bytes = None) -> str:
         """
         Uploads a FastAPI file to Supabase Storage or Local Storage as fallback.
         Returns the public URL of the uploaded file.
         """
-        content = await file.read()
+        if content is None:
+            content = await file.read()
         
         filename = file.filename or "uploaded_file"
         if generate_uuid:
@@ -35,6 +36,7 @@ class StorageService:
         # 1. Try Supabase Storage
         if self.supabase:
             try:
+                # Basic validation of supabase client
                 self.supabase.storage.from_(self.bucket_name).upload(
                     file=content,
                     path=path_on_storage,
@@ -46,7 +48,6 @@ class StorageService:
                 return public_url
             except Exception as e:
                 logger.error(f"Error uploading file to Supabase: {e}. Falling back to local storage.")
-                # We could raise here or fall through. Let's fall through to local fallback.
 
         # 2. Local Storage Fallback
         try:
@@ -58,8 +59,8 @@ class StorageService:
             with open(local_path, "wb") as f:
                 f.write(content)
             
-            # Return a relative URL that can be served via FastAPI StaticFiles
-            # Assuming main.py mounts 'uploads' at '/uploads'
+            # Return path that maps to /uploads mount in main.py
+            # If UPLOAD_DIR is "uploads/resumes", we want /uploads/resumes/filename
             return f"/uploads/resumes/{path_on_storage}"
             
         except Exception as e:

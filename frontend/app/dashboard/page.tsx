@@ -27,6 +27,8 @@ import Link from 'next/link';
 const GapAnalysisModal = dynamic(() => import('@/components/GapAnalysisModal'), { ssr: false });
 const AutoApplyAgent   = dynamic(() => import('@/components/AutoApplyAgent'),   { ssr: false });
 const SkillGapInsights = dynamic(() => import('@/components/SkillGapInsights'), { ssr: false });
+const OnboardingTour   = dynamic(() => import('@/components/OnboardingTour'),   { ssr: false });
+const ResumeUpload      = dynamic(() => import('@/components/ResumeUpload'),      { ssr: false });
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -37,7 +39,9 @@ export default function DashboardPage() {
     skill_score: 0, 
     application_count: 0, 
     activities: [], 
-    recommendations: [] 
+    recommendations: [],
+    has_resume: false,
+    resume_name: ''
   });
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -53,7 +57,14 @@ export default function DashboardPage() {
         fetchMatchedJobs(),
         fetchSavedJobs(),
         api.get('/dashboard/summary').then(data => {
-          if (data) setSummary(data);
+          if (data) {
+            // Check if user has a resume linked
+            setSummary({
+              ...data,
+              has_resume: !!data.activities?.length, // Fallback check
+              resume_name: data.activities?.[0]?.title === "Resume analyzed" ? "Latest PDF" : ""
+            });
+          }
         })
       ]);
     } catch (err: any) {
@@ -105,6 +116,8 @@ export default function DashboardPage() {
 
   return (
     <div className="section-container safe-bottom">
+      <OnboardingTour />
+      
       {/* Hero Section */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -135,6 +148,7 @@ export default function DashboardPage() {
               </Link>
               <Link href="/profile" className="w-full sm:w-auto">
                 <Button
+                  id="profile-settings-nav"
                   variant="ghost"
                   size="lg"
                   className="w-full h-16 px-8 font-extrabold rounded-2xl text-text hover:bg-white/5 transition-all border border-border/50"
@@ -204,8 +218,22 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-16">
+          
+          {/* Dedicated Resume Section */}
+          <section id="resume-upload-section">
+            <div className="flex items-center justify-between mb-8">
+               <h2 className="text-3xl font-black text-white tracking-tight leading-tight">Trajectory Sync</h2>
+               {summary.has_resume && (
+                 <div className="px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-wider border border-emerald-500/20">
+                   Active Workspace Synced
+                 </div>
+               )}
+            </div>
+            <ResumeUpload onUploadSuccess={() => loadData()} />
+          </section>
+
           {/* Fresh Matches */}
-          <section>
+          <section id="job-matches-section">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h2 className="text-3xl font-black text-white tracking-tight leading-tight">Strategic Matches</h2>
@@ -300,7 +328,9 @@ export default function DashboardPage() {
           <AutoApplyAgent />
 
           {/* Skill Gap Insights */}
-          <SkillGapInsights />
+          <section id="skill-gap-section">
+            <SkillGapInsights />
+          </section>
 
           <Card className="p-8 bg-surface border-border/50 rounded-[2.5rem] group relative overflow-hidden">
             <div className="relative z-10">

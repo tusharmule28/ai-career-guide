@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Briefcase, MapPin, DollarSign, ChevronRight, Bookmark, BookmarkCheck, Sparkles, Clock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { api } from '@/lib/api';
@@ -21,21 +22,28 @@ interface JobCardProps {
 
 const MatchBar: React.FC<{ score: number }> = ({ score }) => {
   const color =
-    score >= 80 ? 'from-emerald-500 to-green-400' :
-    score >= 60 ? 'from-amber-500 to-yellow-400' :
-    'from-rose-500 to-red-400';
+    score >= 80 ? 'from-emerald-500 via-emerald-400 to-teal-400 shadow-emerald-500/20' :
+    score >= 60 ? 'from-amber-500 via-yellow-400 to-orange-400 shadow-amber-500/20' :
+    'from-rose-500 via-pink-400 to-red-400 shadow-rose-500/20';
 
   return (
-    <div className="flex items-center gap-2 mt-1">
-      <div className="flex-1 h-1.5 bg-slate-800/60 rounded-full overflow-hidden border border-white/5">
-        <div
-          className={cn("h-full rounded-full bg-gradient-to-r transition-all duration-1000", color)}
-          style={{ width: `${Math.min(score, 100)}%` }}
+    <div className="flex flex-col gap-1.5 mt-2">
+      <div className="flex justify-between items-end">
+        <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Synergy Index</span>
+        <span className={cn("text-xs font-black tabular-nums", 
+           score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-rose-400'
+        )}>
+          {Math.round(score)}%
+        </span>
+      </div>
+      <div className="h-2 bg-slate-900/80 rounded-full overflow-hidden border border-white/5 shadow-inner">
+        <motion.div
+           initial={{ width: 0 }}
+           animate={{ width: `${Math.min(score, 100)}%` }}
+           transition={{ duration: 1.5, ease: "easeOut" }}
+           className={cn("h-full rounded-full bg-gradient-to-r shadow-lg shadow-glow", color)}
         />
       </div>
-      <span className="text-[9px] font-black text-text-muted uppercase tracking-wider tabular-nums">
-        Match
-      </span>
     </div>
   );
 };
