@@ -18,7 +18,7 @@ def get_db():
     finally:
         db.close()
 
-@celery_app.task(name="tasks.sync_all_jobs")
+@celery_app.task(name="tasks.sync_all_jobs", ignore_result=True)
 def sync_all_jobs(user_location: Optional[str] = None):
     """
     Background task to sync jobs from all sources.
@@ -40,7 +40,7 @@ def sync_all_jobs(user_location: Optional[str] = None):
     finally:
         db.close()
 
-@celery_app.task(name="tasks.recalculate_user_matches")
+@celery_app.task(name="tasks.recalculate_user_matches", ignore_result=True)
 def recalculate_user_matches(resume_id: int):
     """
     Task to recalculate job matches for a user when they upload a new resume.
