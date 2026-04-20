@@ -23,13 +23,33 @@ def get_redis_url():
         except Exception:
             pass
             
+    # Check if we should fallback to DB (e.g. on Render without Redis)
+    if settings.DATABASE_URL and ("localhost" not in settings.REDIS_HOST or settings.ENVIRONMENT == "production"):
+        # For broker, we use sqla+ prefix
+        # For backend, we use db+ prefix
+        return None # Indicate to caller to use DB URLs
+            
     return f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
+
+def get_celery_broker_url():
+    url = get_redis_url()
+    if url:
+        return url
+    # Fallback to Postgres
+    return settings.DATABASE_URL.replace("postgresql://", "sqla+postgresql://")
+
+def get_celery_backend_url():
+    url = get_redis_url()
+    if url:
+        return url
+    # Fallback to Postgres
+    return f"db+{settings.DATABASE_URL}"
 
 # Create Celery instance
 celery_app = Celery(
     "worker",
-    broker=get_redis_url(),
-    backend=get_redis_url()
+    broker=get_celery_broker_url(),
+    backend=get_celery_backend_url()
 )
 
 # Optional configuration

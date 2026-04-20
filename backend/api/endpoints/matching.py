@@ -56,7 +56,14 @@ async def match_resume_to_jobs(
         # Fetch fresh from DB to get latest
         user = db.query(User).filter(User.id == current_user.id).first()
         if user:
-            profile_context = f"{user.job_title or ''} {user.bio or ''} {user.skills or ''}"
+            exp_str = f"{user.experience_years} years experience" if user.experience_years else ""
+            profile_context = " ".join(filter(None, [
+                user.job_title,
+                user.bio,
+                user.skills,
+                user.location,
+                exp_str,
+            ]))
     
     # Combine context
     combined_text = f"{profile_context} {resume_text}".strip()

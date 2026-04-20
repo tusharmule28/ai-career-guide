@@ -31,6 +31,10 @@ async def get_profile(
         except Exception:
             pass
             
+    # Fetch resume info
+    from models.resume import Resume
+    resume = db.query(Resume).filter(Resume.user_id == current_user.id).order_by(Resume.uploaded_at.desc()).first()
+
     return {
         "full_name": user.name,
         "email": user.email,
@@ -44,10 +48,12 @@ async def get_profile(
         "portfolio": socials.get("portfolio", ""),
         "phone": socials.get("phone", ""),
         "is_premium": user.is_premium,
-        "profile_picture": user.profile_picture
+        "profile_picture": user.profile_picture,
+        "has_resume": resume is not None,
+        "resume_name": resume.filename if resume else None,
     }
 
-@router.post("/profile/update", response_model=UserResponse)
+@router.post("/profile/update", response_model=dict)
 async def update_profile(
     profile_data: ProfileUpdate,
     db: Session = Depends(get_db),
@@ -68,6 +74,8 @@ async def update_profile(
         user.job_title = profile_data.job_title
     if profile_data.experience_years is not None:
         user.experience_years = profile_data.experience_years
+    if profile_data.skills is not None:
+        user.skills = profile_data.skills
     
     # Handle social links as JSON
     import json
@@ -92,11 +100,21 @@ async def update_profile(
     db.commit()
     db.refresh(user)
     
-    # Map for response
-    user.github = socials.get("github", "")
-    user.linkedin = socials.get("linkedin", "")
-    
-    return user
+    return {
+        "message": "Profile updated successfully",
+        "full_name": user.name,
+        "email": user.email,
+        "bio": user.bio,
+        "location": user.location,
+        "job_title": user.job_title,
+        "skills": user.skills,
+        "experience_years": user.experience_years,
+        "is_premium": user.is_premium,
+        "github": socials.get("github", ""),
+        "linkedin": socials.get("linkedin", ""),
+        "portfolio": socials.get("portfolio", ""),
+        "phone": socials.get("phone", ""),
+    }
 
 @router.get("/", response_model=List[UserResponse])
 def get_users(

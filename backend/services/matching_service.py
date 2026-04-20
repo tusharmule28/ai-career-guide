@@ -150,7 +150,10 @@ class MatchingService:
                 loc_score = 70 # Neutral if data missing
 
             # --- Final Score Calculation ---
-            final_score = (skill_score * 0.6) + (exp_score * 0.3) + (loc_score * 0.1)
+            # Profiles fields mapping: job_title -> designation, bio -> summary
+            designation_score = 100 if user.job_title and cand.title and (user.job_title.lower() in cand.title.lower() or cand.title.lower() in user.job_title.lower()) else 60
+            
+            final_score = (skill_score * 0.5) + (exp_score * 0.25) + (loc_score * 0.1) + (designation_score * 0.15)
             
             # Recency Boost (Extra 5 pts)
             if cand.posted_at:
