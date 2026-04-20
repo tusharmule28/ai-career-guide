@@ -221,7 +221,12 @@ export default function ProfilePage() {
 
         {/* Main Content Area */}
         <div className="lg:col-span-2 space-y-12">
-          <ResumeUpload onUploadSuccess={() => fetchProfile()} />
+          <ResumeUpload 
+            onUploadSuccess={() => fetchProfile()} 
+            hasExistingResume={!!profile.has_resume}
+            existingResumeName={profile.resume_name}
+          />
+
           
           <Card className="p-10 md:p-14 bg-surface/30 border-white/10 rounded-[3.5rem] shadow-premium">
 

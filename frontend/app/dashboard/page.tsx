@@ -58,11 +58,10 @@ export default function DashboardPage() {
         fetchSavedJobs(),
         api.get('/dashboard/summary').then(data => {
           if (data) {
-            // Check if user has a resume linked
             setSummary({
               ...data,
-              has_resume: !!data.activities?.length, // Fallback check
-              resume_name: data.activities?.[0]?.title === "Resume analyzed" ? "Latest PDF" : ""
+              has_resume: !!data.has_resume,
+              resume_name: data.resume_name || '',
             });
           }
         })
@@ -229,7 +228,11 @@ export default function DashboardPage() {
                  </div>
                )}
             </div>
-            <ResumeUpload onUploadSuccess={() => loadData()} />
+            <ResumeUpload 
+              onUploadSuccess={() => loadData()} 
+              hasExistingResume={summary.has_resume}
+              existingResumeName={summary.resume_name}
+            />
           </section>
 
           {/* Fresh Matches */}

@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, AlertCircle, Loader2, X, RefreshCw, FileUp } from 'lucide-react';
 import { api } from '@/lib/api';
 import { toast } from 'react-hot-toast';
-import Button from './ui/Button';
+import Button, { cn } from './ui/Button';
 import Card from './ui/Card';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ResumeUploadProps {
   onUploadSuccess?: () => void;
+  hasExistingResume?: boolean;
+  existingResumeName?: string;
 }
 
-export default function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
+export default function ResumeUpload({ onUploadSuccess, hasExistingResume, existingResumeName }: ResumeUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -80,7 +82,7 @@ export default function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
   };
 
   return (
-    <Card className="p-8 bg-surface/30 border-dashed border-2 border-border/50 rounded-[2.5rem] relative isolate overflow-hidden">
+    <Card className="p-8 bg-surface/30 border-dashed border-2 border-border/50 rounded-[2.5rem] relative isolate overflow-hidden transition-all duration-500">
       <div className="relative z-10 flex flex-col items-center text-center">
         <input
           type="file"
@@ -91,7 +93,35 @@ export default function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
         />
 
         <AnimatePresence mode="wait">
-          {!file ? (
+          {!file && hasExistingResume ? (
+            <motion.div
+              key="existing"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="w-full py-10"
+            >
+              <div className="flex flex-col items-center gap-6">
+                <div className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-3xl flex items-center justify-center border border-emerald-500/20 shadow-glow-emerald animate-pulse-slow">
+                  <FileText size={40} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Active Footprint Synced</h3>
+                  <p className="text-sm font-bold text-text-muted uppercase tracking-widest mb-1">Current Resume</p>
+                  <p className="text-lg font-black text-emerald-400">{existingResumeName || "Master_Resume.pdf"}</p>
+                </div>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    variant="secondary"
+                    className="h-12 px-8 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                  >
+                    Replace Resume
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          ) : !file ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, y: 10 }}
@@ -177,7 +207,10 @@ export default function ResumeUpload({ onUploadSuccess }: ResumeUploadProps) {
       </div>
 
       {/* Decorative background element */}
-      <div className="absolute -right-24 -bottom-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] -z-10" />
+      <div className={cn(
+        "absolute -right-24 -bottom-24 w-64 h-64 rounded-full blur-[100px] -z-10 transition-colors duration-1000",
+        hasExistingResume && !file ? "bg-emerald-500/5" : "bg-indigo-500/5"
+      )} />
     </Card>
   );
 }

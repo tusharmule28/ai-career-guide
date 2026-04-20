@@ -198,7 +198,7 @@ const JobCard: React.FC<JobCardProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="mt-auto pt-4 border-t border-border/30 flex items-center justify-between gap-2">
+      <div className="mt-auto pt-4 border-t border-border/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <ApplyWithAIBtn
             job={targetJob}
@@ -206,6 +206,24 @@ const JobCard: React.FC<JobCardProps> = ({
             isPremium={userIsPremium}
             onCreditsUsed={onCreditsUsed}
           />
+          <Button
+            size="sm"
+            variant="secondary"
+            className="flex-1 sm:flex-none h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10"
+            onClick={async (e) => {
+              e.stopPropagation();
+              try {
+                const store = (await import('@/lib/store/jobStore')).useJobStore.getState();
+                await store.applyToJob(jobId);
+                window.open(targetJob.apply_url, '_blank');
+                toast.success('Opening application...');
+              } catch {
+                toast.error('Failed to launch application.');
+              }
+            }}
+          >
+            Quick Apply
+          </Button>
           <button
             onClick={handleSave}
             className={cn(
