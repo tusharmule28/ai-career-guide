@@ -13,6 +13,7 @@ interface Props {
   isPremium?: boolean;
   creditsRemaining?: number;
   onCreditsUsed?: (newCount: number) => void;
+  className?: string;
 }
 
 type Step = 'preview' | 'confirm' | 'submitting' | 'success' | 'error';
@@ -52,7 +53,7 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => (
   </div>
 );
 
-export default function ApplyWithAIBtn({ job, isPremium, creditsRemaining = 3, onCreditsUsed }: Props) {
+export default function ApplyWithAIBtn({ job, isPremium, creditsRemaining = 3, onCreditsUsed, className }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [step, setStep] = useState<Step>('preview');
   const [coverLetter, setCoverLetter] = useState<string>('');
@@ -110,10 +111,11 @@ export default function ApplyWithAIBtn({ job, isPremium, creditsRemaining = 3, o
         onClick={handleOpen}
         disabled={!canUse}
         className={cn(
-          'flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-300 active:scale-95',
+          'flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-300 active:scale-95 whitespace-nowrap',
           canUse
             ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:shadow-glow hover:scale-105'
-            : 'bg-surface border border-border/50 text-text-muted cursor-not-allowed opacity-60'
+            : 'bg-surface border border-border/50 text-text-muted cursor-not-allowed opacity-60',
+          className
         )}
       >
         <Rocket size={13} />

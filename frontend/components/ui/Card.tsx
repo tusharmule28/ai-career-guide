@@ -12,7 +12,7 @@ const Card: React.FC<CardProps> = ({ children, className = '', hover = true, pad
       className={cn(
         "bg-surface/80 backdrop-blur-sm rounded-2xl border border-border/50 shadow-soft overflow-hidden",
         hover && "hover:shadow-premium hover:-translate-y-0.5 transition-all duration-300 transform-gpu",
-        padding && "p-6",
+        padding && "p-4 sm:p-6",
         className
       )}
       {...props}

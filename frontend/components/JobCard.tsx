@@ -199,17 +199,18 @@ const JobCard: React.FC<JobCardProps> = ({
 
       {/* Actions */}
       <div className="mt-auto pt-4 border-t border-border/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
           <ApplyWithAIBtn
             job={targetJob}
             creditsRemaining={userCredits}
             isPremium={userIsPremium}
             onCreditsUsed={onCreditsUsed}
+            className="flex-1 min-w-0 px-2 sm:px-3"
           />
           <Button
             size="sm"
             variant="secondary"
-            className="flex-1 sm:flex-none h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10"
+            className="flex-1 sm:flex-none h-9 px-2 sm:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10 min-w-0 truncate"
             onClick={async (e) => {
               e.stopPropagation();
               try {
