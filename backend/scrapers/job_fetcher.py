@@ -10,6 +10,7 @@ from services.embedding_service import embedding_service
 from jobspy import scrape_jobs
 from scrapers.indian_jobs_scraper import indian_jobs_scraper
 from services.deduplication_service import deduplication_service
+from core.utils import parse_experience
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +127,7 @@ class JobFetcher:
         target_hubs = list(dict.fromkeys(target_hubs))[:4] 
         
         synced_jobs = []
+        all_new_ids = []
         for city in target_hubs:
             for term in base_search_terms:
                 # Fetch fresh jobs (last 24h)
@@ -158,6 +160,8 @@ class JobFetcher:
                         apply_url=job_data["apply_url"],
                         source=job_data["source"],
                         required_skills=job_data["required_skills"],
+                        experience_min=parse_experience(job_data["description"])[0],
+                        experience_max=parse_experience(job_data["description"])[1],
                         work_type="Remote" if "remote" in city.lower() else "On-site",
                         company_logo=f"https://ui-avatars.com/api/?name={job_data['company'].replace(' ', '+')}&background=random"
                     )
@@ -168,7 +172,9 @@ class JobFetcher:
                         new_job.embedding = embedding.tolist()
                         
                         db.add(new_job)
+                        db.flush()
                         synced_jobs.append(new_job)
+                        all_new_ids.append(new_job.id)
                     except Exception as e:
                         logger.error(f"Failed to generate embedding for job {new_job.external_id}: {e}")
                         continue
@@ -186,7 +192,9 @@ class JobFetcher:
             db.commit()
             gc.collect()
         
-        return []
+        # Return total new jobs for notification processing
+        total_new_jobs = db.query(Job).filter(Job.id.in_(all_new_ids)).all() if 'all_new_ids' in locals() and all_new_ids else []
+        return total_new_jobs
 
 
 job_fetcher = JobFetcher()

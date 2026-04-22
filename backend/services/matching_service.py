@@ -22,6 +22,28 @@ class MatchingService:
             except Exception as e:
                 logger.error(f"Failed to initialize Groq client: {e}")
 
+    def _calculate_project_score(self, resume_text: str) -> float:
+        """
+        Extract a basic project score from the resume text.
+        Looks for key headings and count of project-related keywords.
+        """
+        if not resume_text:
+            return 0.0
+        
+        text = resume_text.lower()
+        # High-value markers for projects
+        project_markers = ["project:", "projects", "portfolio", "github.com", "gitlab.com", "hackathon", "open source"]
+        action_keywords = ["deployed", "implemented", "scaled", "architected", "developed", "integrated"]
+        
+        score = 0
+        for marker in project_markers:
+            if marker in text: score += 15
+        
+        for action in action_keywords:
+            if action in text: score += 5
+            
+        return min(100, score)
+
     async def _analyze_skill_gap_with_ai(self, resume_text: str, job: Job, match_data: Dict):
         """Use Groq to analyze skill gap."""
         if not self.groq_client: return
@@ -118,21 +140,34 @@ class MatchingService:
             else:
                 skill_score = semantic_sim
 
-            # --- B. Experience Score (30%) ---
-            # 100% match if within range or just slightly above
-            exp_score = 100
+            # --- B. Experience Score (40%) ---
             j_min = cand.experience_min or 0
             j_max = cand.experience_max or (j_min + 3)
             
+            # HARD FILTER: 1-2 year experience user should NOT see 5+ years experience jobs
+            if user_exp <= 2 and j_min >= 5:
+                continue
+            
+            # Large gap filter for other levels
+            if j_min - user_exp >= 4:
+                continue
+
+            exp_score = 100
             if user_exp < j_min:
                 # Underqualified
                 diff = j_min - user_exp
-                exp_score = max(0, 100 - (diff * 25)) 
+                exp_score = max(0, 100 - (diff * 20)) 
+                # "Sweet spot" check: 1-2 years user vs 1-3 years jobs
+                if user_exp >= 1 and j_min <= 3:
+                    exp_score = min(100, exp_score + 10)
             elif user_exp > j_max:
-                # Overqualified - give a 15% penalty per year over j_max + 2
+                # Overqualified
                 over_years = user_exp - j_max
                 if over_years > 2:
                     exp_score = max(40, 100 - ((over_years - 2) * 15))
+            
+            # --- C. Project Score (10%) ---
+            project_score = self._calculate_project_score(resume_text)
             
             # --- C. Location Score (10%) ---
             loc_score = 0
@@ -150,10 +185,10 @@ class MatchingService:
                 loc_score = 70 # Neutral if data missing
 
             # --- Final Score Calculation ---
-            # Profiles fields mapping: job_title -> designation, bio -> summary
+            # Re-balanced: Technical Skills 40%, Experience 40%, Projects 10%, Location/Title 10%
             designation_score = 100 if user.job_title and cand.title and (user.job_title.lower() in cand.title.lower() or cand.title.lower() in user.job_title.lower()) else 60
             
-            final_score = (skill_score * 0.5) + (exp_score * 0.25) + (loc_score * 0.1) + (designation_score * 0.15)
+            final_score = (skill_score * 0.4) + (exp_score * 0.4) + (project_score * 0.1) + ((loc_score * 0.5 + designation_score * 0.5) * 0.1)
             
             # Recency Boost (Extra 5 pts)
             if cand.posted_at:
@@ -168,10 +203,14 @@ class MatchingService:
             if skill_score > 85: reasons.append("Excellent skill alignment")
             elif skill_score > 70: reasons.append("Strong technical fit")
             
-            if exp_score >= 90: reasons.append("Perfect experience level")
-            elif exp_score < 60: reasons.append("Slightly outside typical exp range")
+            if exp_score >= 100: reasons.append("Perfect experience match")
+            elif user_exp >= 1 and j_min <= 3 and exp_score >= 90: reasons.append("Ideal career-growth role")
+            elif exp_score < 60: reasons.append("Slight experience gap")
             
-            if loc_score == 100: reasons.append("Flexible location")
+            if project_score >= 70: reasons.append("Impressive project history")
+            elif project_score >= 40: reasons.append("Relevant project experience")
+            
+            if loc_score == 100: reasons.append("Flexible location preference")
             
             if not reasons: reasons.append("Relevant opportunity")
 
@@ -199,26 +238,70 @@ class MatchingService:
         return paginated_results
 
     async def calculate_score(self, text: str, job: Job, user: User) -> Dict[str, Any]:
-        """Solo score calculation for a specific job."""
+        """Solo score calculation for a specific job, consistent with find_matches logic."""
+        # 1. Skill Score
         embeddings = await embedding_service.generate_embedding(text)
-        # Simple Euclidean Distance logic for single job
-        # (This is a simplification of the find_matches logic)
-        import numpy as np
+        resume_embedding = embeddings.tolist()
         
+        import numpy as np
         job_emb = np.array(job.embedding) if job.embedding else None
         if job_emb is None:
             return {"score": 0, "missing_skills": []}
             
-        distance = np.linalg.norm(np.array(embeddings) - job_emb)
+        # Euclidean distance to cosine similarity approximation
+        dist = np.linalg.norm(np.array(resume_embedding) - job_emb)
+        semantic_sim = max(0, min(100, (1.2 - dist) * 83.3))
         
-        user_skills = set(s.strip().lower() for s in (user.skills or "").split(",") if s.strip())
-        job_skills = [s.lower() for s in job.required_skills] if job.required_skills else []
+        def normalize_skill(s: str) -> str:
+            return s.lower().replace(".", "").replace("-", "").strip()
+
+        user_skills = set(normalize_skill(s) for s in (user.skills or "").split(",") if s.strip())
+        job_skills = [normalize_skill(s) for s in job.required_skills] if job.required_skills else []
         
-        missing = list(set(job_skills) - user_skills)
+        if job_skills:
+            overlap = len(user_skills.intersection(set(job_skills)))
+            keyword_score = (overlap / len(job_skills)) * 100
+            skill_score = (semantic_sim * 0.3) + (keyword_score * 0.7) if overlap > 0 else semantic_sim * 0.8
+        else:
+            skill_score = semantic_sim
+
+        # 2. Experience Score
+        user_exp = user.experience_years or 0
+        j_min = job.experience_min or 0
+        j_max = job.experience_max or (j_min + 3)
         
-        # Basic heuristic score
-        score = max(0, 100 - (distance * 50))
-        return {"score": round(score, 1), "missing_skills": missing}
+        # Hard filter check
+        if (user_exp <= 2 and j_min >= 5) or (j_min - user_exp >= 4):
+            return {"score": 0, "missing_skills": list(set(job_skills) - user_skills), "reason": "Experience mismatch"}
+
+        exp_score = 100
+        if user_exp < j_min:
+            diff = j_min - user_exp
+            exp_score = max(0, 100 - (diff * 20))
+            if user_exp >= 1 and j_min <= 3: exp_score = min(100, exp_score + 10)
+        elif user_exp > j_max:
+            over_years = user_exp - j_max
+            if over_years > 2: exp_score = max(40, 100 - ((over_years - 2) * 15))
+
+        # 3. Project Score
+        project_score = self._calculate_project_score(text)
+
+        # 4. Location Score
+        user_loc = (user.location or "").lower()
+        job_loc = (job.location or "").lower()
+        work_type = (job.work_type or "On-site").lower()
+        loc_score = 100 if work_type == "remote" or (user_loc and job_loc and (user_loc in job_loc or job_loc in user_loc)) else 40
+
+        # Title/Designation Score
+        designation_score = 100 if user.job_title and job.title and (user.job_title.lower() in job.title.lower() or job.title.lower() in user.job_title.lower()) else 60
+
+        final_score = (skill_score * 0.4) + (exp_score * 0.4) + (project_score * 0.1) + ((loc_score * 0.5 + designation_score * 0.5) * 0.1)
+        final_score = max(0, min(100, final_score))
+
+        return {
+            "score": round(final_score, 1),
+            "missing_skills": list(set(job_skills) - user_skills)
+        }
 
     async def update_job_embedding(self, db: Session, job: Job):
         """

@@ -42,13 +42,11 @@ class NotificationService:
                     continue
 
                 try:
-                    distance_query = db.query(Job.embedding.cosine_distance(resume.embedding)).filter(Job.id == job.id).scalar()
+                    # Use the refined calculate_score logic for consistency
+                    match_result = await matching_service.calculate_score(resume.extracted_text, job, user)
+                    match_score = match_result.get("score", 0)
                     
-                    if distance_query is not None:
-                        dist = float(distance_query)
-                        match_score = max(0, (1.2 - dist) * 83.3)
-                        
-                        if match_score >= 80:
+                    if match_score >= 80:
                             existing = db.query(Notification).filter(
                                 Notification.user_id == user.id,
                                 Notification.link == f"/jobs?id={job.id}"

@@ -2,9 +2,42 @@ import asyncio
 import functools
 import logging
 import random
-from typing import Callable, Any
+import re
+from typing import Callable, Any, Tuple, Optional
 
 logger = logging.getLogger(__name__)
+
+def parse_experience(text: str) -> Tuple[int, Optional[int]]:
+    """
+    Extract experience years (min, max) from text using regex.
+    Example: '3-5 years', 'at least 3 years', 'min 5 years'.
+    """
+    if not text:
+        return 0, None
+    
+    # Clean text to normalize whitespace and common characters
+    text = text.lower().replace(',', '').replace('\n', ' ')
+    
+    # Regex patterns for common experience mentions
+    patterns = [
+        r'(\d+)\s*-\s*(\d+)\s*year',
+        r'(\d+)\s*to\s*(\d+)\s*year',
+        r'(\d+)\s*\+\s*year',
+        r'min(?:imum)?\s*(\d+)\s*year',
+        r'(?:at least|minimum of)\s*(\d+)\s*year',
+        r'(\d+)\s*year(?:s)?(?:\s+of)?\s+experience',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            groups = [g for g in match.groups() if g is not None]
+            if len(groups) == 2:
+                return int(groups[0]), int(groups[1])
+            elif len(groups) == 1:
+                return int(groups[0]), None
+                
+    return 0, None
 
 def retry_with_backoff(
     retries: int = 3,

@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 from models.job import Job
 from services.embedding_service import embedding_service
 
+from core.utils import parse_experience
+
 logger = logging.getLogger(__name__)
 
 class IndianJobsScraper:
@@ -84,17 +86,20 @@ class IndianJobsScraper:
                     elif "hybrid" in location_elem.get_text(strip=True).lower():
                         work_type = "Hybrid"
 
+                    desc_text = snippet_elem.get_text(strip=True) if snippet_elem else ""
+                    exp_min, exp_max = parse_experience(desc_text)
+
                     jobs.append({
                         "title": title_elem.get_text(strip=True),
                         "company": company_elem.get_text(strip=True) if company_elem else "Unknown",
                         "location": location_elem.get_text(strip=True) if location_elem else "India",
-                        "description": snippet_elem.get_text(strip=True) if snippet_elem else "No description provided.",
+                        "description": desc_text or "No description provided.",
                         "apply_url": job_url,
                         "external_id": external_id,
                         "source": "Indeed India",
                         "required_skills": [], 
-                        "experience_min": 0,    
-                        "experience_max": 2,
+                        "experience_min": exp_min,    
+                        "experience_max": exp_max,
                         "salary_min": salary_min,
                         "salary_max": salary_max,
                         "work_type": work_type,
