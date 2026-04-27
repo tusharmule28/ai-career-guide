@@ -243,7 +243,7 @@ export default function JobsPage() {
                         title="Sector Data Missing" 
                         description="No roles matching your criteria were scanned in the current market sweep."
                         actionText="De-activate Filters"
-                        onAction={() => setSearchTerm('')}
+                        onAction={() => setFilters(prev => ({ ...prev, q: '' }))}
                     />
                   </div>
                 )
