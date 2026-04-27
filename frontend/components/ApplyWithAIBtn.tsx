@@ -111,15 +111,15 @@ export default function ApplyWithAIBtn({ job, isPremium, creditsRemaining = 3, o
         onClick={handleOpen}
         disabled={!canUse}
         className={cn(
-          'flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 whitespace-nowrap',
+          'flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95',
           canUse
             ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:shadow-glow hover:scale-[1.02] transform-gpu'
             : 'bg-surface border border-border/50 text-text-muted cursor-not-allowed opacity-60',
           className
         )}
       >
-        <Rocket size={14} className={cn(canUse && "animate-pulse")} />
-        <span>
+        <Rocket size={14} className={cn(canUse && "animate-pulse", "shrink-0")} />
+        <span className="truncate">
           {isPremium ? 'AI Apply' : hasCredits ? `AI Apply (${creditsRemaining})` : 'No Credits'}
         </span>
       </button>
