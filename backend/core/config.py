@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str
+    
+    # Admin Credentials
+    ADMIN_EMAIL: str = "admin@example.com"
+    ADMIN_PASSWORD: str = "admin123"
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
@@ -28,8 +32,21 @@ class Settings(BaseSettings):
     SUPABASE_URL: str = ""
     SUPABASE_KEY: str = ""
 
+    # Azure Always-Free Services
+    AZURE_COSMOS_CONNECTION_STRING: str = ""
+    AZURE_COSMOS_DATABASE_ID: str = "JobMatchingDB"
+    AZURE_COSMOS_CONTAINER_ID: str = "EmbeddingsCache"
+    APPLICATIONINSIGHTS_CONNECTION_STRING: str = ""
+
+    # Email (Resend - Free Tier)
+    RESEND_API_KEY: str = ""
+    RESEND_FROM_EMAIL: str = "onboarding@resend.dev" # Default for testing
+
     # Constants limits/Auth for jobs
     CRON_SECRET: str = "default_cron_secret_replace_in_prod"
+
+    # Frontend URL
+    FRONTEND_URL: str = "https://ai-careerguide.netlify.app"
 
     # CORS - leave empty to use environment-aware defaults in main.py
     # Set explicitly to override: "https://yourdomain.com,https://other.com"

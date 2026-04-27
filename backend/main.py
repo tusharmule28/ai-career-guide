@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 import psutil
 import os
+import json
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from api.router import api_router
@@ -17,6 +18,15 @@ redis_uri = settings.REDIS_URL or f"redis://{settings.REDIS_HOST}:{settings.REDI
 limiter = Limiter(key_func=get_remote_address, default_limits=["1000/minute"], storage_uri=redis_uri)
 
 def create_application() -> FastAPI:
+    # Initialize Azure Monitor (Always Free 5GB/month)
+    if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
+        try:
+            from azure.monitor.opentelemetry import configure_azure_monitor
+            configure_azure_monitor(connection_string=settings.APPLICATIONINSIGHTS_CONNECTION_STRING)
+            logger.info("Azure Application Insights monitoring enabled.")
+        except Exception as e:
+            logger.error(f"Failed to initialize Application Insights: {e}")
+
     app = FastAPI(
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
@@ -30,22 +40,32 @@ def create_application() -> FastAPI:
 
     # Memory Monitoring Middleware
     @app.middleware("http")
-    async def log_memory_usage(request: Request, call_next):
+    async def log_request_metrics(request: Request, call_next):
+        import time
+        start_time = time.time()
         process = psutil.Process(os.getpid())
         mem_before = process.memory_info().rss / (1024 * 1024)
         
         response = await call_next(request)
         
+        process_time = time.time() - start_time
         mem_after = process.memory_info().rss / (1024 * 1024)
-        diff = mem_after - mem_before
         
-        # Only log significant allocations or high usage
-        if diff > 1.0 or mem_after > 450:
-            logger.info(
-                f"MEMORY: {request.url.path} | "
-                f"Before: {mem_before:.1f}MB | After: {mem_after:.1f}MB | "
-                f"Delta: {diff:+.1f}MB"
-            )
+        # Structured log for CloudWatch ingestion
+        log_data = {
+            "path": request.url.path,
+            "method": request.method,
+            "status": response.status_code,
+            "duration": f"{process_time:.3f}s",
+            "memory_mb": f"{mem_after:.1f}",
+            "memory_delta": f"{(mem_after - mem_before):+.1f}"
+        }
+        
+        if process_time > 1.0 or mem_after > 450:
+            logger.warning(f"PERFORMANCE_ALERT: {json.dumps(log_data)}")
+        else:
+            logger.info(f"REQUEST_METRIC: {json.dumps(log_data)}")
+            
         return response
 
     # Configure CORS
@@ -167,11 +187,8 @@ def create_application() -> FastAPI:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
                 conn.commit()
             
-            # Note: We run Base.metadata.create_all(bind=engine) only as a fallback.
-            # Usually schema migrations are handled via Alembic explicitly.
-            # But ensures the 'jobs' table exists for the first run if migrations weren't run.
-            print("[*] Verifying tables...")
-            Base.metadata.create_all(bind=engine)
+            # Note: In production, we strictly rely on Alembic migrations.
+            # Base.metadata.create_all(bind=engine) 
             print("[+] Database connection and extension verified.")
             
         except Exception as e:
@@ -183,8 +200,8 @@ def create_application() -> FastAPI:
         db = SessionLocal()
         try:
             user_service = UserService(db)
-            admin_email = "admin@example.com"
-            admin_password = "admin123"
+            admin_email = settings.ADMIN_EMAIL
+            admin_password = settings.ADMIN_PASSWORD
             
             # Check if the specific admin exists
             admin_user = user_service.get_user_by_email(admin_email)

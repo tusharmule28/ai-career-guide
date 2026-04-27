@@ -11,7 +11,7 @@ import { cn } from './ui/Button';
 const navItems = [
   { name: 'Home',    href: '/dashboard',         icon: Home,          activeOn: ['/dashboard'] },
   { name: 'Jobs',    href: '/jobs',              icon: Briefcase,     activeOn: ['/jobs'] },
-  { name: 'Applied', href: '/dashboard/history', icon: ClipboardList, activeOn: ['/dashboard/history'] },
+  { name: 'Applied', href: '/dashboard/applications', icon: ClipboardList, activeOn: ['/dashboard/applications'] },
   { name: 'Profile', href: '/profile',           icon: UserIcon,      activeOn: ['/profile'] },
 ];
 

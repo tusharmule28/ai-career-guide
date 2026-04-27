@@ -13,6 +13,9 @@ import { JobCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import JobSearchFilter from '@/components/JobSearchFilter';
+import { useDebounce } from '@/hooks/useDebounce';
+
 const SyncStatusOverlay = dynamic(
   () => import('@/components/SyncStatusOverlay').then(m => ({ default: m.SyncStatusOverlay })),
   { ssr: false }
@@ -24,31 +27,38 @@ export default function JobsPage() {
   const { user } = useAuth();
   const { jobs, matchedJobs, savedJobs, loading, error, fetchJobs, fetchMatchedJobs, fetchSavedJobs } = useJobStore();
   const [activeTab, setActiveTab] = useState<TabType>('recommended');
-  const [searchTerm, setSearchTerm] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   
   const [filters, setFilters] = useState({
+    q: '',
     location: 'All',
-    experience: 'All',
-    jobType: 'All'
+    job_type: 'All'
   });
 
-  const loadAllData = React.useCallback(async () => {
+  const debouncedFilters = useDebounce(filters, 500);
+
+  const loadAllData = React.useCallback(async (currentFilters?: any) => {
     try {
+      const searchParams = currentFilters || debouncedFilters;
       await Promise.all([
         fetchMatchedJobs({ top_n: 20 }),
-        fetchJobs(),
+        fetchJobs({ 
+          q: searchParams.q, 
+          location: searchParams.location === 'All' ? undefined : searchParams.location,
+          job_type: searchParams.job_type === 'All' ? undefined : searchParams.job_type
+        }),
         fetchSavedJobs()
       ]);
     } catch (err: any) {
       console.error("[Jobs] Initial load failed:", err);
       toast.error("Telemetry failed. Some data might be missing.");
     }
-  }, [fetchJobs, fetchMatchedJobs, fetchSavedJobs]);
+  }, [fetchJobs, fetchMatchedJobs, fetchSavedJobs, debouncedFilters]);
 
+  // Initial load
   useEffect(() => {
     loadAllData();
-  }, [loadAllData]);
+  }, [debouncedFilters]); // Re-fetch when debounced filters change
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -59,7 +69,7 @@ export default function JobsPage() {
       setTimeout(() => {
         loadAllData();
         setIsSyncing(false);
-      }, 18000); 
+      }, 500); 
     } catch (err: any) {
       toast.error('Sync failed: ' + (err.message || 'Server unreachable'));
       setIsSyncing(false);
@@ -69,31 +79,30 @@ export default function JobsPage() {
   const applyFilters = (jobList: any[]) => {
     return jobList.filter(item => {
       const job = item.job || item;
-      const searchLower = searchTerm.toLowerCase().trim();
+      const searchLower = filters.q.toLowerCase().trim();
       const matchesSearch = !searchLower || 
                             (job.title?.toLowerCase().includes(searchLower) ||
                             job.company?.toLowerCase().includes(searchLower) ||
                             job.required_skills?.toString().toLowerCase().includes(searchLower));
       
       const matchesLocation = filters.location === 'All' || 
-                               job.location?.toLowerCase().includes(filters.location.toLowerCase());
+                                job.location?.toLowerCase().includes(filters.location.toLowerCase());
 
       return matchesSearch && matchesLocation;
     });
   };
 
   // Limit matched recommendations to top 20
-  const filteredRecommended = useMemo(() => applyFilters(matchedJobs).slice(0, 20), [matchedJobs, searchTerm, filters]);
+  const filteredRecommended = useMemo(() => applyFilters(matchedJobs).slice(0, 20), [matchedJobs, filters]);
   
-  // "Global Feed" should show jobs even if they were in recommended, 
-  // but sorted by date as a raw feed.
-  const filteredAll = useMemo(() => applyFilters(jobs), [jobs, searchTerm, filters]);
-  const filteredSaved = useMemo(() => applyFilters(savedJobs), [savedJobs, searchTerm, filters]);
+  // "Global Feed" now uses server-side filtered jobs directly
+  const filteredAll = jobs; 
+  const filteredSaved = useMemo(() => applyFilters(savedJobs), [savedJobs, filters]);
 
   const tabs = [
-    { id: 'recommended', label: 'AI Strategy', icon: Sparkles, count: filteredRecommended.length },
-    { id: 'all', label: 'Global Feed', icon: LayoutGrid, count: filteredAll.length },
-    { id: 'saved', label: 'Bookmarks', icon: Bookmark, count: filteredSaved.length }
+    { id: 'recommended', label: 'Recommended', icon: Sparkles, count: filteredRecommended.length },
+    { id: 'all', label: 'Explore', icon: LayoutGrid, count: filteredAll.length },
+    { id: 'saved', label: 'Saved', icon: Bookmark, count: filteredSaved.length }
   ];
 
   if (error && matchedJobs.length === 0 && jobs.length === 0 && !loading) {
@@ -133,16 +142,6 @@ export default function JobsPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-          <div className="relative w-full sm:min-w-[400px] group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-indigo-400 transition-colors" size={20} />
-            <input 
-              type="text"
-              placeholder="Search by role, company, or protocol..."
-              className="w-full pl-14 pr-5 py-5 bg-surface/50 border border-border/50 rounded-2xl text-sm font-bold placeholder:text-text-muted focus:ring-4 focus:ring-indigo-400/10 focus:border-indigo-400 outline-none transition-all shadow-soft"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
           <Button 
             variant="dark" 
             loading={isSyncing}
@@ -155,15 +154,26 @@ export default function JobsPage() {
         </div>
       </div>
 
+      {/* Advanced Search & Filter */}
+      <JobSearchFilter 
+        filters={filters} 
+        onFilterChange={(newFilters) => {
+          setFilters(newFilters);
+          // If tab is recommended or saved, we still want to filter locally immediately
+          // but 'all' tab will wait for debounce
+        }} 
+        isSearching={loading}
+      />
+
       {/* Tabs System */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 p-2 bg-surface/30 rounded-3xl border border-border/50 backdrop-blur-sm sticky top-16 md:top-20 z-30 shadow-xl">
-        <div className="flex p-1 bg-background/50 rounded-2xl border border-white/5 shadow-inner grow md:grow-0">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 p-2 bg-surface/30 rounded-3xl border border-border/50 backdrop-blur-sm sticky top-16 md:top-20 z-30 shadow-xl overflow-hidden">
+        <div className="flex p-1 bg-background/50 rounded-2xl border border-white/5 shadow-inner overflow-x-auto no-scrollbar max-w-full">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
               className={cn(
-                "flex items-center gap-2.5 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 relative grow md:grow-0",
+                "flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 relative whitespace-nowrap",
                 activeTab === tab.id ? "text-white" : "text-text-muted hover:text-text-secondary"
               )}
             >
@@ -185,34 +195,6 @@ export default function JobsPage() {
               )}
             </button>
           ))}
-        </div>
-
-        {/* Inline Filters */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
-           <div className="w-px h-8 bg-border/50 mx-2 hidden md:block" />
-           <select 
-             className="bg-background border border-border/50 text-[10px] font-black uppercase tracking-widest rounded-xl px-4 py-3 outline-none focus:ring-4 focus:ring-indigo-400/10 text-text-secondary cursor-pointer hover:border-indigo-400 shadow-sm min-w-[150px]"
-             value={filters.location}
-             onChange={(e) => setFilters({...filters, location: e.target.value})}
-           >
-             <option value="All">All Regions</option>
-             <option value="Remote">Remote Protocol</option>
-             <option value="United States">USA Sector</option>
-             <option value="Europe">European Hub</option>
-             <option value="India">India Hub</option>
-           </select>
-
-           <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-[10px] font-black text-rose-400/60 hover:text-rose-400 uppercase tracking-widest px-3 ml-2"
-                onClick={() => {
-                  setSearchTerm('');
-                  setFilters({ location: 'All', experience: 'All', jobType: 'All' });
-                }}
-            >
-                Reset Engine
-            </Button>
         </div>
       </div>
 

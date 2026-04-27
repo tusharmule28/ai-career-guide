@@ -70,7 +70,7 @@ const Navbar = () => {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
     { name: 'Jobs', href: '/jobs', icon: Briefcase },
-    { name: 'Applied Jobs', href: '/dashboard/history', icon: ClipboardList },
+    { name: 'Applications', href: '/dashboard/applications', icon: ClipboardList },
   ];
 
   const isActive = (path: string) => pathname === path;

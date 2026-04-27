@@ -3,6 +3,7 @@ from sqlalchemy import select, func
 from models.job import Job
 from models.resume import Resume
 from models.user import User
+from models.match_result import MatchResult
 from services.embedding_service import embedding_service
 from typing import List, Dict, Any, Optional
 from core.config import settings
@@ -44,9 +45,21 @@ class MatchingService:
             
         return min(100, score)
 
-    async def _analyze_skill_gap_with_ai(self, resume_text: str, job: Job, match_data: Dict):
-        """Use Groq to analyze skill gap."""
+    async def _analyze_skill_gap_with_ai(self, db: Session, user_id: int, resume_id: int, resume_text: str, job: Job, match_data: Dict):
+        """Use Groq to analyze skill gap and cache the result."""
         if not self.groq_client: return
+        
+        # Check cache first
+        cached = db.query(MatchResult).filter(
+            MatchResult.resume_id == resume_id,
+            MatchResult.job_id == job.id
+        ).first()
+
+        if cached and cached.ai_analysis:
+            match_data["found_skills"] = cached.ai_analysis.get("found_skills", match_data["found_skills"])
+            match_data["missing_skills"] = cached.ai_analysis.get("missing_skills", match_data["missing_skills"])
+            logger.info(f"Using cached AI analysis for job {job.id}")
+            return
         
         prompt = f"""
         Analyze the exact skill gap between this candidate's resume and the job description.
@@ -69,6 +82,21 @@ class MatchingService:
             response = json.loads(completion.choices[0].message.content)
             match_data["found_skills"] = response.get("found_skills", match_data["found_skills"])
             match_data["missing_skills"] = response.get("missing_skills", match_data["missing_skills"])
+            
+            # Save to cache
+            if cached:
+                cached.ai_analysis = response
+                cached.score = match_data["score"]
+            else:
+                new_cache = MatchResult(
+                    user_id=user_id,
+                    resume_id=resume_id,
+                    job_id=job.id,
+                    score=match_data["score"],
+                    ai_analysis=response
+                )
+                db.add(new_cache)
+            db.commit()
         except Exception as e:
             logger.error(f"Groq API error for job {job.id}: {e}")
 
@@ -229,9 +257,13 @@ class MatchingService:
         # Enhance top results with AI
         if self.groq_client and paginated_results:
             ai_tasks = []
+            # Get active resume ID
+            resume = db.query(Resume).filter(Resume.user_id == user.id).first()
+            resume_id = resume.id if resume else 0
+
             for res in paginated_results[:3]:
                 # We already have the metadata in the tuple
-                ai_tasks.append(self._analyze_skill_gap_with_ai(resume_text, res["job"], res))
+                ai_tasks.append(self._analyze_skill_gap_with_ai(db, user.id, resume_id, resume_text, res["job"], res))
             if ai_tasks:
                 await asyncio.gather(*ai_tasks)
 

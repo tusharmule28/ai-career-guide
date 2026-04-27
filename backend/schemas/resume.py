@@ -8,8 +8,9 @@ class ResumeBase(BaseModel):
 
 class ResumeResponse(ResumeBase):
     id: int
-    file_path: str
+    file_path: Optional[str] = None
     extracted_text: Optional[str] = None
+    extracted_data: Optional[dict] = None
     uploaded_at: datetime
 
     class Config:

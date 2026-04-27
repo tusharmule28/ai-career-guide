@@ -33,3 +33,6 @@ playwright>=1.40.0
 psutil
 upstash-redis
 firebase-admin
+azure-cosmos
+azure-monitor-opentelemetry
+resend

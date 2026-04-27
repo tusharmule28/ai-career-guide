@@ -31,11 +31,40 @@ const EmptyState: React.FC<EmptyStateProps> = ({
       <motion.div 
         initial={{ scale: 0.9, opacity: 0 }}
         whileInView={{ scale: 1, opacity: 1 }}
-        className="w-24 h-24 bg-surface rounded-[2rem] flex items-center justify-center text-text-muted mb-8 shadow-2xl border border-white/5 relative group-hover:rotate-6 transition-transform"
+        className="relative mb-8 group-hover:scale-105 transition-transform duration-500"
       >
-        <Icon size={44} strokeWidth={1} />
+        {/* Abstract SVG Illustration */}
+        <svg width="160" height="160" viewBox="0 0 160 160" className="mx-auto drop-shadow-2xl">
+          <defs>
+            <linearGradient id="empty-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.05" />
+            </linearGradient>
+            <linearGradient id="empty-ring" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#818cf8" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.1" />
+            </linearGradient>
+          </defs>
+          
+          <circle cx="80" cy="80" r="70" fill="url(#empty-grad)" className="animate-pulse" style={{ animationDuration: '4s' }} />
+          <circle cx="80" cy="80" r="60" fill="none" stroke="url(#empty-ring)" strokeWidth="1" strokeDasharray="4 8" className="origin-center animate-[spin_20s_linear_infinite]" />
+          <circle cx="80" cy="80" r="45" fill="none" stroke="url(#empty-ring)" strokeWidth="0.5" strokeDasharray="12 4" className="origin-center animate-[spin_30s_linear_infinite_reverse]" />
+          
+          <rect x="55" y="55" width="50" height="50" rx="16" fill="#1e293b" className="shadow-inner drop-shadow-xl border border-white/5" />
+          
+          {/* Icon injected in the center */}
+          <foreignObject x="64" y="64" width="32" height="32">
+             <div className="w-full h-full flex items-center justify-center text-indigo-400">
+                <Icon size={24} strokeWidth={1.5} />
+             </div>
+          </foreignObject>
+
+          <circle cx="105" cy="55" r="4" fill="#38bdf8" className="animate-bounce" style={{ animationDelay: '0.1s' }} />
+          <circle cx="55" cy="105" r="3" fill="#a78bfa" className="animate-bounce" style={{ animationDelay: '0.5s' }} />
+        </svg>
+
         <div className="absolute -top-2 -right-2 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Sparkles size={16} className="animate-pulse" />
+            <Sparkles size={20} className="animate-pulse drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]" />
         </div>
       </motion.div>
 

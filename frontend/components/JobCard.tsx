@@ -63,11 +63,22 @@ const JobCard: React.FC<JobCardProps> = ({
   const company = targetJob.company || 'Confidential Company';
   const location = targetJob.location || 'Remote';
 
-  const salary = targetJob.salary_min && targetJob.salary_max
-    ? `$${Math.round(targetJob.salary_min / 1000)}k – $${Math.round(targetJob.salary_max / 1000)}k`
-    : targetJob.salary_min
-    ? `From $${Math.round(targetJob.salary_min / 1000)}k`
-    : 'Competitive';
+  const formatSalary = (min?: number | null, max?: number | null) => {
+    if (!min && !max) return 'Competitive';
+    
+    // Detect Currency: If min > 100,000, assume INR (Lakhs), otherwise assume USD (K)
+    const isINR = min ? min > 100000 : (max ? max > 100000 : false);
+    const symbol = isINR ? '₹' : '$';
+    const divisor = isINR ? 100000 : 1000;
+    const unit = isINR ? 'L' : 'k';
+
+    if (min && max) {
+      return `${symbol}${(min / divisor).toFixed(1)}${unit} – ${symbol}${(max / divisor).toFixed(1)}${unit}`;
+    }
+    return `From ${symbol}${(min! / divisor).toFixed(1)}${unit}`;
+  };
+
+  const salary = formatSalary(targetJob.salary_min, targetJob.salary_max);
 
   const matchScore: number = job.score || targetJob.score || 0;
   const source = targetJob.source || null;
@@ -125,9 +136,16 @@ const JobCard: React.FC<JobCardProps> = ({
               </span>
             )}
             {targetJob.posted_at && (
-              <span className="flex items-center gap-1 text-[9px] text-text-muted font-bold uppercase tracking-wider">
+              <span className={cn(
+                "flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider",
+                (new Date().getTime() - new Date(targetJob.posted_at).getTime()) < 86400000 
+                  ? "text-indigo-400" 
+                  : "text-text-muted"
+              )}>
                 <Clock size={9} />
-                {new Date(targetJob.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                {(new Date().getTime() - new Date(targetJob.posted_at).getTime()) < 86400000 
+                  ? "Fresh Sweep" 
+                  : new Date(targetJob.posted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
           </div>
@@ -155,16 +173,41 @@ const JobCard: React.FC<JobCardProps> = ({
       {/* Match bar */}
       {matchScore > 0 && <MatchBar score={matchScore} />}
 
-      {/* AI Insight */}
-      {matchReason && (
-        <div className="my-4 p-3 bg-primary-500/5 rounded-2xl border border-primary-500/10 relative overflow-hidden group/insight">
-          <div className="flex items-start gap-2 relative z-10">
-            <Sparkles size={11} className="text-primary-400 mt-0.5 shrink-0" />
-            <p className="text-[10px] leading-relaxed text-primary-200/60 font-medium italic line-clamp-2">
-              {matchReason}
-            </p>
+      {/* Skill Synergy Matrix */}
+      {matchScore > 0 && (
+        <div className="my-4 p-3 bg-slate-900/40 rounded-2xl border border-white/5 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+             <Sparkles size={12} className="text-primary-400" />
+             <span className="text-[10px] font-black uppercase tracking-widest text-primary-300/80">Skill Synergy</span>
           </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-500/5 to-transparent -translate-x-full group-hover/insight:translate-x-full transition-transform duration-1000" />
+          
+          <div className="flex flex-wrap gap-1.5">
+            {job.found_skills?.slice(0, 4).map((skill: string, i: number) => (
+              <span key={i} className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-emerald-400" /> {skill}
+              </span>
+            ))}
+            {job.missing_skills?.slice(0, 2).map((skill: string, i: number) => (
+              <span key={i} className="px-2 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1 opacity-70">
+                <div className="w-1 h-1 rounded-full bg-amber-400" /> {skill}
+              </span>
+            ))}
+          </div>
+          
+          {job.all_reasons && job.all_reasons.length > 0 ? (
+            <div className="border-t border-white/5 pt-2 mt-2 space-y-1">
+              {job.all_reasons.map((reason: string, i: number) => (
+                <div key={i} className="flex items-start gap-1.5 text-[10px] leading-relaxed text-text-muted font-medium italic">
+                  <div className="w-1 h-1 rounded-full bg-primary-400/60 mt-1.5 shrink-0" />
+                  <span>{reason}</span>
+                </div>
+              ))}
+            </div>
+          ) : matchReason ? (
+             <p className="text-[10px] leading-relaxed text-text-muted font-medium italic border-t border-white/5 pt-2 mt-2">
+               "{matchReason}"
+             </p>
+          ) : null}
         </div>
       )}
 
@@ -198,19 +241,19 @@ const JobCard: React.FC<JobCardProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="mt-auto pt-4 border-t border-border/30 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
+      <div className="mt-auto pt-4 border-t border-border/30 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <ApplyWithAIBtn
             job={targetJob}
             creditsRemaining={userCredits}
             isPremium={userIsPremium}
             onCreditsUsed={onCreditsUsed}
-            className="flex-1 min-w-0 px-2 sm:px-3"
+            className="flex-1 md:flex-none md:min-w-[130px] px-4 h-10"
           />
           <Button
             size="sm"
             variant="secondary"
-            className="flex-1 sm:flex-none h-9 px-2 sm:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10 min-w-0 truncate"
+            className="flex-1 md:flex-none h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10 min-w-0 truncate"
             onClick={async (e) => {
               e.stopPropagation();
               try {
@@ -228,14 +271,14 @@ const JobCard: React.FC<JobCardProps> = ({
           <button
             onClick={handleSave}
             className={cn(
-              "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 transform-gpu active:scale-90",
+              "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 transform-gpu active:scale-90 shrink-0",
               saved
                 ? "bg-primary-500/20 text-primary-400 border border-primary-500/30 shadow-glow"
                 : "bg-surface border border-border/50 text-text-muted hover:text-text hover:border-border"
             )}
             title={saved ? 'Bookmarked' : 'Bookmark'}
           >
-            {saved ? <BookmarkCheck size={16} /> : <Bookmark size={16} />}
+            {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
           </button>
         </div>
 
@@ -243,10 +286,10 @@ const JobCard: React.FC<JobCardProps> = ({
           variant="ghost"
           size="sm"
           onClick={() => onSelect(targetJob)}
-          className="group/details font-black text-[10px] uppercase tracking-widest text-text-secondary hover:text-white"
+          className="group/details font-black text-[10px] uppercase tracking-widest text-text-secondary hover:text-white h-10 md:h-auto md:px-0 self-center md:self-auto"
         >
           View Role
-          <ChevronRight size={13} className="ml-1 group-hover/details:translate-x-1 transition-transform" />
+          <ChevronRight size={14} className="ml-1 group-hover/details:translate-x-1 transition-transform" />
         </Button>
       </div>
     </Card>

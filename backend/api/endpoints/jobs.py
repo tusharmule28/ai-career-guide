@@ -113,6 +113,7 @@ async def sync_jobs(
 async def get_jobs(
     skip: int = 0, 
     limit: int = 20,
+    q: Optional[str] = None,
     location: Optional[str] = None,
     job_type: Optional[str] = None,
     db: Session = Depends(get_db)
@@ -121,6 +122,14 @@ async def get_jobs(
         query = db.query(Job)
         
         # Apply filters
+        if q:
+            search_filter = (
+                Job.title.ilike(f"%{q}%") | 
+                Job.company.ilike(f"%{q}%") | 
+                Job.description.ilike(f"%{q}%")
+            )
+            query = query.filter(search_filter)
+
         if location and location != "All":
             query = query.filter(Job.location.ilike(f"%{location}%"))
         

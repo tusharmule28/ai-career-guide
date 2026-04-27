@@ -15,12 +15,13 @@ class StorageService:
                 self.supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
             except Exception as e:
                 logger.error(f"Failed to initialize Supabase client: {e}")
+        
         self.bucket_name = "resumes" 
 
     async def upload_file(self, file: UploadFile, generate_uuid: bool = True, content: bytes = None) -> str:
         """
-        Uploads a FastAPI file to Supabase Storage or Local Storage as fallback.
-        Returns the public URL of the uploaded file.
+        Uploads a file with priority: Supabase Storage -> Local Storage.
+        Returns the public URL or path of the uploaded file.
         """
         if content is None:
             content = await file.read()
@@ -33,25 +34,25 @@ class StorageService:
         else:
             path_on_storage = filename
 
-        # 1. Try Supabase Storage
+        # 1. Try Supabase Storage (Always Free 1GB)
         if self.supabase:
             try:
-                # Basic validation of supabase client
+                # Check if bucket exists, if not, it might fail, 
+                # but usually we pre-create it in Supabase dashboard.
                 self.supabase.storage.from_(self.bucket_name).upload(
                     file=content,
                     path=path_on_storage,
-                    file_options={"content-type": file.content_type}
+                    file_options={"content-type": file.content_type or 'application/pdf'}
                 )
-                
-                # public URL retrieval
                 public_url = self.supabase.storage.from_(self.bucket_name).get_public_url(path_on_storage)
+                logger.info(f"Successfully uploaded to Supabase: {public_url}")
                 return public_url
             except Exception as e:
-                logger.error(f"Error uploading file to Supabase: {e}. Falling back to local storage.")
+                logger.error(f"Error uploading to Supabase: {e}. Falling back to local...")
 
-        # 2. Local Storage Fallback
+        # 2. Local Storage Fallback (Ephemeral in Cloud)
         try:
-            upload_dir = settings.UPLOAD_DIR
+            upload_dir = os.path.join(settings.UPLOAD_DIR)
             if not os.path.exists(upload_dir):
                 os.makedirs(upload_dir, exist_ok=True)
             
@@ -59,8 +60,7 @@ class StorageService:
             with open(local_path, "wb") as f:
                 f.write(content)
             
-            # Return path that maps to /uploads mount in main.py
-            # If UPLOAD_DIR is "uploads/resumes", we want /uploads/resumes/filename
+            logger.warning(f"Saved file locally at {local_path}. This will not persist in cloud restarts.")
             return f"/uploads/resumes/{path_on_storage}"
             
         except Exception as e:

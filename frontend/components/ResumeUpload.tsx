@@ -18,6 +18,8 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [step, setStep] = useState<'upload' | 'review'>('upload');
+  const [extractedData, setExtractedData] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -58,6 +60,8 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
 
   const clearFile = () => {
     setFile(null);
+    setStep('upload');
+    setExtractedData(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -69,13 +73,28 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
     formData.append('file', file);
 
     try {
-      await api.upload('/resumes/upload', formData);
-      toast.success('Resume analyzed and synchronized.');
-      clearFile();
-      if (onUploadSuccess) onUploadSuccess();
+      const response = await api.upload('/resumes/upload', formData);
+      setExtractedData(response.extracted_data || { skills: [], job_title: '', experience_years: 0 });
+      setStep('review');
+      toast.success('Neural extraction complete. Please review your profile.');
     } catch (err: any) {
       console.error('Upload failed:', err);
       toast.error(err.message || 'Failed to analyze resume.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const finalizeProfile = async () => {
+    setUploading(true);
+    try {
+      // In a real app, we might send an update to /users/profile here if the user edited skills
+      // But for now, the backend already saved the initial extraction to the user model.
+      toast.success('Strategy synchronized! Matches are being recalibrated.');
+      if (onUploadSuccess) onUploadSuccess();
+      clearFile();
+    } catch (err) {
+      toast.error('Failed to finalize profile.');
     } finally {
       setUploading(false);
     }
@@ -142,6 +161,64 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
               <p className="text-text-secondary text-sm font-bold max-w-[240px] mx-auto leading-relaxed">
                 Drag and drop your <span className="text-indigo-400">PDF resume</span> to initialize AI matching protocols.
               </p>
+            </motion.div>
+          ) : step === 'review' ? (
+            <motion.div
+              key="review"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="w-full text-left"
+            >
+               <div className="flex items-center gap-3 mb-8">
+                  <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20">
+                     <CheckCircle2 size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white tracking-tight">Strategy Extracted</h3>
+                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">Review your professional footprint</p>
+                  </div>
+               </div>
+
+               <div className="space-y-6 mb-10">
+                  <div className="p-5 bg-surface border border-white/5 rounded-2xl">
+                     <p className="text-[10px] font-black text-primary-400 uppercase tracking-[0.2em] mb-2">Primary Protocol</p>
+                     <p className="text-lg font-black text-white">{extractedData?.job_title || "Unknown Role"}</p>
+                     <p className="text-xs text-text-muted mt-1 font-medium">{extractedData?.experience_years} Years of Experience Detected</p>
+                  </div>
+
+                  <div className="p-5 bg-surface border border-white/5 rounded-2xl">
+                     <div className="flex justify-between items-center mb-4">
+                        <p className="text-[10px] font-black text-primary-400 uppercase tracking-[0.2em]">Neural Skills</p>
+                        <span className="text-[10px] font-bold text-text-muted">{extractedData?.skills?.length} Tags</span>
+                     </div>
+                     <div className="flex flex-wrap gap-2">
+                        {extractedData?.skills?.map((skill: string, i: number) => (
+                           <span key={i} className="px-3 py-1.5 bg-background border border-border/50 rounded-xl text-xs font-bold text-text hover:border-primary-500/30 transition-colors group">
+                              {skill}
+                           </span>
+                        ))}
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex flex-col sm:flex-row gap-4">
+                 <Button
+                   onClick={finalizeProfile}
+                   loading={uploading}
+                   variant="primary"
+                   className="flex-1 h-16 rounded-2xl font-black text-xs uppercase tracking-widest shadow-glow-primary"
+                 >
+                   Confirm & Recalibrate
+                 </Button>
+                 <Button
+                   variant="ghost"
+                   onClick={clearFile}
+                   className="h-16 px-8 rounded-2xl font-bold text-text-secondary hover:text-white border border-border/50"
+                 >
+                   Start Over
+                 </Button>
+               </div>
             </motion.div>
           ) : (
             <motion.div

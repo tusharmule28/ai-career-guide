@@ -93,7 +93,19 @@ async function request(endpoint: string, options: any = {}) {
 }
 
 export const api = {
-  get: (endpoint: string, options?: any) => request(endpoint, { ...options, method: 'GET' }),
+  get: (endpoint: string, params?: Record<string, any>, options?: any) => {
+    let url = endpoint;
+    if (params) {
+      const query = Object.entries(params)
+        .filter(([_, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+      if (query) {
+        url += (url.includes('?') ? '&' : '?') + query;
+      }
+    }
+    return request(url, { ...options, method: 'GET' });
+  },
   post: (endpoint: string, body?: any, options?: any) =>
     request(endpoint, { ...options, method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   put: (endpoint: string, body?: any, options?: any) =>

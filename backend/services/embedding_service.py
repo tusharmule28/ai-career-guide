@@ -2,6 +2,7 @@ import httpx
 import numpy as np
 from typing import List, Union, Optional
 from core.config import settings
+from services.cache_service import cache_service
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,6 +29,13 @@ class EmbeddingService:
         if not text:
             return np.zeros(384)
         
+        # 1. Cache Lookup (Single string only for now)
+        if isinstance(text, str):
+            cached = await cache_service.get_embedding(text)
+            if cached:
+                logger.info("Found cached embedding in DynamoDB.")
+                return np.array(cached)
+        
         target_url = self.fallback_url if use_fallback else self.api_url
         
         # Enhanced preprocessing for better "Experience"
@@ -47,6 +55,11 @@ class EmbeddingService:
             
             response.raise_for_status()
             embeddings = response.json()
+            
+            # 2. Cache Save
+            if isinstance(text, str):
+                await cache_service.save_embedding(text, embeddings)
+                
             return np.array(embeddings)
         except Exception as e:
             if not use_fallback:

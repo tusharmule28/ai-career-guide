@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 from models.notification import Notification
 from services.matching_service import matching_service
 from services.firebase_service import firebase_service
+from services.email_service import email_service
 from fastapi import BackgroundTasks
 from typing import List
 
@@ -74,12 +75,36 @@ class NotificationService:
                                             data={"url": f"/jobs?id={job.id}", "type": "match"}
                                         )
                                     else:
-                                        # Fallback to sync send if background_tasks not provided (less ideal)
                                         await firebase_service.send_push_notification(
                                             token=user.fcm_token,
                                             title="New Job Match! 🚀",
                                             body=f"We found a {round(match_score)}% match: {job.title} at {job.company}",
                                             data={"url": f"/jobs?id={job.id}", "type": "match"}
+                                        )
+
+                                # Trigger Email via Resend
+                                if user.email:
+                                    # Use the frontend URL from settings
+                                    job_url = f"{settings.FRONTEND_URL}/jobs?id={job.id}"
+                                    
+                                    if background_tasks:
+                                        background_tasks.add_task(
+                                            email_service.send_match_notification,
+                                            to_email=user.email,
+                                            user_name=user.name or user.email.split('@')[0],
+                                            job_title=job.title,
+                                            company=job.company,
+                                            match_score=match_score,
+                                            job_url=job_url
+                                        )
+                                    else:
+                                        await email_service.send_match_notification(
+                                            to_email=user.email,
+                                            user_name=user.name or user.email.split('@')[0],
+                                            job_title=job.title,
+                                            company=job.company,
+                                            match_score=match_score,
+                                            job_url=job_url
                                         )
 
                 except Exception as e:

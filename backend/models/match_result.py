@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON
 from sqlalchemy.sql import func
 from db.database import Base
 
@@ -10,6 +10,7 @@ class MatchResult(Base):
     resume_id = Column(Integer, ForeignKey("resumes.id"), nullable=False)
     job_id = Column(Integer, ForeignKey("jobs.id"), nullable=False)
     score = Column(Float, nullable=False) # Similarity score (0-100)
+    ai_analysis = Column(JSON, nullable=True) # Cached LLM analysis (found/missing skills)
     matched_at = Column(DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self):

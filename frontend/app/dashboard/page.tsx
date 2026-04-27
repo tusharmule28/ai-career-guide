@@ -22,6 +22,7 @@ import { JobCardSkeleton, StatCardSkeleton } from '@/components/ui/Skeleton';
 import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import MatchPotencyMeter from '@/components/ui/MatchPotencyMeter';
 
 // Dynamic imports for heavy components
 const GapAnalysisModal = dynamic(() => import('@/components/GapAnalysisModal'), { ssr: false });
@@ -90,7 +91,7 @@ export default function DashboardPage() {
     { label: 'Active Missions', value: summary.application_count, icon: Zap, color: 'text-amber-400', bg: 'bg-amber-500/10' },
   ];
 
-  const freshMatches = matchedJobs.slice(0, 4);
+  const freshMatches = matchedJobs.slice(0, 3);
 
   if (summaryError && !loading) {
      return (
@@ -142,7 +143,7 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Link href="/jobs" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:min-w-[200px] h-16 px-10 font-extrabold rounded-2xl shadow-glow-indigo bg-indigo-600 hover:bg-indigo-500 transition-all">
-                  Execute Matches
+                  View Recommendations
                 </Button>
               </Link>
               <Link href="/profile" className="w-full sm:w-auto">
@@ -166,13 +167,8 @@ export default function DashboardPage() {
                 transition={{ delay: 0.4, type: 'spring' }}
                 className="relative bg-surface/40 backdrop-blur-3xl border border-white/10 p-12 rounded-[3.5rem] shadow-2xl text-center w-80"
             >
-              <div className="mb-8 relative">
-                <div className="w-32 h-32 rounded-full border-4 border-indigo-500/20 flex items-center justify-center mx-auto shadow-2xl bg-background/50">
-                  <span className="text-5xl font-black text-white">{matchedJobs.length > 0 ? (summary.skill_score || 84) : 0}%</span>
-                </div>
-                <div className="absolute -bottom-3 right-1/2 translate-x-1/2 px-5 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-glow ring-4 ring-slate-950">
-                   {matchedJobs.length > 0 ? (user?.is_premium ? 'Elite Tier' : 'High Potency') : 'Standby'}
-                </div>
+              <div className="mb-12 relative flex justify-center mt-4">
+                <MatchPotencyMeter score={matchedJobs.length > 0 ? (summary.skill_score || 84) : 0} size={160} strokeWidth={12} />
               </div>
               <h3 className="text-white font-black text-2xl mb-3 tracking-tight">Potency Index</h3>
               <p className="text-text-muted text-xs font-bold max-w-[200px] mx-auto leading-relaxed">
@@ -239,7 +235,7 @@ export default function DashboardPage() {
           <section id="job-matches-section">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tight leading-tight">Strategic Matches</h2>
+                <h2 className="text-3xl font-black text-white tracking-tight leading-tight">High-Potency Matches</h2>
                 <p className="text-sm text-text-secondary font-bold mt-1">Refined from the latest market shifts</p>
               </div>
               <Link href="/jobs" className="text-xs font-black text-indigo-400 hover:text-indigo-300 transition-all uppercase tracking-widest flex items-center gap-2 group">
@@ -248,11 +244,11 @@ export default function DashboardPage() {
             </div>
 
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(4)].map((_, i) => <JobCardSkeleton key={i} />)}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => <JobCardSkeleton key={i} />)}
               </div>
             ) : freshMatches.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {freshMatches.map((item) => (
                   <JobCard key={item.job?.id} job={item} onSelect={(j) => window.location.href = `/jobs/${j.id}`} />
                 ))}

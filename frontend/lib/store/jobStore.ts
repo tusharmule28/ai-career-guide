@@ -9,8 +9,8 @@ interface JobStoreState {
   appliedJobIds: number[];
   loading: boolean;
   error: string | null;
-  fetchJobs: () => Promise<void>;
-  fetchMatchedJobs: (params?: Record<string, any>) => Promise<void>;
+  fetchJobs: (params?: Record<string, any>, force?: boolean) => Promise<void>;
+  fetchMatchedJobs: (params?: Record<string, any>, force?: boolean) => Promise<void>;
   fetchSavedJobs: () => Promise<void>;
   saveJob: (jobId: number) => Promise<void>;
   applyToJob: (jobId: number) => Promise<void>;
@@ -23,24 +23,69 @@ export const useJobStore = create<JobStoreState>((set, get) => ({
   appliedJobIds: [],
   loading: false,
   error: null,
+  
+  // Cache state
+  _cache: {
+    jobs: { data: [], timestamp: 0 },
+    matched: { data: [], timestamp: 0 }
+  },
 
-  fetchJobs: async () => {
+  fetchJobs: async (params = {}, force = false) => {
+    const state = get() as any;
+    const now = Date.now();
+    const cacheKey = JSON.stringify(params);
+    
+    // Simple 2-minute cache for job list if no params changed and not forced
+    if (!force && Object.keys(params).length === 0 && (now - state._cache.jobs.timestamp < 120000)) {
+       if (state.jobs.length === 0 && state._cache.jobs.data.length > 0) {
+         set({ jobs: state._cache.jobs.data });
+       }
+       return;
+    }
+
     set({ loading: true, error: null });
     try {
-      const data = await api.get('/jobs');
-      set({ jobs: data || [], loading: false });
+      const data = await api.get('/jobs', params);
+      
+      if (Object.keys(params).length === 0) {
+        set((s: any) => ({ 
+          jobs: data || [], 
+          loading: false,
+          _cache: { ...s._cache, jobs: { data: data || [], timestamp: now } }
+        }));
+      } else {
+        set({ jobs: data || [], loading: false });
+      }
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }
   },
 
-  fetchMatchedJobs: async (params = {}) => {
+  fetchMatchedJobs: async (params = {}, force = false) => {
+    const state = get() as any;
+    const now = Date.now();
+    
+    // 5-minute cache for matched jobs since they are computationally expensive
+    if (!force && Object.keys(params).length === 0 && (now - state._cache.matched.timestamp < 300000)) {
+       if (state.matchedJobs.length === 0 && state._cache.matched.data.length > 0) {
+         set({ matchedJobs: state._cache.matched.data });
+       }
+       return;
+    }
+
     set({ loading: true, error: null });
     try {
-      // Ensure we always have current applied jobs to filter if needed on client side 
-      // although backend now handle it.
       const data = await api.post('/matching/match', params);
-      set({ matchedJobs: data || [], loading: false });
+      
+      if (Object.keys(params).length === 0) {
+        set((s: any) => ({ 
+          matchedJobs: data || [], 
+          loading: false,
+          _cache: { ...s._cache, matched: { data: data || [], timestamp: now } }
+        }));
+      } else {
+        set({ matchedJobs: data || [], loading: false });
+      }
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }

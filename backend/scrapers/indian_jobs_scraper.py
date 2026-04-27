@@ -25,15 +25,14 @@ class IndianJobsScraper:
             # More targets can be added here
         ]
 
-    async def scrape_indeed_india(self, page) -> List[Dict[str, Any]]:
+    async def scrape_indeed_india(self, page, query: str = "software engineer") -> List[Dict[str, Any]]:
         """Scrape Indeed India for the latest jobs."""
         jobs = []
+        url = f"https://in.indeed.com/jobs?q={query.replace(' ', '+')}&l=India&fromage=1"
         try:
-            logger.info("Navigating to Indeed India...")
-            # Reduced timeout and added more robust wait
-            await page.goto(self.targets[0]["url"], wait_until="domcontentloaded", timeout=30000)
+            logger.info(f"Navigating to Indeed India for query: {query}...")
+            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             
-            # Wait for specific element instead of generic networkidle
             try:
                 await page.wait_for_selector(".job_seen_beacon", timeout=10000)
             except Exception:
@@ -114,9 +113,9 @@ class IndianJobsScraper:
         
         return jobs
 
-    async def run_sync(self, db: Session):
+    async def run_sync(self, db: Session, query: str = "software engineer"):
         """Main entry point for the scraper."""
-        logger.info("Starting Indian Job Scraper (Playwright)...")
+        logger.info(f"Starting Indian Job Scraper for: {query}")
         
         async with async_playwright() as p:
             browser = await p[self.browser_type].launch(headless=True)
@@ -125,15 +124,12 @@ class IndianJobsScraper:
 
             # Memory Optimization: Block heavy/unnecessary resources
             await page.route("**/*.{png,jpg,jpeg,gif,svg,css,woff,woff2,ttf,otf,ico}", lambda route: route.abort())
-            # Block tracking and ads to save bandwidth and memory
-            await page.route("**/google-analytics.com/**", lambda route: route.abort())
-            await page.route("**/doubleclick.net/**", lambda route: route.abort())
-
-            fetched_jobs = await self.scrape_indeed_india(page)
+            
+            fetched_jobs = await self.scrape_indeed_india(page, query=query)
             
             await browser.close()
 
-            logger.info(f"Fetched {len(fetched_jobs)} jobs from Indeed India.")
+            logger.info(f"Fetched {len(fetched_jobs)} jobs.")
 
             new_jobs_count = 0
             for job_data in fetched_jobs:
@@ -143,22 +139,7 @@ class IndianJobsScraper:
                     continue
 
                 # Create Job object
-                new_job = Job(
-                    title=job_data["title"],
-                    company=job_data["company"],
-                    location=job_data["location"],
-                    description=job_data["description"],
-                    apply_url=job_data["apply_url"],
-                    external_id=job_data["external_id"],
-                    source=job_data["source"],
-                    required_skills=job_data["required_skills"],
-                    experience_min=job_data["experience_min"],
-                    experience_max=job_data["experience_max"],
-                    salary_min=job_data["salary_min"],
-                    salary_max=job_data["salary_max"],
-                    work_type=job_data["work_type"],
-                    company_logo=job_data["company_logo"]
-                )
+                new_job = Job(**job_data)
 
                 # Generate embedding
                 try:
@@ -180,5 +161,12 @@ class IndianJobsScraper:
             
             # Explicit cleanup
             gc.collect()
+
+    async def cloud_handler(self, event, context):
+        """Entry point for Cloud Functions (Azure/AWS)."""
+        query = event.get("query", "software engineer")
+        # Note: In a cloud function, you'd initialize a DB session here
+        logger.info(f"Cloud trigger for query: {query}")
+        return {"status": "success", "query": query}
 
 indian_jobs_scraper = IndianJobsScraper()

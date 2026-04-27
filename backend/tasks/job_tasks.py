@@ -6,6 +6,7 @@ from db.database import SessionLocal
 from scrapers.job_fetcher import job_fetcher
 from scrapers.indian_jobs_scraper import indian_jobs_scraper
 from services.matching_service import matching_service
+from services.notification_service import notification_service
 from models.resume import Resume
 from core.celery_app import celery_app
 
@@ -32,7 +33,12 @@ def sync_all_jobs(user_location: Optional[str] = None):
         asyncio.set_event_loop(loop)
         
         # Run sync with targeting
-        loop.run_until_complete(job_fetcher.sync_jobs(db, user_location=user_location))
+        new_jobs = loop.run_until_complete(job_fetcher.sync_jobs(db, user_location=user_location))
+        
+        # Trigger notifications for new matches
+        if new_jobs:
+            logger.info(f"Sync found {len(new_jobs)} new jobs. Triggering notifications...")
+            loop.run_until_complete(notification_service.notify_matching_users(db, new_jobs))
         
         logger.info("Background job sync completed successfully.")
     except Exception as e:
