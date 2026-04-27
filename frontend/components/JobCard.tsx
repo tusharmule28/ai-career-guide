@@ -112,11 +112,11 @@ const JobCard: React.FC<JobCardProps> = ({
             )}
           </div>
           
-          <h3 className="text-base font-black text-text group-hover:text-primary-300 transition-colors line-clamp-1 tracking-tight leading-tight mb-2">
+          <h3 className="text-base xl:text-lg font-black text-text group-hover:text-primary-300 transition-colors line-clamp-1 tracking-tight leading-tight mb-2">
             {title}
           </h3>
 
-          <div className="flex flex-wrap items-center gap-y-2 gap-x-2">
+          <div className="flex flex-wrap items-center gap-y-2 gap-x-2 xl:gap-x-3">
             {highlight && (
               <span className="px-2 py-0.5 bg-primary-500/10 text-primary-400 border border-primary-500/20 rounded-md text-[9px] font-black uppercase tracking-[0.15em]">
                 Top Match
@@ -204,20 +204,20 @@ const JobCard: React.FC<JobCardProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="mt-auto pt-4 border-t border-border/30 flex flex-col gap-3">
+      <div className="mt-auto pt-4 border-t border-border/30 flex flex-col xl:flex-row gap-3 xl:items-center xl:justify-between">
         {/* Primary Actions Row */}
-        <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-2 w-full xl:w-auto xl:flex-1 min-w-0">
           <ApplyWithAIBtn
             job={targetJob}
             creditsRemaining={userCredits}
             isPremium={userIsPremium}
             onCreditsUsed={onCreditsUsed}
-            className="flex-1 min-w-0 px-2 sm:px-4 h-10"
+            className="flex-1 xl:flex-none min-w-0 px-2 sm:px-4 h-10"
           />
           <Button
             size="sm"
             variant="secondary"
-            className="flex-1 min-w-0 h-10 px-2 sm:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10"
+            className="flex-1 xl:flex-none min-w-0 h-10 px-2 sm:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10"
             onClick={async (e) => {
               e.stopPropagation();
               try {
@@ -232,17 +232,35 @@ const JobCard: React.FC<JobCardProps> = ({
           >
             <span className="truncate">Quick Apply</span>
           </Button>
-        </div>
 
-        {/* Secondary Actions Row */}
-        <div className="flex items-center justify-between w-full">
+          {/* Desktop Bookmark */}
           <button
             onClick={(e) => {
                e.stopPropagation();
                handleSave(e);
             }}
             className={cn(
-              "w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 transform-gpu active:scale-90 shrink-0",
+              "hidden xl:flex w-10 h-10 rounded-xl items-center justify-center transition-all duration-300 transform-gpu active:scale-90 shrink-0",
+              saved
+                ? "bg-primary-500/20 text-primary-400 border border-primary-500/30 shadow-glow"
+                : "bg-surface border border-border/50 text-text-muted hover:text-text hover:border-border"
+            )}
+            title={saved ? 'Bookmarked' : 'Bookmark'}
+          >
+            {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+          </button>
+        </div>
+
+        {/* Secondary Actions Row */}
+        <div className="flex items-center justify-between w-full xl:w-auto">
+          {/* Mobile Bookmark */}
+          <button
+            onClick={(e) => {
+               e.stopPropagation();
+               handleSave(e);
+            }}
+            className={cn(
+              "flex xl:hidden w-10 h-10 rounded-xl items-center justify-center transition-all duration-300 transform-gpu active:scale-90 shrink-0",
               saved
                 ? "bg-primary-500/20 text-primary-400 border border-primary-500/30 shadow-glow"
                 : "bg-surface border border-border/50 text-text-muted hover:text-text hover:border-border"
