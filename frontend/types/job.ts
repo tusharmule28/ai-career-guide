@@ -83,5 +83,8 @@ export interface Application {
   status: 'PENDING' | 'APPLIED' | 'SCREENED' | 'INTERVIEW' | 'OFFERED' | 'REJECTED';
   notes?: string;
   applied_at: string;
+  job_title?: string;
+  company?: string;
+  apply_url?: string;
   job?: Job;
 }
