@@ -6,8 +6,8 @@ from core.notifications import notifier
 import asyncio
 
 class NotificationService:
-    @staticmethod
     async def create_notification(
+        self,
         db: Session,
         user_id: int,
         title: str,
@@ -48,8 +48,8 @@ class NotificationService:
         
         return notification
 
-    @staticmethod
     async def notify_job_match(
+        self,
         db: Session,
         user_id: int,
         job_id: int,
@@ -64,7 +64,7 @@ class NotificationService:
         message = f"We found a {match_score}% match for you: {job_title} at {company}."
         link = f"/jobs?id={job_id}"
         
-        return await NotificationService.create_notification(
+        return await self.create_notification(
             db=db,
             user_id=user_id,
             title=title,
@@ -75,8 +75,8 @@ class NotificationService:
             meta_data={"job_id": job_id, "match_score": match_score}
         )
 
-    @staticmethod
     async def notify_application_status(
+        self,
         db: Session,
         user_id: int,
         application_id: int,
@@ -90,7 +90,7 @@ class NotificationService:
         message = f"Your application for {job_title} is now: {status}."
         link = f"/applications/{application_id}"
         
-        return await NotificationService.create_notification(
+        return await self.create_notification(
             db=db,
             user_id=user_id,
             title=title,
@@ -101,8 +101,8 @@ class NotificationService:
             meta_data={"application_id": application_id, "status": status}
         )
 
-    @staticmethod
     async def notify_system_alert(
+        self,
         db: Session,
         user_id: int,
         title: str,
@@ -112,7 +112,7 @@ class NotificationService:
         """
         Send a system-level alert.
         """
-        return await NotificationService.create_notification(
+        return await self.create_notification(
             db=db,
             user_id=user_id,
             title=title,
@@ -120,3 +120,33 @@ class NotificationService:
             category="system",
             priority=priority
         )
+
+    async def notify_matching_users(self, db: Session, new_jobs: list):
+        """
+        Check all active users for matches against new jobs and notify them.
+        """
+        from models.resume import Resume
+        from services.matching_service import matching_service
+        
+        # Get all users with resumes
+        users_with_resumes = db.query(User).join(Resume).all()
+        
+        for user in users_with_resumes:
+            resume = db.query(Resume).filter(Resume.user_id == user.id).first()
+            if not resume or not resume.extracted_text:
+                continue
+                
+            for job in new_jobs:
+                # Calculate match score
+                match_data = await matching_service.calculate_score(resume.extracted_text, job, user)
+                if match_data.get("score", 0) >= 80: # Threshold for notification
+                    await self.notify_job_match(
+                        db=db,
+                        user_id=user.id,
+                        job_id=job.id,
+                        job_title=job.title,
+                        company=job.company,
+                        match_score=match_data["score"]
+                    )
+
+notification_service = NotificationService()
