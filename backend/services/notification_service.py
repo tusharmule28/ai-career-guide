@@ -1,116 +1,122 @@
-import logging
 from sqlalchemy.orm import Session
+from typing import Optional, Dict, Any
+from models.notification import Notification
 from models.user import User
-from models.resume import Resume
-from models.job import Job
-from models.notification import Notification
-from services.matching_service import matching_service
-from typing import List
-
-logger = logging.getLogger(__name__)
-
-from models.notification import Notification
-from services.matching_service import matching_service
-from services.firebase_service import firebase_service
-from services.email_service import email_service
-from fastapi import BackgroundTasks
-from typing import List
-
-logger = logging.getLogger(__name__)
+from core.notifications import notifier
+import asyncio
 
 class NotificationService:
-    async def notify_matching_users(self, db: Session, new_jobs: List[Job], background_tasks: BackgroundTasks = None):
+    @staticmethod
+    async def create_notification(
+        db: Session,
+        user_id: int,
+        title: str,
+        message: str,
+        category: str = "system",
+        priority: str = "medium",
+        link: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Notification:
         """
-        Process new jobs, find matching users with uploaded resumes,
-        and generate in-app and push notifications for high-score matches.
+        Create a new notification for a user and trigger real-time update.
         """
-        if not new_jobs:
-            return
+        notification = Notification(
+            user_id=user_id,
+            title=title,
+            message=message,
+            category=category,
+            priority=priority,
+            link=link,
+            metadata=metadata
+        )
+        db.add(notification)
+        db.commit()
+        db.refresh(notification)
+        
+        # Trigger real-time update via SSE
+        await notifier.notify(user_id, {
+            "id": notification.id,
+            "title": notification.title,
+            "message": notification.message,
+            "link": notification.link,
+            "category": notification.category,
+            "priority": notification.priority,
+            "metadata": notification.metadata,
+            "is_read": notification.is_read,
+            "created_at": notification.created_at.isoformat() if notification.created_at else None
+        })
+        
+        return notification
 
-        logger.info(f"Processing notifications for {len(new_jobs)} new jobs...")
-
-        # 1. Get all users who have a resume with an embedding
-        users_with_resumes = (
-            db.query(User, Resume)
-            .join(Resume, User.id == Resume.user_id)
-            .filter(Resume.embedding != None)
-            .all()
+    @staticmethod
+    async def notify_job_match(
+        db: Session,
+        user_id: int,
+        job_id: int,
+        job_title: str,
+        company: str,
+        match_score: float
+    ):
+        """
+        Notify user of a high-priority job match.
+        """
+        title = "New High-Quality Match!"
+        message = f"We found a {match_score}% match for you: {job_title} at {company}."
+        link = f"/jobs?id={job_id}"
+        
+        return await NotificationService.create_notification(
+            db=db,
+            user_id=user_id,
+            title=title,
+            message=message,
+            category="jobs",
+            priority="high" if match_score >= 85 else "medium",
+            link=link,
+            metadata={"job_id": job_id, "match_score": match_score}
         )
 
-        for user, resume in users_with_resumes:
-            for job in new_jobs:
-                if not job.embedding:
-                    continue
-
-                try:
-                    # Use the refined calculate_score logic for consistency
-                    match_result = await matching_service.calculate_score(resume.extracted_text, job, user)
-                    match_score = match_result.get("score", 0)
-                    
-                    if match_score >= 80:
-                            existing = db.query(Notification).filter(
-                                Notification.user_id == user.id,
-                                Notification.link == f"/jobs?id={job.id}"
-                            ).first()
-
-                            if not existing:
-                                notification = Notification(
-                                    user_id=user.id,
-                                    title="New High-Match Job Found! 🚀",
-                                    message=f"We found a {round(match_score)}% match for you: '{job.title}' at {job.company}.",
-                                    link=f"/jobs?id={job.id}",
-                                    type="match"
-                                )
-                                db.add(notification)
-                                logger.info(f"Created notification for user {user.id} and job {job.id}")
-
-                                # Trigger Firebase Push if token exists
-                                if user.fcm_token:
-                                    if background_tasks:
-                                        background_tasks.add_task(
-                                            firebase_service.send_push_notification,
-                                            token=user.fcm_token,
-                                            title="New Job Match! 🚀",
-                                            body=f"We found a {round(match_score)}% match: {job.title} at {job.company}",
-                                            data={"url": f"/jobs?id={job.id}", "type": "match"}
-                                        )
-                                    else:
-                                        await firebase_service.send_push_notification(
-                                            token=user.fcm_token,
-                                            title="New Job Match! 🚀",
-                                            body=f"We found a {round(match_score)}% match: {job.title} at {job.company}",
-                                            data={"url": f"/jobs?id={job.id}", "type": "match"}
-                                        )
-
-                                # Trigger Email via Resend
-                                if user.email:
-                                    # Use the frontend URL from settings
-                                    job_url = f"{settings.FRONTEND_URL}/jobs?id={job.id}"
-                                    
-                                    if background_tasks:
-                                        background_tasks.add_task(
-                                            email_service.send_match_notification,
-                                            to_email=user.email,
-                                            user_name=user.name or user.email.split('@')[0],
-                                            job_title=job.title,
-                                            company=job.company,
-                                            match_score=match_score,
-                                            job_url=job_url
-                                        )
-                                    else:
-                                        await email_service.send_match_notification(
-                                            to_email=user.email,
-                                            user_name=user.name or user.email.split('@')[0],
-                                            job_title=job.title,
-                                            company=job.company,
-                                            match_score=match_score,
-                                            job_url=job_url
-                                        )
-
-                except Exception as e:
-                    logger.error(f"Error processing notification for user {user.id} and job {job.id}: {e}")
-                    continue
+    @staticmethod
+    async def notify_application_status(
+        db: Session,
+        user_id: int,
+        application_id: int,
+        job_title: str,
+        status: str
+    ):
+        """
+        Notify user of an application status update.
+        """
+        title = "Application Update"
+        message = f"Your application for {job_title} is now: {status}."
+        link = f"/applications/{application_id}"
         
-        db.commit()
+        return await NotificationService.create_notification(
+            db=db,
+            user_id=user_id,
+            title=title,
+            message=message,
+            category="applications",
+            priority="high",
+            link=link,
+            metadata={"application_id": application_id, "status": status}
+        )
 
-notification_service = NotificationService()
+    @staticmethod
+    async def notify_system_alert(
+        db: Session,
+        user_id: int,
+        title: str,
+        message: str,
+        priority: str = "medium"
+    ):
+        """
+        Send a system-level alert.
+        """
+        return await NotificationService.create_notification(
+            db=db,
+            user_id=user_id,
+            title=title,
+            message=message,
+            category="system",
+            priority=priority
+        )

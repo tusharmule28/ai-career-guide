@@ -37,7 +37,7 @@ def create_access_token(
     )
     return encoded_jwt
 
-def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_db)) -> User:
+def get_current_user_from_token(db: Session, token: str) -> User:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -63,6 +63,9 @@ def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depend
         )
     
     return user
+
+def get_current_user(token: str = Depends(reuseable_oauth), db: Session = Depends(get_db)) -> User:
+    return get_current_user_from_token(db, token)
 
 def get_premium_user(current_user: User = Depends(get_current_user)) -> User:
     if not current_user.is_premium:

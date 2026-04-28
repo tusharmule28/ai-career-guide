@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home,
   Briefcase, 
@@ -13,59 +14,15 @@ import {
   X, 
   User as UserIcon,
   ShieldCheck,
-  Bell,
   ClipboardList
 } from 'lucide-react';
 import Button, { cn } from './ui/Button';
-import { api } from '@/lib/api';
+import { NotificationBell } from './NotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const pathname = usePathname();
-
-  useEffect(() => {
-    if (user) {
-      fetchNotifications();
-      const interval = setInterval(fetchNotifications, 120000);
-      return () => clearInterval(interval);
-    }
-  }, [user]);
-
-  const fetchNotifications = async () => {
-    try {
-      const data = await api.get('/notifications');
-      if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter((n: any) => !n.is_read).length);
-      }
-    } catch (err) {
-      console.error("Failed to fetch notifications:", err);
-    }
-  };
-
-  const markAsRead = async (id: number) => {
-    try {
-      await api.patch(`/notifications/${id}/read`);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
-      console.error("Failed to mark as read:", err);
-    }
-  };
-
-  const markAllRead = async () => {
-    try {
-      await api.patch('/notifications/read-all');
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-    } catch (err) {
-      console.error("Failed to mark all as read:", err);
-    }
-  };
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -116,62 +73,7 @@ const Navbar = () => {
               {user ? (
                 <div className="flex items-center gap-4">
                   {/* Notifications */}
-                  <div className="relative">
-                    <button 
-                      onClick={() => setIsNotifOpen(!isNotifOpen)}
-                      className="w-10 h-10 rounded-xl bg-surface border border-border/50 flex items-center justify-center text-text-secondary hover:bg-slate-800 hover:text-text transition-all duration-300 relative group/notif"
-                    >
-                      <Bell size={18} className="group-hover/notif:rotate-12 transition-transform" />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-slate-900">
-                          {unreadCount > 9 ? '9+' : unreadCount}
-                        </span>
-                      )}
-                    </button>
-
-                    <AnimatePresence>
-                      {isNotifOpen && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 mt-3 w-80 glass border border-border rounded-2xl shadow-xl z-50 overflow-hidden"
-                        >
-                          <div className="p-4 border-b border-border flex justify-between items-center bg-surface/50">
-                            <h4 className="font-bold text-text text-sm">Notifications</h4>
-                            {unreadCount > 0 && (
-                              <button onClick={markAllRead} className="text-[10px] font-bold text-primary-400 hover:text-primary-300">Mark all read</button>
-                            )}
-                          </div>
-                          <div className="max-h-80 overflow-y-auto custom-scrollbar">
-                            {notifications.length > 0 ? (
-                              notifications.map((n: any) => (
-                                <div 
-                                  key={n.id} 
-                                  className={cn(
-                                    "p-3 border-b border-border/50 hover:bg-surface transition-colors cursor-pointer relative",
-                                    !n.is_read && "bg-primary/20 shadow-inner rounded-md mx-1 my-1"
-                                  )}
-                                  onClick={() => {
-                                    markAsRead(n.id);
-                                    if (n.link) window.location.href = n.link;
-                                  }}
-                                >
-                                  <p className="text-xs font-bold text-text">{n.title}</p>
-                                  <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-2">{n.message}</p>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="p-8 text-center text-text-muted">
-                                <Bell size={24} className="mx-auto mb-2 opacity-20" />
-                                <p className="text-[10px] font-medium tracking-widest uppercase">No Notifications</p>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <NotificationBell />
 
                   <Link href="/profile" className="flex items-center gap-3 group">
                     <div className="w-9 h-9 rounded-full bg-surface border-2 border-border shadow-sm flex items-center justify-center text-primary-400 group-hover:bg-primary/20 transition-smooth relative overflow-hidden">
@@ -289,7 +191,5 @@ const Navbar = () => {
     </nav>
   );
 };
-
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default Navbar;
