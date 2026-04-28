@@ -19,7 +19,7 @@ class Notification(Base):
     link = Column(String, nullable=True) # e.g. "/jobs?id=123"
     
     # JSON field for additional dynamic data (job_id, app_id, match_score, etc.)
-    metadata = Column(JSON, nullable=True)
+    meta_data = Column("metadata", JSON, nullable=True)
     
     is_read = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

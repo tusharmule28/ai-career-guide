@@ -43,7 +43,7 @@ async def get_my_notifications(
             "link": n.link,
             "category": n.category,
             "priority": n.priority,
-            "metadata": n.metadata,
+            "metadata": n.meta_data,
             "is_read": n.is_read,
             "created_at": n.created_at
         })

@@ -15,7 +15,7 @@ class NotificationService:
         category: str = "system",
         priority: str = "medium",
         link: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        meta_data: Optional[Dict[str, Any]] = None
     ) -> Notification:
         """
         Create a new notification for a user and trigger real-time update.
@@ -27,7 +27,7 @@ class NotificationService:
             category=category,
             priority=priority,
             link=link,
-            metadata=metadata
+            meta_data=meta_data
         )
         db.add(notification)
         db.commit()
@@ -41,7 +41,7 @@ class NotificationService:
             "link": notification.link,
             "category": notification.category,
             "priority": notification.priority,
-            "metadata": notification.metadata,
+            "metadata": notification.meta_data,
             "is_read": notification.is_read,
             "created_at": notification.created_at.isoformat() if notification.created_at else None
         })
@@ -72,7 +72,7 @@ class NotificationService:
             category="jobs",
             priority="high" if match_score >= 85 else "medium",
             link=link,
-            metadata={"job_id": job_id, "match_score": match_score}
+            meta_data={"job_id": job_id, "match_score": match_score}
         )
 
     @staticmethod
@@ -98,7 +98,7 @@ class NotificationService:
             category="applications",
             priority="high",
             link=link,
-            metadata={"application_id": application_id, "status": status}
+            meta_data={"application_id": application_id, "status": status}
         )
 
     @staticmethod
