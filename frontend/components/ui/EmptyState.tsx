@@ -22,7 +22,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center py-20 px-8 text-center bg-surface/20 border border-border/50 rounded-[3rem] shadow-inner backdrop-blur-sm relative overflow-hidden group",
+      "flex flex-col items-center justify-center py-16 px-6 text-center bg-surface/30 border border-border/50 rounded-3xl shadow-sm backdrop-blur-sm relative overflow-hidden group",
       className
     )}>
       {/* Background Glow */}
@@ -68,16 +68,16 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         </div>
       </motion.div>
 
-      <h3 className="text-2xl font-black text-white mb-3 tracking-tighter tracking-tight">{title}</h3>
-      <p className="text-sm text-text-secondary max-w-sm mb-10 mx-auto font-medium leading-relaxed italic opacity-80">
+      <h3 className="text-xl md:text-2xl font-bold text-white mb-2 tracking-tight">{title}</h3>
+      <p className="text-sm text-text-secondary max-w-sm mb-8 mx-auto leading-relaxed">
         {description}
       </p>
 
       {actionText && onAction && (
         <Button 
             onClick={onAction} 
-            variant="dark" 
-            className="font-black text-[10px] uppercase tracking-[0.2em] px-10 h-14 rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300 shadow-soft transition-all"
+            variant="secondary" 
+            className="px-8 h-12 rounded-xl"
         >
           {actionText}
         </Button>

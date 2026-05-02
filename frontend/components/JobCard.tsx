@@ -112,13 +112,13 @@ const JobCard: React.FC<JobCardProps> = ({
             )}
           </div>
           
-          <h3 className="text-base xl:text-lg font-black text-text group-hover:text-primary-300 transition-colors line-clamp-1 tracking-tight leading-tight mb-2">
+          <h3 className="text-base md:text-lg font-bold text-text group-hover:text-primary-400 transition-colors line-clamp-1 mb-1.5">
             {title}
           </h3>
 
           <div className="flex flex-wrap items-center gap-y-2 gap-x-2 xl:gap-x-3">
             {highlight && (
-              <span className="px-2 py-0.5 bg-primary-500/10 text-primary-400 border border-primary-500/20 rounded-md text-[9px] font-black uppercase tracking-[0.15em]">
+              <span className="px-2 py-0.5 bg-primary-500/10 text-primary-400 border border-primary-500/20 rounded-md text-[10px] font-bold">
                 Top Match
               </span>
             )}
@@ -131,7 +131,7 @@ const JobCard: React.FC<JobCardProps> = ({
               <span className="whitespace-nowrap">{salary}</span>
             </div>
             {targetJob.work_type && (
-               <span className="px-2 py-0.5 bg-background text-text-muted border border-border/50 rounded-md text-[9px] font-black uppercase tracking-[0.15em] whitespace-nowrap">
+               <span className="px-2 py-0.5 bg-background text-text-muted border border-border/50 rounded-md text-[10px] font-medium whitespace-nowrap">
                  {targetJob.work_type}
                </span>
             )}
@@ -216,8 +216,8 @@ const JobCard: React.FC<JobCardProps> = ({
           />
           <Button
             size="sm"
-            variant="secondary"
-            className="flex-1 xl:flex-none min-w-0 h-10 px-2 sm:px-4 rounded-xl text-[10px] font-black uppercase tracking-widest border-white/5 hover:bg-white/10"
+            variant="outline"
+            className="flex-1 xl:flex-none h-10 px-4 rounded-xl text-xs"
             onClick={async (e) => {
               e.stopPropagation();
               try {
@@ -230,7 +230,7 @@ const JobCard: React.FC<JobCardProps> = ({
               }
             }}
           >
-            <span className="truncate">Quick Apply</span>
+            Apply Now
           </Button>
 
           {/* Desktop Bookmark */}
@@ -270,9 +270,9 @@ const JobCard: React.FC<JobCardProps> = ({
             {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
           </button>
 
-          <div className="flex items-center text-[10px] font-black text-text-secondary uppercase tracking-widest px-2 group/details">
+          <div className="flex items-center text-xs font-semibold text-text-secondary hover:text-primary-400 transition-colors group/details">
             View Role
-            <ChevronRight size={14} className="ml-1 group-hover/details:translate-x-1 transition-transform" />
+            <ChevronRight size={14} className="ml-0.5 group-hover/details:translate-x-0.5 transition-transform" />
           </div>
         </div>
       </div>

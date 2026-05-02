@@ -127,29 +127,29 @@ export default function JobsPage() {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-8">
         <div className="max-w-2xl">
           <motion.div 
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/10 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-6 border border-indigo-500/20 shadow-sm"
+            className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 rounded-full text-[10px] font-bold uppercase tracking-wider text-primary-400 mb-4 border border-primary-500/20"
           >
-             <Zap size={12} className="fill-current" /> Operational Command
+             <Zap size={12} className="fill-current" /> Discover
           </motion.div>
-          <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none mb-4">
-            Trajectory <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Control</span>
+          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
+            Job <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Board</span>
           </h1>
-          <p className="text-text-secondary text-lg font-medium leading-relaxed max-w-xl">
-            Execute strategic searches across multi-dimensional markets with precision AI synergy.
+          <p className="text-text-secondary text-base md:text-lg leading-relaxed max-w-xl">
+            Find and apply to roles that match your skills and experience using our AI engine.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
           <Button 
-            variant="dark" 
+            variant="secondary" 
             loading={isSyncing}
             onClick={handleSync}
-            className="w-full sm:w-auto h-16 px-8 font-black rounded-2xl shadow-soft group bg-slate-900 border border-white/5 hover:bg-slate-800"
+            className="w-full sm:w-auto h-12 px-6 font-semibold rounded-xl"
           >
-            {!isSyncing && <RefreshCw size={20} className="mr-2 group-hover:rotate-180 transition-transform duration-700" />}
-            Sync Intel
+            {!isSyncing && <RefreshCw size={18} className="mr-2" />}
+            Refresh Jobs
           </Button>
         </div>
       </div>
@@ -173,14 +173,14 @@ export default function JobsPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as TabType)}
               className={cn(
-                "flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all duration-300 relative whitespace-nowrap",
+                "flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 relative whitespace-nowrap",
                 activeTab === tab.id ? "text-white" : "text-text-muted hover:text-text-secondary"
               )}
             >
               {activeTab === tab.id && (
                 <motion.div 
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-surface border border-white/10 rounded-xl shadow-lg"
+                    className="absolute inset-0 bg-surface border border-white/5 rounded-xl shadow-sm"
                 />
               )}
               <tab.icon size={16} className={cn("relative z-10 transition-colors", activeTab === tab.id ? "text-indigo-400" : "")} />

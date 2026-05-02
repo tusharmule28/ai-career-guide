@@ -8,7 +8,7 @@ const Shimmer = ({ className }: { className?: string }) => (
 
 /* ─── JobCard skeleton ─── */
 export const JobCardSkeleton = () => (
-  <div className="rounded-[1.75rem] border border-border/30 bg-surface/20 p-6 flex flex-col gap-4 h-[280px]">
+  <div className="rounded-2xl border border-border/50 bg-surface/30 p-6 flex flex-col gap-4 h-[260px]">
     {/* Header */}
     <div className="flex justify-between items-start gap-3">
       <div className="flex-1 space-y-2">
@@ -42,7 +42,7 @@ export const JobCardSkeleton = () => (
 
 /* ─── Stat card skeleton ─── */
 export const StatCardSkeleton = () => (
-  <div className="rounded-[2rem] border border-border/30 bg-surface/20 p-8 flex items-center gap-6 h-full">
+  <div className="rounded-2xl border border-border/50 bg-surface/30 p-6 flex items-center gap-4 h-full">
     <Shimmer className="w-16 h-16 rounded-2xl shrink-0" />
     <div className="space-y-2 flex-1">
       <Shimmer className="h-3 w-24" />
@@ -73,7 +73,7 @@ export const ProfileSkeleton = () => (
 
 /* ─── Dashboard hero skeleton ─── */
 export const DashboardHeroSkeleton = () => (
-  <div className="rounded-[2.5rem] border border-border/30 bg-surface/20 px-8 py-12 mb-12 space-y-6">
+  <div className="rounded-3xl border border-border/50 bg-surface/30 px-8 py-10 mb-10 space-y-6">
     <Shimmer className="h-4 w-40 rounded-full" />
     <Shimmer className="h-12 w-3/4" />
     <Shimmer className="h-5 w-2/3" />

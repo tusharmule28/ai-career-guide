@@ -71,8 +71,8 @@ export default function BottomNav() {
 
               <span
                 className={cn(
-                  'text-[10px] font-bold tracking-wide leading-none transition-all duration-200',
-                  isActive ? 'opacity-100' : 'opacity-60'
+                  'text-[10px] font-medium tracking-wide leading-none transition-all duration-200',
+                  isActive ? 'text-primary-400 opacity-100' : 'text-text-muted opacity-80'
                 )}
               >
                 {item.name}

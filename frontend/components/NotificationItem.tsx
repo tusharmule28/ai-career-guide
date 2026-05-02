@@ -22,24 +22,24 @@ interface NotificationItemProps {
 const getIcon = (category: NotificationCategory) => {
   switch (category) {
     case 'jobs':
-      return <Briefcase className="w-5 h-5 text-blue-500" />;
+      return <Briefcase className="w-4 h-4 text-primary-400" />;
     case 'applications':
-      return <FileText className="w-5 h-5 text-green-500" />;
+      return <FileText className="w-4 h-4 text-emerald-400" />;
     case 'suggestions':
-      return <Lightbulb className="w-5 h-5 text-amber-500" />;
+      return <Lightbulb className="w-4 h-4 text-amber-400" />;
     default:
-      return <Bell className="w-5 h-5 text-gray-500" />;
+      return <Bell className="w-4 h-4 text-text-muted" />;
   }
 };
 
 const getPriorityStyles = (priority: string) => {
   switch (priority) {
     case 'high':
-      return 'border-l-4 border-l-rose-500';
+      return 'border-l-2 border-l-danger';
     case 'medium':
-      return 'border-l-4 border-l-blue-400';
+      return 'border-l-2 border-l-primary-500';
     default:
-      return 'border-l-4 border-l-gray-300';
+      return 'border-l-2 border-l-border';
   }
 };
 
@@ -53,8 +53,8 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
   return (
     <div 
       className={cn(
-        "group relative flex items-start gap-4 p-4 transition-all hover:bg-gray-50 border-b border-gray-100",
-        !isRead && "bg-blue-50/30",
+        "group relative flex items-start gap-4 p-4 transition-all hover:bg-background border-b border-border/50",
+        !isRead && "bg-primary-500/5",
         getPriorityStyles(notification.priority)
       )}
       onClick={onClick}
@@ -63,9 +63,9 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         <div className="relative">
           {getIcon(notification.category)}
           {!isRead && (
-            <span className="absolute -top-1 -right-1 flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-500"></span>
             </span>
           )}
         </div>
@@ -75,18 +75,18 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         <div className="flex justify-between items-start mb-1">
           <h4 className={cn(
             "text-sm font-semibold truncate pr-6",
-            isRead ? "text-gray-700" : "text-gray-900"
+            isRead ? "text-text-secondary" : "text-text"
           )}>
             {notification.title}
           </h4>
-          <span className="text-xs text-gray-400 whitespace-nowrap">
+          <span className="text-[10px] text-text-muted whitespace-nowrap font-medium">
             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
           </span>
         </div>
         
         <p className={cn(
-          "text-sm leading-relaxed mb-2 line-clamp-2",
-          isRead ? "text-gray-500" : "text-gray-600"
+          "text-xs leading-relaxed mb-3 line-clamp-2",
+          isRead ? "text-text-muted" : "text-text-secondary"
         )}>
           {notification.message}
         </p>
@@ -95,9 +95,9 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
           {notification.link && (
             <Link 
               href={notification.link}
-              className="text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              className="text-xs font-bold text-primary-400 hover:text-primary-300 flex items-center gap-1"
             >
-              Take Action <ExternalLink className="w-3 h-3" />
+              View Details <ExternalLink className="w-3 h-3" />
             </Link>
           )}
           
@@ -107,7 +107,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
                 e.stopPropagation();
                 onMarkAsRead(notification.id);
               }}
-              className="text-xs font-medium text-gray-400 hover:text-gray-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="text-[10px] font-bold text-text-muted hover:text-text-secondary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider"
             >
               Mark as read <Check className="w-3 h-3" />
             </button>

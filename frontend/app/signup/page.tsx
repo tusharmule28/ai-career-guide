@@ -39,7 +39,7 @@ export default function SignupPage() {
       const profile = await api.get('/users/profile');
       
       login(profile || { name, email }, data.access_token);
-      toast.success('Account generated. Welcome to the elite layer.');
+      toast.success('Account created. Welcome!');
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -69,8 +69,8 @@ export default function SignupPage() {
           >
             <UserPlus size={48} />
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-4">New Pioneer</h1>
-          <p className="text-text-secondary text-sm font-bold uppercase tracking-[0.2em] opacity-60">Initialize your professional profile</p>
+          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">Create Account</h1>
+          <p className="text-text-secondary text-sm font-medium">Join thousands of professionals today</p>
         </div>
 
         <Card className="p-10 md:p-12 border-white/10 shadow-premium">
@@ -94,7 +94,7 @@ export default function SignupPage() {
               required
             />
             <Input
-              label="Security Key"
+              label="Password"
               type="password"
               placeholder="••••••••"
               icon={Lock}
@@ -119,19 +119,18 @@ export default function SignupPage() {
             <Button 
                 type="submit" 
                 variant="accent"
-                className="w-full h-16 text-lg font-black rounded-2xl shadow-glow active:scale-[0.98] transform-gpu" 
+                className="w-full h-14 text-base font-bold rounded-xl shadow-lg" 
                 loading={loading}
-                icon={Sparkles}
               >
-                Launch Profile
+                Create Account
             </Button>
           </form>
 
-          <div className="mt-12 pt-8 border-t border-border/50 text-center">
-            <p className="text-xs font-bold text-text-muted">
-              Already a member? 
-              <Link href="/login" className="text-primary-400 font-black hover:text-primary-300 transition-all ml-2 underline decoration-primary-400/30 underline-offset-4">
-                Verify Identity
+          <div className="mt-10 pt-6 border-t border-border/50 text-center">
+            <p className="text-sm font-medium text-text-muted">
+              Already have an account? 
+              <Link href="/login" className="text-primary-400 font-bold hover:text-primary-300 transition-all ml-2 underline decoration-primary-400/30 underline-offset-4">
+                Sign In
               </Link>
             </p>
           </div>

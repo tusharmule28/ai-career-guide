@@ -22,22 +22,22 @@ export default function Home() {
 
         <div className="section-container relative z-10 text-center">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50 text-text-secondary font-black text-[10px] uppercase tracking-[0.2em] mb-8 shadow-inner"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface/50 border border-border/50 text-text-secondary font-semibold text-[10px] uppercase tracking-wider mb-8 shadow-sm"
           >
-            <Sparkles size={14} className="text-primary-400" />
-            Next-Gen Job Intelligence
+            <Sparkles size={14} className="text-primary-500" />
+            AI-Powered Job Matching
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-[0.9] md:leading-[0.85]"
+            className="text-4xl md:text-7xl font-bold text-white mb-8 tracking-tight leading-[1.1] md:leading-[1.05]"
           >
             Find your next <br className="hidden lg:block" />
-            <span className="premium-gradient bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-400 to-accent-500 bg-clip-text text-transparent">
               role, faster
             </span>
           </motion.h1>
@@ -60,20 +60,20 @@ export default function Home() {
             {!user ? (
               <>
                 <Link href="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" variant="accent" className="h-16 px-10 text-lg w-full sm:min-w-[220px] rounded-[2rem] shadow-glow hover:scale-105 active:scale-95 transition-all font-black">
-                    Start Matching <Rocket size={20} className="ml-2" />
+                  <Button size="lg" variant="accent" className="h-14 px-10 text-base w-full sm:min-w-[200px] rounded-full shadow-lg font-bold">
+                    Start Matching <Rocket size={18} className="ml-2" />
                   </Button>
                 </Link>
                 <Link href="/login" className="w-full sm:w-auto">
-                  <Button variant="ghost" size="lg" className="h-16 px-8 text-lg w-full border border-border/50 hover:bg-surface rounded-[2rem] font-bold">
-                    Existing Access
+                  <Button variant="ghost" size="lg" className="h-14 px-8 text-base w-full border border-border hover:bg-surface rounded-full font-semibold">
+                    Sign In
                   </Button>
                 </Link>
               </>
             ) : (
               <Link href="/dashboard" className="w-full sm:w-auto">
-                <Button size="lg" variant="accent" className="h-16 px-10 text-lg w-full shadow-glow rounded-[2rem] font-black">
-                  Resume Dashboard <ArrowRight size={20} className="ml-2" />
+                <Button size="lg" variant="accent" className="h-14 px-10 text-base w-full shadow-lg rounded-full font-bold">
+                  Go to Dashboard <ArrowRight size={18} className="ml-2" />
                 </Button>
               </Link>
             )}
@@ -123,13 +123,13 @@ export default function Home() {
                 <div className={cn("w-14 h-14 rounded-2xl mb-8 flex items-center justify-center border border-white/5", feature.bg, feature.color)}>
                   <feature.icon size={32} strokeWidth={2} />
                 </div>
-                <h3 className="text-2xl font-black text-white mb-4 tracking-tight">{feature.title}</h3>
-                <p className="text-text-secondary leading-relaxed font-bold text-sm mb-8">{feature.description}</p>
+                <h3 className="text-xl font-bold text-white mb-3 tracking-tight">{feature.title}</h3>
+                <p className="text-text-secondary leading-relaxed font-medium text-sm mb-6">{feature.description}</p>
                 <Link
                   href={user ? "/jobs" : "/signup"}
-                  className="flex items-center gap-2 text-[10px] font-black text-primary-400 uppercase tracking-widest group-hover:gap-3 transition-all"
+                  className="flex items-center gap-2 text-xs font-bold text-primary-400 hover:text-primary-300 transition-colors"
                 >
-                  Explore Technology <ChevronRight size={14} />
+                  Learn more <ChevronRight size={14} />
                 </Link>
               </motion.div>
             ))}
@@ -146,11 +146,11 @@ export default function Home() {
           className="premium-gradient rounded-[3.5rem] p-12 md:p-24 text-center relative overflow-hidden shadow-2xl"
         >
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter leading-none">The future of job <br className="hidden md:block" /> hunting is AI.</h2>
-            <p className="text-white/80 text-lg mb-12 font-bold max-w-md mx-auto">Join 10,000+ engineers finding their dream roles through intelligent matching.</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight leading-tight">The future of job <br className="hidden md:block" /> hunting is AI.</h2>
+            <p className="text-white/80 text-base md:text-lg mb-10 font-medium max-w-md mx-auto">Join thousands of professionals finding their dream roles through intelligent matching.</p>
             <Link href="/signup">
-              <Button size="lg" className="h-16 px-12 text-lg rounded-[2rem] bg-white text-black hover:bg-slate-100 shadow-2xl font-black transition-all hover:scale-105 active:scale-95">
-                Join the Elite Platform
+              <Button size="lg" className="h-14 px-10 text-base rounded-full bg-white text-black hover:bg-slate-100 shadow-xl font-bold transition-all">
+                Get Started Now
               </Button>
             </Link>
           </div>

@@ -25,13 +25,13 @@ const JobSearchFilter: React.FC<JobSearchFilterProps> = ({
   };
 
   return (
-    <div className="bg-surface/40 backdrop-blur-md border border-border/50 rounded-[2rem] p-6 mb-8 shadow-premium animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="bg-surface/30 backdrop-blur-md border border-border/50 rounded-3xl p-6 mb-8 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         {/* Keyword Search */}
         <div className="md:col-span-1">
           <Input
-            label="Protocol Search"
-            placeholder="Role, company, or tech..."
+            label="Search Jobs"
+            placeholder="Role, company, or skills..."
             icon={Search}
             value={filters.q}
             onChange={(e) => handleChange('q', e.target.value)}
@@ -41,24 +41,24 @@ const JobSearchFilter: React.FC<JobSearchFilterProps> = ({
 
         {/* Location Filter */}
         <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">
-            Sector / Region
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">
+            Location
           </label>
           <div className="relative group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors">
               <MapPin size={18} />
             </div>
             <select
-              className="w-full bg-surface border border-border rounded-xl py-3 pl-11 pr-4 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary-400/10 focus:border-primary-400 transition-all appearance-none cursor-pointer"
+              className="w-full bg-surface border border-border rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-text outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none cursor-pointer"
               value={filters.location}
               onChange={(e) => handleChange('location', e.target.value)}
             >
-              <option value="All">Global Matrix</option>
-              <option value="Remote">Remote Protocol</option>
-              <option value="Bangalore">Bangalore Hub</option>
-              <option value="San Francisco">SF Sector</option>
-              <option value="London">London Node</option>
-              <option value="Hyderabad">Hyderabad Node</option>
+              <option value="All">All Locations</option>
+              <option value="Remote">Remote</option>
+              <option value="Bangalore">Bangalore</option>
+              <option value="San Francisco">San Francisco</option>
+              <option value="London">London</option>
+              <option value="Hyderabad">Hyderabad</option>
             </select>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none border-t-4 border-t-slate-400 border-x-4 border-x-transparent" />
           </div>
@@ -66,23 +66,23 @@ const JobSearchFilter: React.FC<JobSearchFilterProps> = ({
 
         {/* Job Type Filter */}
         <div>
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-2 block">
-            Engagement Type
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">
+            Job Type
           </label>
           <div className="relative group">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-400 transition-colors">
               <Briefcase size={18} />
             </div>
             <select
-              className="w-full bg-surface border border-border rounded-xl py-3 pl-11 pr-4 text-sm font-bold text-text outline-none focus:ring-4 focus:ring-primary-400/10 focus:border-primary-400 transition-all appearance-none cursor-pointer"
+              className="w-full bg-surface border border-border rounded-xl py-3 pl-11 pr-4 text-sm font-semibold text-text outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all appearance-none cursor-pointer"
               value={filters.job_type}
               onChange={(e) => handleChange('job_type', e.target.value)}
             >
-              <option value="All">All Modalities</option>
-              <option value="Full-time">Full-time Core</option>
-              <option value="Part-time">Part-time Fragment</option>
-              <option value="Contract">Strategic Contract</option>
-              <option value="Internship">Apprentice Stream</option>
+              <option value="All">All Types</option>
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Contract">Contract</option>
+              <option value="Internship">Internship</option>
             </select>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none border-t-4 border-t-slate-400 border-x-4 border-x-transparent" />
           </div>
@@ -92,7 +92,7 @@ const JobSearchFilter: React.FC<JobSearchFilterProps> = ({
         <div className="flex gap-2">
           <Button
             variant="ghost"
-            className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-rose-400/60 hover:text-rose-400 hover:bg-rose-500/5 transition-all"
+            className="flex-1 h-12 rounded-xl text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-all"
             onClick={handleReset}
           >
             <FilterX size={16} className="mr-2" /> Reset

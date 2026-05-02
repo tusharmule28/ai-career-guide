@@ -17,22 +17,22 @@ const Button: React.FC<ButtonProps> = ({
   icon: Icon,
   ...props 
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-bold tracking-tight transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.96] hover:scale-[1.02] transform-gpu';
+  const baseStyles = 'inline-flex items-center justify-center font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed select-none active:scale-[0.98] transform-gpu';
   
   const variants = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-400 shadow-soft hover:shadow-glow',
-    accent: 'premium-gradient text-white shadow-soft hover:shadow-glow',
-    secondary: 'bg-surface text-text hover:bg-slate-700 border border-border/50',
-    outline: 'bg-transparent text-text border-2 border-border hover:border-primary-400/30 hover:bg-primary/10',
+    primary: 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm hover:shadow-glow-indigo',
+    accent: 'bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-md hover:shadow-premium',
+    secondary: 'bg-surface text-text hover:bg-slate-700 border border-border',
+    outline: 'bg-transparent text-text border border-border hover:border-primary-500/50 hover:bg-primary-500/5',
     ghost: 'bg-transparent text-text-secondary hover:bg-surface hover:text-text',
-    danger: 'bg-rose-500 text-white hover:bg-rose-600 shadow-soft',
-    dark: 'bg-slate-950 text-white hover:bg-slate-900 shadow-lg border border-white/5',
+    danger: 'bg-danger text-white hover:bg-red-600 shadow-sm',
+    dark: 'bg-slate-900 text-white hover:bg-slate-800 shadow-md border border-white/10',
   };
 
   const sizes = {
-    sm: 'px-4 py-2 text-xs rounded-xl',
-    md: 'px-6 py-2.5 text-sm rounded-xl',
-    lg: 'px-8 py-3.5 text-base rounded-2xl',
+    sm: 'px-3 py-1.5 text-xs rounded-lg',
+    md: 'px-5 py-2.5 text-sm rounded-xl',
+    lg: 'px-7 py-3.5 text-base rounded-2xl',
   };
 
   return (

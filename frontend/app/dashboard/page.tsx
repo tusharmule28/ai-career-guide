@@ -127,18 +127,18 @@ export default function DashboardPage() {
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="max-w-2xl text-center lg:text-left">
             <motion.div 
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/10 backdrop-blur-xl rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-8 border border-indigo-500/20 shadow-inner"
+                className="inline-flex items-center gap-2 px-3 py-1 bg-primary-500/10 backdrop-blur-xl rounded-full text-[10px] font-bold uppercase tracking-wider text-primary-400 mb-6 border border-primary-500/20"
             >
-              <Sparkles size={14} className="animate-pulse" /> Neural Profile Synced
+              <Sparkles size={14} className="animate-pulse" /> Profile Active
             </motion.div>
-            <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter leading-none mb-6">
-              Welcome, <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">{user?.name?.split(' ')[0] || 'Member'}</span>
+            <h1 className="text-3xl md:text-6xl font-bold text-white tracking-tight leading-tight mb-4">
+              Welcome, <span className="bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">{user?.name?.split(' ')[0] || 'Member'}</span>
             </h1>
-            <p className="text-text-secondary text-lg md:text-xl font-medium leading-relaxed mb-10 max-w-xl">
-              Our matching engine has flagged <span className="text-white font-black underline decoration-indigo-500/50 underline-offset-8">{matchedJobs.length} high-synergy roles</span> active in your trajectory.
+            <p className="text-text-secondary text-base md:text-lg leading-relaxed mb-8 max-w-xl">
+              Our matching engine has found <span className="text-white font-semibold underline decoration-primary-500/30 underline-offset-4">{matchedJobs.length} matches</span> tailored to your profile.
             </p>
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
               <Link href="/jobs" className="w-full sm:w-auto">
@@ -167,12 +167,12 @@ export default function DashboardPage() {
                 transition={{ delay: 0.4, type: 'spring' }}
                 className="relative bg-surface/40 backdrop-blur-3xl border border-white/10 p-12 rounded-[3.5rem] shadow-2xl text-center w-80"
             >
-              <div className="mb-12 relative flex justify-center mt-4">
-                <MatchPotencyMeter score={matchedJobs.length > 0 ? (summary.skill_score || 84) : 0} size={160} strokeWidth={12} />
+              <div className="mb-10 relative flex justify-center mt-4">
+                <MatchPotencyMeter score={matchedJobs.length > 0 ? (summary.skill_score || 84) : 0} size={140} strokeWidth={10} />
               </div>
-              <h3 className="text-white font-black text-2xl mb-3 tracking-tight">Potency Index</h3>
-              <p className="text-text-muted text-xs font-bold max-w-[200px] mx-auto leading-relaxed">
-                {matchedJobs.length > 0 && user?.is_premium ? "Maximum matching protocols enabled." : "Synchronize experience to boost effectiveness."}
+              <h3 className="text-white font-bold text-xl mb-2 tracking-tight">Match Potency</h3>
+              <p className="text-text-muted text-xs leading-relaxed">
+                {matchedJobs.length > 0 && user?.is_premium ? "AI matching engine fully optimized." : "Upload more data to improve accuracy."}
               </p>
             </motion.div>
           </div>
@@ -195,13 +195,13 @@ export default function DashboardPage() {
             key={i}
             className="h-full"
           >
-            <Card className="p-6 sm:p-8 flex items-center gap-4 sm:gap-6 border border-border/50 bg-surface/30 hover:bg-surface/50 transition-all duration-300 group h-full rounded-[2rem]">
-              <div className={cn("w-12 h-12 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg border border-white/5 transition-transform group-hover:scale-110", stat.bg, stat.color)}>
-                  <stat.icon size={22} strokeWidth={2.5} />
+            <Card className="p-6 flex items-center gap-4 border border-border/50 bg-surface/30 hover:bg-surface/50 transition-all duration-300 group h-full rounded-2xl shadow-sm">
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-white/5 transition-transform group-hover:scale-105", stat.bg, stat.color)}>
+                  <stat.icon size={20} strokeWidth={2} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">{stat.label}</p>
-                <p className="text-2xl sm:text-3xl font-black text-white tracking-tighter">
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-0.5">{stat.label}</p>
+                <p className="text-xl md:text-2xl font-bold text-white tracking-tight">
                   {stat.value}
                 </p>
               </div>
@@ -216,11 +216,11 @@ export default function DashboardPage() {
           
           {/* Dedicated Resume Section */}
           <section id="resume-upload-section">
-            <div className="flex items-center justify-between mb-8">
-               <h2 className="text-3xl font-black text-white tracking-tight leading-tight">Trajectory Sync</h2>
+            <div className="flex items-center justify-between mb-6">
+               <h2 className="text-2xl font-bold text-white tracking-tight">Resume Analysis</h2>
                {summary.has_resume && (
-                 <div className="px-4 py-2 bg-emerald-500/10 text-emerald-400 rounded-xl text-[10px] font-black uppercase tracking-wider border border-emerald-500/20">
-                   Active Workspace Synced
+                 <div className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
+                   Resume Synced
                  </div>
                )}
             </div>
@@ -233,13 +233,13 @@ export default function DashboardPage() {
 
           {/* Fresh Matches */}
           <section id="job-matches-section">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-3xl font-black text-white tracking-tight leading-tight">High-Potency Matches</h2>
-                <p className="text-sm text-text-secondary font-bold mt-1">Refined from the latest market shifts</p>
+                <h2 className="text-2xl font-bold text-white tracking-tight">Recommended Jobs</h2>
+                <p className="text-sm text-text-secondary mt-1">AI-curated roles for your profile</p>
               </div>
-              <Link href="/jobs" className="text-xs font-black text-indigo-400 hover:text-indigo-300 transition-all uppercase tracking-widest flex items-center gap-2 group">
-                All Roles <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              <Link href="/jobs" className="text-xs font-bold text-primary-400 hover:text-primary-300 transition-all uppercase tracking-wider flex items-center gap-1 group">
+                View All <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
 
@@ -271,9 +271,9 @@ export default function DashboardPage() {
 
           {/* Activities / Tips */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="p-8 bg-surface/30 border-border/50 rounded-[2.5rem]">
-               <h3 className="text-lg font-black text-white mb-8 flex items-center gap-3 tracking-tight">
-                  <Clock size={20} className="text-indigo-400" /> Operational Log
+            <Card className="p-6 bg-surface/30 border-border/50 rounded-3xl">
+               <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3 tracking-tight">
+                  <Clock size={18} className="text-primary-400" /> Activity Log
                </h3>
                {summaryLoading ? (
                  <div className="space-y-6">
@@ -287,8 +287,8 @@ export default function DashboardPage() {
                            <CheckCircle2 size={18} />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-black text-white leading-tight mb-1">{activity.title}</p>
-                          <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">{activity.time}</p>
+                          <p className="text-sm font-semibold text-white leading-tight mb-1">{activity.title}</p>
+                          <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider">{activity.time}</p>
                         </div>
                       </div>
                     ))}
@@ -298,9 +298,9 @@ export default function DashboardPage() {
                )}
             </Card>
 
-            <Card className="p-8 bg-surface/30 border-border/50 rounded-[2.5rem]">
-               <h3 className="text-lg font-black text-white mb-8 flex items-center gap-3 tracking-tight">
-                  <Sparkles size={20} className="text-violet-400" /> AI Insights
+            <Card className="p-6 bg-surface/30 border-border/50 rounded-3xl">
+               <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-3 tracking-tight">
+                  <Sparkles size={18} className="text-accent-400" /> AI Recommendations
                </h3>
                {summaryLoading ? (
                  <div className="space-y-4">
@@ -308,10 +308,10 @@ export default function DashboardPage() {
                  </div>
                ) : summary.recommendations?.length > 0 ? (
                  <div className="space-y-4">
-                    {summary.recommendations.map((rec: any, i: number) => (
-                      <div key={i} className="p-5 bg-indigo-500/5 rounded-2xl border border-indigo-500/10 hover:border-indigo-500/30 transition-all duration-300">
-                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2">{rec.category}</p>
-                        <p className="text-xs text-text-secondary font-bold leading-relaxed">{rec.text}</p>
+                     {summary.recommendations.map((rec: any, i: number) => (
+                      <div key={i} className="p-4 bg-primary-500/5 rounded-xl border border-primary-500/10 hover:border-primary-500/20 transition-all duration-300">
+                        <p className="text-[10px] font-bold text-primary-400 uppercase tracking-wider mb-1.5">{rec.category}</p>
+                        <p className="text-xs text-text-secondary leading-relaxed">{rec.text}</p>
                       </div>
                     ))}
                  </div>
@@ -331,14 +331,14 @@ export default function DashboardPage() {
             <SkillGapInsights />
           </section>
 
-          <Card className="p-8 bg-surface border-border/50 rounded-[2.5rem] group relative overflow-hidden">
+          <Card className="p-6 bg-surface border-border/50 rounded-3xl group relative overflow-hidden">
             <div className="relative z-10">
-              <div className="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-emerald-500/20 group-hover:rotate-6 transition-transform">
-                <ShieldCheck size={28} />
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center mb-6 shadow-sm border border-emerald-500/20 group-hover:rotate-3 transition-transform">
+                <ShieldCheck size={24} />
               </div>
-              <h3 className="text-xl font-black text-white mb-4 tracking-tight leading-tight">Career Architecture Gap</h3>
-              <p className="text-text-secondary text-sm font-bold mb-8 leading-relaxed italic opacity-80">
-                Synchronize your resume with current market potency metrics to discover untapped synergies.
+              <h3 className="text-xl font-bold text-white mb-3 tracking-tight leading-tight">Skill Gap Analysis</h3>
+              <p className="text-text-secondary text-sm mb-6 leading-relaxed">
+                Compare your profile with market requirements to find areas for growth.
               </p>
               <Button
                 variant="dark"

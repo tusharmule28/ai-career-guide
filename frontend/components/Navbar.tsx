@@ -39,13 +39,13 @@ const Navbar = () => {
         <div className="flex justify-between h-18 py-3 items-center">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="premium-gradient p-2 rounded-xl text-white group-hover:rotate-3 transition-all duration-500 shadow-soft hover:shadow-glow">
-                <ShieldCheck size={22} strokeWidth={2.5} />
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-9 h-9 premium-gradient rounded-lg text-white flex items-center justify-center transition-all duration-300 shadow-sm group-hover:shadow-glow-indigo">
+                <ShieldCheck size={20} strokeWidth={2} />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-black tracking-tight text-text leading-none">
-                  CareerGuide<span className="text-primary-400">AI</span>
+                <span className="text-lg font-bold tracking-tight text-text leading-none">
+                  CareerGuide<span className="text-primary-500">AI</span>
                 </span>
               </div>
             </Link>
@@ -58,10 +58,10 @@ const Navbar = () => {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-200",
+                  "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive(item.href) 
-                    ? 'bg-primary/20 text-primary-300 shadow-sm' 
-                    : 'text-text-secondary hover:bg-surface hover:text-text'
+                    ? 'bg-primary-500/10 text-primary-400' 
+                    : 'text-text-secondary hover:text-text hover:bg-surface'
                 )}
               >
                 <item.icon size={16} strokeWidth={2} />

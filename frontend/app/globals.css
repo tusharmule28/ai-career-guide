@@ -1,41 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #EEF2FF;
-  --color-primary-100: #E0E7FF;
-  --color-primary-200: #C7D2FE;
-  --color-primary-300: #A5B4FC;
-  --color-primary-400: #818CF8;
+  --color-primary-50: #F5F7FF;
+  --color-primary-100: #EBEFFF;
+  --color-primary-200: #D6DEFF;
+  --color-primary-300: #B2C1FF;
+  --color-primary-400: #8A9FFF;
   --color-primary-500: #6366F1;
   --color-primary-600: #4F46E5;
   --color-primary-700: #4338CA;
   --color-primary-800: #3730A3;
   --color-primary-900: #312E81;
-  --color-primary: #818CF8;
+  --color-primary: #6366F1;
 
-  --color-accent-50: #F5F3FF;
-  --color-accent-100: #EDE9FE;
-  --color-accent-200: #DDD6FE;
-  --color-accent-300: #C4B5FD;
-  --color-accent-400: #A78BFA;
-  --color-accent-500: #8B5CF6;
-  --color-accent-600: #7C3AED;
-  --color-accent-700: #6D28D9;
-  --color-accent-800: #5B21B6;
-  --color-accent-900: #4C1D95;
-  --color-accent: #A78BFA;
+  --color-accent-50: #FAF5FF;
+  --color-accent-100: #F3E8FF;
+  --color-accent-200: #E9D5FF;
+  --color-accent-300: #D8B4FE;
+  --color-accent-400: #C084FC;
+  --color-accent-500: #A855F7;
+  --color-accent-600: #9333EA;
+  --color-accent-700: #7E22CE;
+  --color-accent-800: #6B21A8;
+  --color-accent-900: #581C87;
+  --color-accent: #A855F7;
 
-  --color-background: #0F172A;
-  --color-surface: #1E293B;
+  --color-background: #0B0F1A;
+  --color-surface: #161B2B;
 
-  --color-text: #F8FAFC;
+  --color-text: #F1F5F9;
   --color-text-secondary: #94A3B8;
   --color-text-muted: #64748B;
 
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-danger: #EF4444;
-  --color-border: #334155;
+  --color-border: #2D3748;
 
   --font-sans: "Inter", "system-ui", "sans-serif";
   --font-display: "Outfit", "Inter", "system-ui", "sans-serif";
@@ -49,28 +49,28 @@
   --radius-3xl: 1.5rem;
   --radius-4xl: 2rem;
 
-  --shadow-card: 0 2px 4px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.03);
-  --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-  --shadow-glow: 0 0 20px -5px rgba(99, 102, 241, 0.3);
-  --shadow-glow-indigo: 0 0 30px -5px rgba(99, 102, 241, 0.4);
-  --shadow-glow-emerald: 0 0 20px -5px rgba(16, 185, 129, 0.3);
-  --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 0 20px -5px rgba(99, 102, 241, 0.25);
+  --shadow-glow-indigo: 0 0 30px -5px rgba(99, 102, 241, 0.35);
+  --shadow-glow-emerald: 0 0 20px -5px rgba(16, 185, 129, 0.25);
+  --shadow-soft: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
   --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   --animate-float: float 6s ease-in-out infinite;
-  --animate-fade-in: fadeIn 0.5s ease-out forwards;
-  --animate-slide-up: slideUp 0.5s ease-out forwards;
+  --animate-fade-in: fadeIn 0.4s ease-out forwards;
+  --animate-slide-up: slideUp 0.4s ease-out forwards;
 
   @keyframes float {
     0%, 100% { transform: translateY(0px) }
-    50% { transform: translateY(-10px) }
+    50% { transform: translateY(-8px) }
   }
   @keyframes fadeIn {
     0% { opacity: 0 }
     100% { opacity: 1 }
   }
   @keyframes slideUp {
-    0% { transform: translateY(20px); opacity: 0 }
+    0% { transform: translateY(12px); opacity: 0 }
     100% { transform: translateY(0); opacity: 1 }
   }
 }
@@ -79,32 +79,28 @@
   html {
     scroll-behavior: smooth;
     -webkit-tap-highlight-color: transparent;
-    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-text antialiased selection:bg-primary-500/30 selection:text-white;
     font-family: var(--font-sans);
-    /* Prevent overscroll bounce on PWA */
     overscroll-behavior-y: contain;
-    /* Smooth font rendering */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight text-white;
+    @apply font-semibold tracking-tight text-white;
     font-family: var(--font-display);
   }
 
-  /* Touch fast-tap everywhere */
   button, a, [role="button"] {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-accent-400 ring-offset-background;
+    @apply outline-none ring-2 ring-primary-400 ring-offset-background;
   }
 }
 

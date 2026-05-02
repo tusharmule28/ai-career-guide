@@ -76,7 +76,7 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
       const response = await api.upload('/resumes/upload', formData);
       setExtractedData(response.extracted_data || { skills: [], job_title: '', experience_years: 0 });
       setStep('review');
-      toast.success('Neural extraction complete. Please review your profile.');
+      toast.success('Resume analyzed successfully. Please review your profile.');
     } catch (err: any) {
       console.error('Upload failed:', err);
       toast.error(err.message || 'Failed to analyze resume.');
@@ -88,13 +88,11 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
   const finalizeProfile = async () => {
     setUploading(true);
     try {
-      // In a real app, we might send an update to /users/profile here if the user edited skills
-      // But for now, the backend already saved the initial extraction to the user model.
-      toast.success('Strategy synchronized! Matches are being recalibrated.');
+      toast.success('Profile saved! Matches are being updated.');
       if (onUploadSuccess) onUploadSuccess();
       clearFile();
     } catch (err) {
-      toast.error('Failed to finalize profile.');
+      toast.error('Failed to save profile.');
     } finally {
       setUploading(false);
     }
@@ -118,22 +116,21 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="w-full py-10"
+              className="w-full py-8"
             >
-              <div className="flex flex-col items-center gap-6">
-                <div className="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-3xl flex items-center justify-center border border-emerald-500/20 shadow-glow-emerald animate-pulse-slow">
-                  <FileText size={40} />
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20 shadow-sm">
+                  <FileText size={32} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Active Footprint Synced</h3>
-                  <p className="text-sm font-bold text-text-muted uppercase tracking-widest mb-1">Current Resume</p>
-                  <p className="text-lg font-black text-emerald-400">{existingResumeName || "Master_Resume.pdf"}</p>
+                  <h3 className="text-xl font-bold text-white mb-1 tracking-tight">Resume Active</h3>
+                  <p className="text-xs font-semibold text-emerald-400/80 mb-4">{existingResumeName || "resume.pdf"}</p>
                 </div>
                 <div className="flex gap-4">
                   <Button
                     onClick={() => fileInputRef.current?.click()}
-                    variant="secondary"
-                    className="h-12 px-8 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                    variant="outline"
+                    className="h-10 px-6 rounded-xl font-bold text-xs"
                   >
                     Replace Resume
                   </Button>
@@ -150,16 +147,16 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`w-full py-12 cursor-pointer transition-all duration-300 rounded-[2rem] border-2 border-transparent ${
-                isDragActive ? 'bg-indigo-500/10 border-indigo-500/30 scale-[1.02]' : 'hover:bg-white/5'
+              className={`w-full py-12 cursor-pointer transition-all duration-300 rounded-3xl border-2 border-transparent ${
+                isDragActive ? 'bg-primary-500/10 border-primary-500/30 scale-[1.01]' : 'hover:bg-white/5'
               }`}
             >
-              <div className="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-glow border border-indigo-500/20">
-                <UploadCloud size={32} />
+              <div className="w-14 h-14 bg-primary-500/10 text-primary-400 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-primary-500/20 shadow-sm">
+                <UploadCloud size={28} />
               </div>
-              <h3 className="text-xl font-black text-white mb-2 tracking-tight">Sync Your Trajectory</h3>
-              <p className="text-text-secondary text-sm font-bold max-w-[240px] mx-auto leading-relaxed">
-                Drag and drop your <span className="text-indigo-400">PDF resume</span> to initialize AI matching protocols.
+              <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Upload Resume</h3>
+              <p className="text-text-secondary text-sm font-medium max-w-[240px] mx-auto leading-relaxed">
+                Drag and drop your <span className="text-primary-400">PDF resume</span> to start AI matching.
               </p>
             </motion.div>
           ) : step === 'review' ? (
@@ -170,13 +167,13 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
               exit={{ opacity: 0, x: -20 }}
               className="w-full text-left"
             >
-               <div className="flex items-center gap-3 mb-8">
-                  <div className="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center border border-emerald-500/20">
-                     <CheckCircle2 size={24} />
+               <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/20">
+                     <CheckCircle2 size={20} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-white tracking-tight">Strategy Extracted</h3>
-                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">Review your professional footprint</p>
+                    <h3 className="text-lg font-bold text-white tracking-tight">Profile Summary</h3>
+                    <p className="text-[10px] text-text-muted font-bold uppercase tracking-wider">Review detected information</p>
                   </div>
                </div>
 
@@ -206,10 +203,10 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
                  <Button
                    onClick={finalizeProfile}
                    loading={uploading}
-                   variant="primary"
-                   className="flex-1 h-16 rounded-2xl font-black text-xs uppercase tracking-widest shadow-glow-primary"
+                   variant="accent"
+                   className="flex-1 h-14 rounded-xl font-bold text-xs uppercase tracking-wider"
                  >
-                   Confirm & Recalibrate
+                   Save Profile
                  </Button>
                  <Button
                    variant="ghost"
@@ -255,17 +252,17 @@ export default function ResumeUpload({ onUploadSuccess, hasExistingResume, exist
                   loading={uploading}
                   disabled={uploading}
                   variant="accent"
-                  className="flex-1 h-14 rounded-xl font-black text-xs uppercase tracking-widest shadow-glow"
+                  className="flex-1 h-14 rounded-xl font-bold text-xs uppercase tracking-wider"
                 >
                   {uploading ? (
                     <>
                       <Loader2 size={16} className="mr-2 animate-spin" />
-                      Analyzing Neural Data...
+                      Analyzing Resume...
                     </>
                   ) : (
                     <>
                       <CheckCircle2 size={16} className="mr-2" />
-                      Execute Extraction
+                      Analyze Resume
                     </>
                   )}
                 </Button>

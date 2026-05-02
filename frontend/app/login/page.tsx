@@ -40,7 +40,7 @@ export default function LoginPage() {
         console.warn('Failed to fetch profile names after login:', profileErr);
       }
 
-      toast.success('Strategy session verified. Welcome back.');
+      toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -70,8 +70,8 @@ export default function LoginPage() {
           >
             <Sparkles size={48} />
           </motion.div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter leading-none mb-4">Elite Portal</h1>
-          <p className="text-text-secondary text-sm font-bold uppercase tracking-[0.2em] opacity-60">Synchronize your professional DNA</p>
+          <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">Sign In</h1>
+          <p className="text-text-secondary text-sm font-medium">Welcome back! Please enter your details.</p>
         </div>
 
         <Card className="p-10 md:p-12 border-white/10 shadow-premium">
@@ -87,7 +87,7 @@ export default function LoginPage() {
               className="group"
             />
             <Input
-              label="Security Key"
+              label="Password"
               type="password"
               placeholder="••••••••"
               icon={Lock}
@@ -112,19 +112,18 @@ export default function LoginPage() {
             <Button
               type="submit"
               variant="accent"
-              className="w-full h-16 text-lg font-black rounded-2xl shadow-glow active:scale-[0.98] transform-gpu"
+              className="w-full h-14 text-base font-bold rounded-xl shadow-lg"
               loading={loading}
-              icon={LogIn}
             >
-              Verify Identity
+              Sign In
             </Button>
           </form>
 
-          <div className="mt-12 pt-8 border-t border-border/50 text-center">
-            <p className="text-xs font-bold text-text-muted">
-              First time here?
-              <Link href="/signup" className="text-primary-400 font-black hover:text-primary-300 transition-all ml-2 underline decoration-primary-400/30 underline-offset-4">
-                Initialize Account
+          <div className="mt-10 pt-6 border-t border-border/50 text-center">
+            <p className="text-sm font-medium text-text-muted">
+              Don't have an account?
+              <Link href="/signup" className="text-primary-400 font-bold hover:text-primary-300 transition-all ml-2 underline decoration-primary-400/30 underline-offset-4">
+                Create Account
               </Link>
             </p>
           </div>
